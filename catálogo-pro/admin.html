@@ -466,62 +466,67 @@
             if (!source.trim()) return alert('Por favor, pega el código fuente primero.');
 
             btn.classList.add('btn-loading');
-            btn.innerHTML = 'Procesando HTML...';
+            btn.innerHTML = 'Procesando flujo de datos...';
             status.classList.remove('hidden', 'text-red-500', 'text-green-500');
-            status.textContent = 'Analizando flujo de datos...';
+            status.textContent = 'Analizando flujo del catálogo (NextJS Stream)...';
 
             try {
-                // Normalización agresiva para limpiar saltos de línea y escapar comillas dobles de Next.js
-                let normalized = source.replace(/[\n\r\t]/g, ' ');
-                normalized = normalized.replace(/\\"/g, '"');
-                normalized = normalized.replace(/\\/g, '');
+                // NORMALIZACIÓN RADICAL: Unificamos escapes para poder leerlo como texto plano
+                let cleanText = source.replace(/[\n\r\t]/g, ' ');
+                cleanText = cleanText.replace(/\\"/g, '"');
+                cleanText = cleanText.replace(/\\\\/g, '\\');
 
                 let extractedProducts = [];
-                const nameRegex = /"name"\s*:\s*"([^"]+)"/g;
+                
+                // Mapeo directo sobre los tokens estables del JSON inyectado de NextJS
+                // Buscamos patrones del tipo: "name":"Nombre del producto" o "title":"Nombre"
+                const productRegex = /"(name|title)"\s*:\s*"([^"]+)"/g;
                 let match;
 
-                // Escaneo de proximidad por ventanas de texto
-                while ((match = nameRegex.exec(normalized)) !== null) {
-                    const titulo = match[1].trim();
+                while ((match = productRegex.exec(cleanText)) !== null) {
+                    const titulo = match[2].trim();
                     
-                    // Excluir metadatos del catálogo y falsos positivos gigantes
+                    // Filtrar falsos positivos lógicos (nombres de la tienda, llaves de configuración, etc.)
                     if (titulo.toLowerCase().includes("braja express") || 
                         titulo.toLowerCase().includes("catálogo") || 
                         titulo.toLowerCase() === "dashboard" ||
-                        titulo.length > 90) {
+                        titulo.length < 2 || 
+                        titulo.length > 85) {
                         continue;
                     }
 
-                    // Delimitar ventana de 1200 caracteres adelante del nombre para buscar sus propiedades asociadas
+                    // Delimitamos una ventana amplia de 1800 caracteres adelante del nombre para capturar sus datos vinculados
                     const startIdx = match.index;
-                    const endIdx = Math.min(normalized.length, match.index + 1200);
-                    const chunk = normalized.substring(startIdx, endIdx);
+                    const endIdx = Math.min(cleanText.length, match.index + 1800);
+                    const chunk = cleanText.substring(startIdx, endIdx);
 
-                    // Buscar el precio más cercano en la ventana
-                    const priceMatch = chunk.match(/"price"\s*:\s*([0-9]+(?:\.[0-9]+)?)/) || 
-                                       chunk.match(/"price_amount"\s*:\s*([0-9]+(?:\.[0-9]+)?)/) ||
-                                       chunk.match(/"priceAmount"\s*:\s*([0-9]+(?:\.[0-9]+)?)/);
+                    // Buscar precio exacto con o sin comillas
+                    const priceMatch = chunk.match(/"price"\s*:\s*"?([0-9]+)"?/i) || 
+                                       chunk.match(/"price_amount"\s*:\s*"?([0-9]+)"?/i) ||
+                                       chunk.match(/"priceAmount"\s*:\s*"?([0-9]+)"?/i);
 
-                    // Buscar la descripción más cercana en la ventana
-                    const descMatch = chunk.match(/"description"\s*:\s*"([^"]*)"/) || 
-                                      chunk.match(/"desc"\s*:\s*"([^"]*)"/);
+                    // Buscar descripción vinculada
+                    const descMatch = chunk.match(/"description"\s*:\s*"([^"]*?)"/i) || 
+                                      chunk.match(/"desc"\s*:\s*"([^"]*?)"/i);
 
-                    // Buscar la imagen más cercana en la ventana
-                    const imgMatch = chunk.match(/"url"\s*:\s*"([^"]+)"/) || 
-                                     chunk.match(/"image"\s*:\s*"([^"]+)"/) || 
-                                     chunk.match(/"imageUrl"\s*:\s*"([^"]+)"/) ||
-                                     chunk.match(/"src"\s*:\s*"([^"]+)"/);
+                    // Buscar URL de imagen vinculada
+                    const imgMatch = chunk.match(/"image"\s*:\s*"([^"]+?)"/i) || 
+                                     chunk.match(/"imageUrl"\s*:\s*"([^"]+?)"/i) || 
+                                     chunk.match(/"url"\s*:\s*"([^"]+?)"/i) ||
+                                     chunk.match(/"src"\s*:\s*"([^"]+?)"/i);
 
                     if (priceMatch) {
                         const precio = parseFloat(priceMatch[1]);
                         const descripcion = descMatch ? descMatch[1].trim() : '';
                         let imagen_url = imgMatch ? imgMatch[1].trim() : '';
 
+                        // Normalización básica de la URL de la imagen
                         if (imagen_url && !imagen_url.startsWith('http')) {
-                            imagen_url = 'https://' + imagen_url;
+                            if (imagen_url.startsWith('//')) imagen_url = 'https:' + imagen_url;
+                            else imagen_url = 'https://' + imagen_url;
                         }
 
-                        // Evitar guardar duplicados
+                        // Evitar duplicación del mismo ítem en la tanda
                         if (precio > 0 && !extractedProducts.some(p => p.titulo === titulo)) {
                             extractedProducts.push({ titulo, precio, descripcion, imagen_url });
                         }
@@ -529,12 +534,13 @@
                 }
 
                 if (extractedProducts.length === 0) {
-                    throw new Error('No se detectaron registros de productos en el bloque de texto. Verifique haber copiado el código fuente completo.');
+                    throw new Error('El procesador de texto no detectó variables de productos en el bloque pegado. Asegúrate de copiar el código fuente de la página completa.');
                 }
 
-                status.textContent = `Se encontraron ${extractedProducts.length} productos. Subiendo a Supabase...`;
+                status.textContent = `Se detectaron ${extractedProducts.length} productos en el stream. Subiendo a Supabase...`;
+                console.log('Productos listos para insertar:', extractedProducts);
 
-                // Inserción en lote directo
+                // Inserción en bloque masivo a Supabase
                 const { error } = await supabaseClient
                     .from('productos')
                     .insert(extractedProducts);
@@ -542,7 +548,7 @@
                 if (error) throw error;
 
                 status.classList.add('text-green-500');
-                status.textContent = `¡Éxito! Se importaron ${extractedProducts.length} productos.`;
+                status.textContent = `¡Éxito! Se importaron de forma masiva ${extractedProducts.length} productos.`;
                 showToast(`¡Sincronización masiva de ${extractedProducts.length} ítems completada!`);
                 
                 document.getElementById('treintaSource').value = '';
@@ -550,10 +556,10 @@
                 showTab('inventory');
 
             } catch (err) {
-                console.error('Fallo crítico en el importador de flujo:', err);
+                console.error('Fallo crítico en el importador por proximidad:', err);
                 status.classList.add('text-red-500');
                 status.textContent = 'Error en la importación: ' + err.message;
-                alert('Ocurrió un error: ' + err.message);
+                alert('Ocurrió un error en el procesamiento: ' + err.message);
             } finally {
                 btn.classList.remove('btn-loading');
                 btn.innerHTML = '<i data-lucide="download-cloud" class="w-5 h-5"></i> Importar desde Treinta';
