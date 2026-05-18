@@ -1,0 +1,33 @@
+name: Sync Catalog from Provider
+
+on:
+  schedule:
+    # Ejecutar cada 3 horas (00:00, 03:00, 06:00, etc.)
+    - cron: '0 */3 * * *'
+  workflow_dispatch: # Permite ejecución manual desde la pestaña Actions en GitHub
+
+jobs:
+  sync:
+    runs-on: ubuntu-latest
+    steps:
+      - name: Checkout repository
+        uses: actions/checkout@v4
+
+      - name: Setup Node.js
+        uses: actions/setup-node@v4
+        with:
+          node-version: 18
+          cache: 'npm'
+          cache-dependency-path: catálogo-pro/package.json
+
+      - name: Install dependencies
+        run: |
+          cd catálogo-pro
+          npm install
+
+      - name: Run synchronization script
+        env:
+          SUPABASE_URL: ${{ secrets.SUPABASE_URL }}
+          SUPABASE_KEY: ${{ secrets.SUPABASE_KEY }}
+        run: |
+          node catálogo-pro/scripts/sync-provider.js
