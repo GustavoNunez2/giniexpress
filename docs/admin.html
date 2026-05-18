@@ -1,0 +1,560 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Panel de Administración - Catálogo Pro</title>
+    <!-- Tailwind CSS 4.0 -->
+    <script src="https://unpkg.com/@tailwindcss/browser@4"></script>
+    <!-- Supabase JS -->
+    <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
+    <!-- Lucide Icons -->
+    <script src="https://unpkg.com/lucide@latest"></script>
+    <!-- Google Fonts -->
+    <link href="https://fonts.googleapis.com/css2?family=IBM+Plex+Mono:wght@400;500;600&family=Inter:wght@300;400;500;600;700&display=swap" rel="stylesheet">
+    <style>
+        body { font-family: 'Inter', system-ui, sans-serif; background-color: #F8FAFC; color: #1E293B; }
+        .mono { font-family: 'IBM Plex Mono', monospace; }
+        [v-cloak] { display: none; }
+        .tab-content { display: none; }
+        .tab-content.active { display: block; }
+        .btn-loading { pointer-events: none; opacity: 0.7; }
+        
+        /* Minimalism Elements */
+        .btn-primary { background-color: #0F172A; color: white; transition: all 0.2s; }
+        .btn-primary:hover { background-color: #1e293b; }
+        .input-minimal { background-color: #F1F5F9; border: 1px solid #E2E8F0; border-radius: 8px; transition: all 0.2s; }
+        .input-minimal:focus { border-color: #0F172A; outline: none; background-color: white; }
+        
+        @keyframes slideIn { from { transform: translateY(10px); opacity: 0; } to { transform: translateY(0); opacity: 1; } }
+        .slide-in { animation: slideIn 0.3s ease-out forwards; }
+    </style>
+</head>
+<body class="min-h-screen">
+
+    <!-- Login Section -->
+    <div id="loginSection" class="hidden min-h-screen flex items-center justify-center p-6">
+        <div class="bg-white rounded-2xl p-10 md:p-14 shadow-2xl w-full max-w-md border border-slate-100 flex flex-col items-center">
+            <div class="text-center mb-10">
+                <div class="w-16 h-16 bg-slate-900 rounded-2xl flex items-center justify-center text-white mx-auto mb-6 shadow-xl shadow-slate-200">
+                    <i data-lucide="shield-check" class="w-8 h-8"></i>
+                </div>
+                <h1 class="text-2xl font-bold text-slate-900">Admin Portal</h1>
+                <p class="text-slate-400 text-sm mt-2">Identifícate para gestionar tu tienda</p>
+            </div>
+            
+            <form id="loginForm" class="w-full space-y-6">
+                <div class="space-y-1.5">
+                    <label class="text-[10px] font-bold uppercase tracking-widest text-slate-400 ml-1">E-mail Address</label>
+                    <input type="email" id="email" required class="w-full input-minimal px-4 py-3.5 text-sm">
+                </div>
+                <div class="space-y-1.5">
+                    <label class="text-[10px] font-bold uppercase tracking-widest text-slate-400 ml-1">Password</label>
+                    <input type="password" id="password" required class="w-full input-minimal px-4 py-3.5 text-sm">
+                </div>
+                <button type="submit" id="loginBtn" class="w-full btn-primary py-4 rounded-xl font-bold flex items-center justify-center gap-2 shadow-xl shadow-slate-200 mt-4">
+                    Comenzar sesión <i data-lucide="chevron-right" class="w-4 h-4 text-white/50"></i>
+                </button>
+            </form>
+            <div class="mt-10">
+                <a href="index.html" class="text-xs font-bold text-slate-300 hover:text-slate-900 transition-all tracking-widest uppercase">← Back to Store</a>
+            </div>
+        </div>
+    </div>
+
+    <!-- Admin Panel -->
+    <div id="adminPanel" class="hidden flex flex-col min-h-screen">
+        <header class="bg-white border-b border-slate-200 sticky top-0 z-40 h-16 flex items-center">
+            <div class="max-w-7xl w-full mx-auto px-6 flex items-center justify-between">
+                <div class="flex items-center gap-8">
+                    <div class="flex items-center gap-3">
+                        <div class="w-8 h-8 bg-slate-900 rounded flex items-center justify-center text-white">
+                            <i data-lucide="command" class="w-4 h-4"></i>
+                        </div>
+                        <span class="font-bold tracking-tight text-slate-900 uppercase text-sm">Dashboard</span>
+                    </div>
+                    <nav class="hidden md:flex gap-1">
+                        <button onclick="showTab('inventory')" class="nav-tab text-xs font-bold uppercase tracking-wider px-4 py-2 rounded-lg bg-slate-900 text-white" data-tab="inventory">Inventory</button>
+                        <button onclick="showTab('add')" class="nav-tab text-xs font-bold uppercase tracking-wider px-4 py-2 rounded-lg text-slate-400 hover:text-slate-900 transition-colors" data-tab="add">Add NEW</button>
+                        <button onclick="showTab('bulk')" class="nav-tab text-xs font-bold uppercase tracking-wider px-4 py-2 rounded-lg text-slate-400 hover:text-slate-900 transition-colors" data-tab="bulk">Bulk Update</button>
+                        <button onclick="showTab('import')" class="nav-tab text-xs font-bold uppercase tracking-wider px-4 py-2 rounded-lg text-slate-400 hover:text-slate-900 transition-colors" data-tab="import">Import</button>
+                    </nav>
+                </div>
+                <div class="flex items-center gap-5">
+                    <div id="userEmail" class="text-[10px] font-bold text-slate-300 hidden sm:block bg-slate-50 px-3 py-1.5 rounded-md border border-slate-100">...</div>
+                    <button id="logoutBtn" class="text-slate-300 hover:text-red-500 transition-colors bg-white hover:bg-red-50 p-2 rounded-lg border border-slate-100">
+                        <i data-lucide="log-out" class="w-4 h-4"></i>
+                    </button>
+                </div>
+            </div>
+        </header>
+
+        <main class="flex-1 max-w-7xl w-full mx-auto p-6 md:p-10">
+            <!-- Tab: Inventory -->
+            <section id="inventory" class="tab-content active slide-in">
+                <div class="flex justify-between items-center mb-10">
+                    <div>
+                        <h2 class="text-2xl font-bold text-slate-900">Inventario</h2>
+                        <p class="text-sm text-slate-400 mt-1">Gestión rápida de precios y detalles</p>
+                    </div>
+                    <div class="flex items-center gap-4">
+                        <span id="productCount" class="text-[10px] font-bold uppercase tracking-widest text-slate-400 bg-slate-100 px-3 py-1 rounded-full">0 ITEMS</span>
+                        <button onclick="fetchProducts()" class="p-2 border border-slate-200 rounded-lg text-slate-400 hover:text-slate-900 hover:bg-white transition-all">
+                            <i data-lucide="rotate-cw" class="w-4 h-4"></i>
+                        </button>
+                    </div>
+                </div>
+
+                <div class="bg-white border border-slate-100 rounded-2xl overflow-hidden shadow-sm">
+                    <div class="overflow-x-auto">
+                        <table class="w-full text-left">
+                            <thead class="bg-slate-50 border-b border-slate-100">
+                                <tr>
+                                    <th class="px-8 py-5 text-[10px] font-bold uppercase tracking-widest text-slate-400">Producto</th>
+                                    <th class="px-8 py-5 text-[10px] font-bold uppercase tracking-widest text-slate-400">Precio</th>
+                                    <th class="px-8 py-5 text-[10px] font-bold uppercase tracking-widest text-slate-400">Descripción</th>
+                                    <th class="px-8 py-5 text-[10px] font-bold uppercase tracking-widest text-slate-400 text-right">Acciones</th>
+                                </tr>
+                            </thead>
+                            <tbody id="inventoryTable" class="divide-y divide-slate-50"></tbody>
+                        </table>
+                    </div>
+                </div>
+            </section>
+
+            <!-- Tab: Add Product -->
+            <section id="add" class="tab-content slide-in">
+                <div class="max-w-2xl mx-auto">
+                    <div class="mb-10 text-center">
+                        <h2 class="text-2xl font-bold text-slate-900">Nuevo Producto</h2>
+                        <p class="text-sm text-slate-400 mt-1">Añade ítems manualmente al catálogo</p>
+                    </div>
+                    <form id="addProductForm" class="bg-white p-10 border border-slate-100 rounded-2xl shadow-sm space-y-8">
+                        <div class="grid grid-cols-1 md:grid-cols-2 gap-8">
+                            <div class="space-y-1.5">
+                                <label class="text-[10px] font-bold uppercase tracking-widest text-slate-400 ml-1">Título</label>
+                                <input type="text" id="addTitle" required class="w-full input-minimal px-4 py-3.5 text-sm">
+                            </div>
+                            <div class="space-y-1.5">
+                                <label class="text-[10px] font-bold uppercase tracking-widest text-slate-400 ml-1">Precio ($)</label>
+                                <input type="number" id="addPrice" required class="w-full input-minimal px-4 py-3.5 text-sm">
+                            </div>
+                        </div>
+                        <div class="space-y-1.5">
+                            <label class="text-[10px] font-bold uppercase tracking-widest text-slate-400 ml-1">URL Imagen</label>
+                            <input type="url" id="addImageUrl" required class="w-full input-minimal px-4 py-3.5 text-sm">
+                        </div>
+                        <div class="space-y-1.5">
+                            <label class="text-[10px] font-bold uppercase tracking-widest text-slate-400 ml-1">Descripción</label>
+                            <textarea id="addDescription" required rows="3" class="w-full input-minimal px-4 py-3.5 text-sm resize-none"></textarea>
+                        </div>
+                        <button type="submit" id="submitProductBtn" class="w-full btn-primary py-4 rounded-xl font-bold flex items-center justify-center gap-2">
+                            <i data-lucide="plus" class="w-4 h-4"></i> Crear Ítem
+                        </button>
+                    </form>
+                </div>
+            </section>
+
+            <!-- Tab: Bulk Actions -->
+            <section id="bulk" class="tab-content slide-in">
+                <div class="max-w-2xl mx-auto">
+                    <div class="mb-10 text-center">
+                        <h2 class="text-2xl font-bold text-slate-900">Ajuste de Precios</h2>
+                        <p class="text-sm text-slate-400 mt-1">Actualización masiva por porcentaje</p>
+                    </div>
+                    <div class="bg-white p-10 border border-slate-100 rounded-2xl shadow-sm">
+                        <div class="space-y-8 text-center">
+                            <p class="text-xs text-slate-400">Ingresa un porcentaje para aumentar (+) o disminuir (-) todos los precios.</p>
+                            <input type="number" id="bulkPercent" placeholder="Ej: 10" class="w-32 mx-auto input-minimal px-4 py-4 text-center text-2xl font-bold">
+                            <button id="applyBulkBtn" class="w-full btn-primary py-4 rounded-xl font-bold flex items-center justify-center gap-2 shadow-lg shadow-slate-100">
+                                <i data-lucide="zap" class="w-4 h-4"></i> Aplicar a Todo
+                            </button>
+                        </div>
+                    </div>
+                </div>
+            </section>
+
+            <!-- Tab: Import Treinta -->
+            <section id="import" class="tab-content slide-in">
+                <div class="max-w-3xl mx-auto">
+                    <div class="mb-10 text-center">
+                        <h2 class="text-2xl font-bold text-slate-900">Importación Rápida</h2>
+                        <p class="text-sm text-slate-400 mt-1">Migra tus productos desde el catálogo de Treinta</p>
+                    </div>
+                    
+                    <div class="bg-white p-10 border border-slate-100 rounded-2xl shadow-sm space-y-8">
+                        <div class="space-y-4">
+                            <div class="p-5 bg-blue-50 border border-blue-100 rounded-xl flex gap-4">
+                                <div class="text-blue-500"><i data-lucide="info" class="w-5 h-5"></i></div>
+                                <div class="text-xs text-blue-700 leading-relaxed">
+                                    <strong>¿Cómo importar?</strong> <br>
+                                    1. Entra a tu catálogo de Treinta. <br>
+                                    2. Haz clic derecho y elige "Ver código fuente" o presiona Ctrl+U. <br>
+                                    3. Selecciona todo el código (Ctrl+A), cápialo y pégalo aquí abajo.
+                                </div>
+                            </div>
+                            
+                            <div class="space-y-1.5">
+                                <label class="text-[10px] font-bold uppercase tracking-widest text-slate-400 ml-1">Código Fuente HTML</label>
+                                <textarea id="treintaSource" placeholder="Pega el HTML aquí..." class="w-full h-80 input-minimal px-4 py-4 text-[10px] mono resize-none"></textarea>
+                            </div>
+                        </div>
+
+                        <div class="flex flex-col gap-4">
+                            <button id="importTreintaBtn" class="w-full btn-primary py-4 rounded-xl font-bold flex items-center justify-center gap-2 shadow-xl shadow-slate-200">
+                                <i data-lucide="download-cloud" class="w-5 h-5"></i> Importar desde Treinta
+                            </button>
+                            <p id="importStatus" class="text-center text-xs font-bold text-slate-400 hidden"></p>
+                        </div>
+                    </div>
+                </div>
+            </section>
+        </main>
+    </div>
+
+    <!-- Feedback Toasts -->
+    <div id="toast" class="fixed bottom-8 left-1/2 -translate-x-1/2 z-[100] px-6 py-3 bg-black text-white text-sm font-medium rounded-full shadow-2xl transition-all duration-300 translate-y-20 opacity-0 pointer-events-none">
+        Operación exitosa
+    </div>
+
+    <!-- Scripts -->
+    <script>
+        // Configuración
+        const SUPABASE_URL = "https://ehxsodyuzpduggxbffmk.supabase.co";
+        const SUPABASE_KEY = "sb_publishable_uy1GN_7GdX5y-D-WwWnB3w_NFUJHT-S";
+        const supabaseClient = Supabase.createClient(SUPABASE_URL, SUPABASE_KEY);
+
+        // Estado
+        let products = [];
+        let currentUser = null;
+
+        // Inicialización
+        async function init() {
+            lucide.createIcons();
+            const { data: { session } } = await supabaseClient.auth.getSession();
+            
+            if (session) {
+                showAdminPanel(session.user);
+            } else {
+                showLogin();
+            }
+
+            setupEventListeners();
+        }
+
+        function setupEventListeners() {
+            document.getElementById('loginForm').onsubmit = handleLogin;
+            document.getElementById('logoutBtn').onclick = handleLogout;
+            document.getElementById('addProductForm').onsubmit = handleAddProduct;
+            document.getElementById('applyBulkBtn').onclick = handleBulkUpdate;
+            document.getElementById('importTreintaBtn').onclick = handleTreintaImport;
+            
+            // Auth State Change
+            supabaseClient.auth.onAuthStateChange((event, session) => {
+                if (event === 'SIGNED_IN') showAdminPanel(session.user);
+                if (event === 'SIGNED_OUT') showLogin();
+            });
+        }
+
+        // Auth Logic
+        async function handleLogin(e) {
+            e.preventDefault();
+            const email = document.getElementById('email').value;
+            const password = document.getElementById('password').value;
+            const btn = document.getElementById('loginBtn');
+            
+            btn.classList.add('btn-loading');
+            btn.innerHTML = '<span class="animate-spin rounded-full h-4 w-4 border-2 border-white/30 border-t-white mr-2"></span> Entrando...';
+
+            const { error } = await supabaseClient.auth.signInWithPassword({ email, password });
+
+            if (error) {
+                alert('Error de acceso: ' + error.message);
+                btn.classList.remove('btn-loading');
+                btn.innerHTML = 'Ingresar <i data-lucide="arrow-right" class="w-4 h-4"></i>';
+                lucide.createIcons();
+            }
+        }
+
+        async function handleLogout() {
+            if (confirm('¿Deseas cerrar la sesión?')) {
+                await supabaseClient.auth.signOut();
+            }
+        }
+
+        function showLogin() {
+            document.getElementById('loginSection').classList.remove('hidden');
+            document.getElementById('adminPanel').classList.add('hidden');
+            document.body.classList.remove('bg-gray-50');
+            document.body.classList.add('bg-[#fafafa]');
+        }
+
+        function showAdminPanel(user) {
+            currentUser = user;
+            document.getElementById('loginSection').classList.add('hidden');
+            document.getElementById('adminPanel').classList.remove('hidden');
+            document.getElementById('userEmail').textContent = user.email;
+            document.body.classList.add('bg-gray-50');
+            fetchProducts();
+        }
+
+        // Toggle Tabs
+        function showTab(tabId) {
+            document.querySelectorAll('.tab-content').forEach(el => el.classList.remove('active'));
+            document.getElementById(tabId).classList.add('active');
+            
+            document.querySelectorAll('.nav-tab').forEach(el => {
+                el.classList.remove('bg-black', 'text-white');
+                el.classList.add('text-gray-500', 'hover:bg-gray-100');
+                if (el.dataset.tab === tabId) {
+                    el.classList.add('bg-black', 'text-white');
+                    el.classList.remove('text-gray-500', 'hover:bg-gray-100');
+                }
+            });
+        }
+
+        // Product Logic
+        async function fetchProducts() {
+            try {
+                const { data, error } = await supabaseClient
+                    .from('productos')
+                    .select('*')
+                    .order('created_at', { ascending: false });
+
+                if (error) throw error;
+                products = data;
+                renderInventory();
+                document.getElementById('productCount').textContent = `${products.length} PRODUCTOS`;
+            } catch (error) {
+                console.error(error);
+                showToast('Error al cargar inventario', 'red');
+            }
+        }
+
+        function renderInventory() {
+            const table = document.getElementById('inventoryTable');
+            table.innerHTML = products.map((p, idx) => `
+                <tr class="hover:bg-gray-50/50 transition-colors group">
+                    <td class="px-6 py-4">
+                        <div class="flex items-center gap-3">
+                            <img src="${p.imagen_url}" class="w-10 h-10 object-cover rounded-lg bg-gray-100 border border-gray-100">
+                            <div>
+                                <span class="block font-bold text-sm">${p.titulo}</span>
+                                <span class="block text-[10px] text-gray-400 mono">ID: ${p.id}</span>
+                            </div>
+                        </div>
+                    </td>
+                    <td class="px-6 py-4">
+                        <div class="flex items-center gap-1">
+                            <span class="text-gray-300 font-bold">$</span>
+                            <input type="number" id="price-${p.id}" value="${p.precio}" class="w-24 bg-transparent border-b border-transparent focus:border-black focus:outline-none py-1 mono font-medium">
+                        </div>
+                    </td>
+                    <td class="px-6 py-4">
+                        <textarea id="desc-${p.id}" class="w-full bg-transparent border-b border-transparent focus:border-black focus:outline-none py-1 text-xs text-gray-500 resize-none leading-relaxed" rows="1">${p.descripcion}</textarea>
+                    </td>
+                    <td class="px-6 py-4 text-right">
+                        <div class="flex items-center justify-end gap-2 opacity-0 group-hover:opacity-100 transition-opacity">
+                            <button onclick="updateProduct(${p.id})" class="p-2 bg-black text-white rounded-lg hover:bg-gray-800 transition-all shadow-lg shadow-black/10">
+                                <i data-lucide="save" class="w-4 h-4"></i>
+                            </button>
+                            <button onclick="deleteProduct(${p.id})" class="p-2 border border-gray-100 bg-white text-gray-400 hover:text-red-500 hover:border-red-100 rounded-lg transition-all">
+                                <i data-lucide="trash-2" class="w-4 h-4"></i>
+                            </button>
+                        </div>
+                    </td>
+                </tr>
+            `).join('');
+            lucide.createIcons();
+            
+            // Auto resize textareas
+            document.querySelectorAll('textarea[id^="desc-"]').forEach(ta => {
+                ta.addEventListener('input', () => { ta.style.height = 'auto'; ta.style.height = ta.scrollHeight + 'px'; });
+            });
+        }
+
+        async function updateProduct(id) {
+            const precio = parseFloat(document.getElementById(`price-${id}`).value);
+            const descripcion = document.getElementById(`desc-${id}`).value;
+
+            const { error } = await supabaseClient
+                .from('productos')
+                .update({ precio, descripcion })
+                .eq('id', id);
+
+            if (error) {
+                showToast('Error: ' + error.message, 'red');
+            } else {
+                showToast('Producto actualizado');
+            }
+        }
+
+        async function deleteProduct(id) {
+            if (!confirm('¿Estás seguro de eliminar este producto?')) return;
+
+            const { error } = await supabaseClient
+                .from('productos')
+                .delete()
+                .eq('id', id);
+
+            if (error) {
+                showToast('Error: ' + error.message, 'red');
+            } else {
+                showToast('Producto eliminado');
+                fetchProducts();
+            }
+        }
+
+        async function handleAddProduct(e) {
+            e.preventDefault();
+            const titulo = document.getElementById('addTitle').value;
+            const precio = parseFloat(document.getElementById('addPrice').value);
+            const imagen_url = document.getElementById('addImageUrl').value;
+            const descripcion = document.getElementById('addDescription').value;
+            const btn = document.getElementById('submitProductBtn');
+
+            btn.classList.add('btn-loading');
+            btn.innerHTML = 'Creando...';
+
+            const { error } = await supabaseClient
+                .from('productos')
+                .insert([{ titulo, precio, imagen_url, descripcion }]);
+
+            if (error) {
+                showToast('Error: ' + error.message, 'red');
+                btn.classList.remove('btn-loading');
+                btn.innerHTML = '<i data-lucide="plus" class="w-5 h-5"></i> Crear Producto';
+                lucide.createIcons();
+            } else {
+                showToast('Producto creado con éxito');
+                e.target.reset();
+                btn.classList.remove('btn-loading');
+                btn.innerHTML = '<i data-lucide="plus" class="w-5 h-5"></i> Crear Producto';
+                lucide.createIcons();
+                fetchProducts();
+                showTab('inventory');
+            }
+        }
+
+        async function handleBulkUpdate() {
+            const percent = parseFloat(document.getElementById('bulkPercent').value);
+            if (isNaN(percent)) return alert('Ingresa un porcentaje válido');
+
+            if (!confirm(`¿Estás seguro de ajustar el precio de TODOS los productos en un ${percent}%?`)) return;
+
+            const btn = document.getElementById('applyBulkBtn');
+            btn.classList.add('btn-loading');
+            btn.innerHTML = 'Procesando ajuste...';
+
+            try {
+                // Actualizar uno por uno ya que Supabase no soporta multiplicaciones directas vía REST fácilmente sin procedimientos almacenados
+                // Para una demo Senior, lo ideal sería un RPC, pero aquí lo haremos secuencial/mapeado por simplicidad
+                const updates = products.map(p => {
+                    const factor = 1 + (percent / 100);
+                    const newPrice = Math.round(p.precio * factor);
+                    return supabaseClient
+                        .from('productos')
+                        .update({ precio: newPrice })
+                        .eq('id', p.id);
+                });
+
+                await Promise.all(updates);
+                showToast(`¡Ajuste del ${percent}% aplicado!`);
+                fetchProducts();
+                showTab('inventory');
+            } catch (err) {
+                showToast('Error en actualización masiva', 'red');
+            } finally {
+                btn.classList.remove('btn-loading');
+                btn.innerHTML = '<i data-lucide="zap" class="w-5 h-5"></i> Aplicar Ajuste Masivo';
+                lucide.createIcons();
+            }
+        }
+
+        async function handleTreintaImport() {
+            const source = document.getElementById('treintaSource').value;
+            const btn = document.getElementById('importTreintaBtn');
+            const status = document.getElementById('importStatus');
+            
+            if (!source.trim()) return alert('Por favor, pega el código fuente primero.');
+
+            btn.classList.add('btn-loading');
+            btn.innerHTML = 'Procesando HTML...';
+            status.classList.remove('hidden');
+            status.textContent = 'Analizando estructura...';
+
+            try {
+                const parser = new DOMParser();
+                const doc = parser.parseFromString(source, 'text/html');
+                
+                // Selectores comunes para Treinta (pueden ser dinámicos, usamos patrones parciales)
+                const cards = doc.querySelectorAll('article, [class*="ProductCard_container"]');
+                const extractedProducts = [];
+
+                cards.forEach(card => {
+                    const titleEl = card.querySelector('[class*="ProductCard_name"], h3, .text-base.font-semibold');
+                    const priceEl = card.querySelector('[class*="ProductCard_price"], .text-sm.font-bold');
+                    const descEl = card.querySelector('[class*="ProductCard_description"], p');
+                    const imgEl = card.querySelector('img');
+
+                    if (titleEl && priceEl) {
+                        const titulo = titleEl.textContent.trim();
+                        // Limpiar precio: extraer solo números
+                        const precioRaw = priceEl.textContent.replace(/[^0-9]/g, '');
+                        const precio = parseInt(precioRaw) || 0;
+                        const descripcion = descEl ? descEl.textContent.trim() : '';
+                        const imagen_url = imgEl ? imgEl.src : '';
+
+                        if (titulo && precio > 0) {
+                            extractedProducts.push({ titulo, precio, descripcion, imagen_url });
+                        }
+                    }
+                });
+
+                if (extractedProducts.length === 0) {
+                    throw new Error('No se encontraron productos compatibles en el HTML proporcionado.');
+                }
+
+                status.textContent = `Encontrados ${extractedProducts.length} productos. Insertando en base de datos...`;
+
+                // Inserción masiva en Supabase
+                const { error } = await supabaseClient
+                    .from('productos')
+                    .insert(extractedProducts);
+
+                if (error) throw error;
+
+                showToast(`¡Importación exitosa! ${extractedProducts.length} productos añadidos.`);
+                document.getElementById('treintaSource').value = '';
+                fetchProducts();
+                showTab('inventory');
+
+            } catch (err) {
+                console.error(err);
+                alert('Error al importar: ' + err.message);
+                status.textContent = 'Error en la importación.';
+            } finally {
+                btn.classList.remove('btn-loading');
+                btn.innerHTML = '<i data-lucide="download-cloud" class="w-5 h-5"></i> Importar desde Treinta';
+                lucide.createIcons();
+            }
+        }
+
+        // Feedback
+        function showToast(msg, bg = 'black') {
+            const toast = document.getElementById('toast');
+            toast.textContent = msg;
+            toast.style.backgroundColor = bg === 'red' ? '#ef4444' : '#000000';
+            toast.classList.replace('translate-y-20', 'translate-y-0');
+            toast.classList.replace('opacity-0', 'opacity-100');
+            
+            setTimeout(() => {
+                toast.classList.replace('translate-y-0', 'translate-y-20');
+                toast.classList.replace('opacity-100', 'opacity-0');
+            }, 3000);
+        }
+
+        window.onload = init;
+    </script>
+</body>
+</html>
