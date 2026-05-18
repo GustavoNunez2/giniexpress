@@ -6,8 +6,6 @@
     <title>Panel de Administración - Catálogo Pro</title>
     <!-- Tailwind CSS 4.0 -->
     <script src="https://unpkg.com/@tailwindcss/browser@4"></script>
-    <!-- Supabase JS -->
-    <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
     <!-- Lucide Icons -->
     <script src="https://unpkg.com/lucide@latest"></script>
     <!-- Google Fonts -->
@@ -218,11 +216,13 @@
     </div>
 
     <!-- Scripts -->
+    <!-- Supabase JS (Cargado antes de la configuración para evitar ReferenceError) -->
+    <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
     <script>
         // Configuración
         const SUPABASE_URL = "https://ehxsodyuzpduggxbffmk.supabase.co";
         const SUPABASE_KEY = "sb_publishable_uy1GN_7GdX5y-D-WwWnB3w_NFUJHT-S";
-        const supabaseClient = Supabase.createClient(SUPABASE_URL, SUPABASE_KEY);
+        const supabaseClient = supabase.createClient(SUPABASE_URL, SUPABASE_KEY);
 
         // Estado
         let products = [];
