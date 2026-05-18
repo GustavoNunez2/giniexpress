@@ -4,8 +4,15 @@ import {defineConfig} from 'vite';
 
 export default defineConfig(() => {
   return {
+    // 1. Ruta base con el nombre de tu repositorio de GitHub para que carguen los estilos y scripts
+    base: '/giniexpress/', 
+    
     plugins: [tailwindcss()],
+    
     build: {
+      // 2. Le decimos a Vite que guarde la compilación en 'docs' para GitHub Pages
+      outDir: 'docs', 
+      
       rollupOptions: {
         input: {
           main: path.resolve(__dirname, 'index.html'),
@@ -14,10 +21,7 @@ export default defineConfig(() => {
       },
     },
     server: {
-      // HMR is disabled in AI Studio via DISABLE_HMR env var.
-      // Do not modifyâfile watching is disabled to prevent flickering during agent edits.
       hmr: process.env.DISABLE_HMR !== 'true',
-      // Disable file watching when DISABLE_HMR is true to save CPU during agent edits.
       watch: process.env.DISABLE_HMR === 'true' ? null : {},
     },
   };
