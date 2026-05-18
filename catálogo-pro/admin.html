@@ -216,13 +216,13 @@
     </div>
 
     <!-- Scripts -->
-    <!-- Supabase JS (Cargado antes de la configuración para evitar ReferenceError) -->
-    <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
-    <script>
+    <script type="module">
+        import { createClient } from '@supabase/supabase-js';
+
         // Configuración
         const SUPABASE_URL = "https://ehxsodyuzpduggxbffmk.supabase.co";
         const SUPABASE_KEY = "sb_publishable_uy1GN_7GdX5y-D-WwWnB3w_NFUJHT-S";
-        const supabaseClient = supabase.createClient(SUPABASE_URL, SUPABASE_KEY);
+        const supabaseClient = createClient(SUPABASE_URL, SUPABASE_KEY);
 
         // Estado
         let products = [];
@@ -555,6 +555,12 @@
         }
 
         window.onload = init;
+
+        // Exponer funciones al scope global para que los atributos 'onclick' del HTML sigan funcionando
+        window.showTab = showTab;
+        window.fetchProducts = fetchProducts;
+        window.updateProduct = updateProduct;
+        window.deleteProduct = deleteProduct;
     </script>
 </body>
 </html>
