@@ -4,14 +4,14 @@ import {defineConfig} from 'vite';
 
 export default defineConfig(() => {
   return {
-    // 1. Ruta base con el nombre de tu repositorio de GitHub para que carguen los estilos y scripts
+    // Ruta base del repositorio en GitHub
     base: '/giniexpress/', 
     
     plugins: [tailwindcss()],
     
     build: {
-      // 2. Le decimos a Vite que guarde la compilación en 'docs' para GitHub Pages
-      outDir: 'docs', 
+      // CORRECCIÓN: Envía la compilación a la raíz real del repositorio Git
+      outDir: '../docs', 
       
       rollupOptions: {
         input: {
