@@ -4,11 +4,8 @@
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>Panel de Administración - Catálogo Pro</title>
-    <!-- Tailwind CSS 4.0 -->
     <script src="https://unpkg.com/@tailwindcss/browser@4"></script>
-    <!-- Lucide Icons -->
     <script src="https://unpkg.com/lucide@latest"></script>
-    <!-- Google Fonts -->
     <link href="https://fonts.googleapis.com/css2?family=IBM+Plex+Mono:wght@400;500;600&family=Inter:wght@300;400;500;600;700&display=swap" rel="stylesheet">
     <style>
         body { font-family: 'Inter', system-ui, sans-serif; background-color: #F8FAFC; color: #1E293B; }
@@ -27,11 +24,10 @@
         @keyframes slideIn { from { transform: translateY(10px); opacity: 0; } to { transform: translateY(0); opacity: 1; } }
         .slide-in { animation: slideIn 0.3s ease-out forwards; }
     </style>
-  <script type="module" crossorigin src="/giniexpress/assets/admin-C7WtPIVO.js"></script>
+  <script type="module" crossorigin src="/giniexpress/assets/admin-BPtKFICl.js"></script>
 </head>
 <body class="min-h-screen">
 
-    <!-- Login Section -->
     <div id="loginSection" class="hidden min-h-screen flex items-center justify-center p-6">
         <div class="bg-white rounded-2xl p-10 md:p-14 shadow-2xl w-full max-w-md border border-slate-100 flex flex-col items-center">
             <div class="text-center mb-10">
@@ -61,7 +57,6 @@
         </div>
     </div>
 
-    <!-- Admin Panel -->
     <div id="adminPanel" class="hidden flex flex-col min-h-screen">
         <header class="bg-white border-b border-slate-200 sticky top-0 z-40 h-16 flex items-center">
             <div class="max-w-7xl w-full mx-auto px-6 flex items-center justify-between">
@@ -89,7 +84,6 @@
         </header>
 
         <main class="flex-1 max-w-7xl w-full mx-auto p-6 md:p-10">
-            <!-- Tab: Inventory -->
             <section id="inventory" class="tab-content active slide-in">
                 <div class="flex justify-between items-center mb-10">
                     <div>
@@ -121,7 +115,6 @@
                 </div>
             </section>
 
-            <!-- Tab: Add Product -->
             <section id="add" class="tab-content slide-in">
                 <div class="max-w-2xl mx-auto">
                     <div class="mb-10 text-center">
@@ -154,7 +147,6 @@
                 </div>
             </section>
 
-            <!-- Tab: Bulk Actions -->
             <section id="bulk" class="tab-content slide-in">
                 <div class="max-w-2xl mx-auto">
                     <div class="mb-10 text-center">
@@ -173,7 +165,6 @@
                 </div>
             </section>
 
-            <!-- Tab: Import Treinta -->
             <section id="import" class="tab-content slide-in">
                 <div class="max-w-3xl mx-auto">
                     <div class="mb-10 text-center">
@@ -211,11 +202,9 @@
         </main>
     </div>
 
-    <!-- Feedback Toasts -->
     <div id="toast" class="fixed bottom-8 left-1/2 -translate-x-1/2 z-[100] px-6 py-3 bg-black text-white text-sm font-medium rounded-full shadow-2xl transition-all duration-300 translate-y-20 opacity-0 pointer-events-none">
         Operación exitosa
     </div>
 
-    <!-- Scripts -->
 </body>
 </html>
