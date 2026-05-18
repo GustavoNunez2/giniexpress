@@ -1,127 +1,129 @@
 import { createClient } from '@supabase/supabase-js';
 
-// Configuración de Negocio
 const PROVIDER_URL = 'https://catalogo.treinta.co/brajaexpress-e8aefd';
-const PROFIT_MARGIN = 1.15; // 15% de ganancia sobre el costo del proveedor
+const DEFAULT_MARGIN = 15; // Margen por defecto para productos nuevos
 
-// Configuración de Entorno (GitHub Secrets)
 const { SUPABASE_URL, SUPABASE_KEY } = process.env;
-
 if (!SUPABASE_URL || !SUPABASE_KEY) {
-    console.error('Faltan las credenciales de Supabase en las variables de entorno.');
+    console.error('Error: Faltan variables de entorno de Supabase.');
     process.exit(1);
 }
 
 const supabase = createClient(SUPABASE_URL, SUPABASE_KEY);
 
 async function syncCatalog() {
-    console.log(`[${new Date().toISOString()}] Iniciando sincronización desde: ${PROVIDER_URL}`);
-
+    console.log(`[${new Date().toISOString()}] Iniciando sincronización inteligente...`);
     try {
-        // 1. Descargar HTML del proveedor
+        // 1. Obtener el estado actual de tu catálogo en Supabase para contrastar en memoria
+        const { data: dbProducts, error: dbError } = await supabase
+            .from('productos')
+            .select('id, titulo, precio, porcentaje_ganancia, precio_costo');
+        
+        if (dbError) throw dbError;
+        const localMap = new Map(dbProducts?.map(p => [p.titulo, p]) || []);
+
+        // 2. Descargar y normalizar el stream de datos del proveedor
         const response = await fetch(PROVIDER_URL);
         if (!response.ok) throw new Error(`HTTP Error: ${response.status}`);
         const html = await response.text();
-
-        // 2. Normalización radical del flujo de datos
-        // Eliminamos saltos de línea y normalizamos escapes de JSON para tratarlo como texto plano puro
         let cleanText = html.replace(/[\n\r\t]/g, ' ').replace(/\\"/g, '"').replace(/\\\\/g, '\\');
 
-        let extractedProducts = [];
-        
-        // 3. Bucle iterativo de identificación de productos
-        // Buscamos patrones de nombres/títulos como anclas principales
+        let scrapedProducts = [];
         const productRegex = /"(name|title)"\s*:\s*"([^"]+)"/g;
         let match;
 
+        // 3. Extracción de tokens por proximidad
         while ((match = productRegex.exec(cleanText)) !== null) {
             const titulo = match[2].trim();
-            
-            // Filtrar ruidos del sistema (nombres de tienda, llaves de configuración, etc.)
+
             if (titulo.toLowerCase().includes("braja express") || 
                 titulo.toLowerCase().includes("catálogo") || 
                 titulo.toLowerCase() === "dashboard" ||
-                titulo.length < 2 || 
-                titulo.length > 85) {
+                titulo.length < 2 || titulo.length > 85) {
                 continue;
             }
 
-            // 4. Ventana de Proximidad (1800 caracteres)
-            // Extraemos un bloque de texto después del nombre para buscar sus atributos vinculados
             const startIdx = match.index;
             const endIdx = Math.min(cleanText.length, match.index + 1800);
             const chunk = cleanText.substring(startIdx, endIdx);
 
-            // Extracción de Precio (soporta price, price_amount o priceAmount)
             const priceMatch = chunk.match(/"price"\s*:\s*"?([0-9]+)"?/i) || 
-                               chunk.match(/"price_amount"\s*:\s*"?([0-9]+)"?/i) ||
-                               chunk.match(/"priceAmount"\s*:\s*"?([0-9]+)"?/i);
+                               chunk.match(/"price_amount"\s*:\s*"?([0-9]+)"?/i);
 
-            // Extracción de Descripción
             const descMatch = chunk.match(/"description"\s*:\s*"([^"]*?)"/i) || 
                               chunk.match(/"desc"\s*:\s*"([^"]*?)"/i);
 
-            // Extracción de Imagen (soporta múltiples llaves de URL)
             const imgMatch = chunk.match(/"image"\s*:\s*"([^"]+?)"/i) || 
                              chunk.match(/"imageUrl"\s*:\s*"([^"]+?)"/i) || 
                              chunk.match(/"url"\s*:\s*"([^"]+?)"/i);
 
             if (priceMatch) {
-                // 5. Aplicación de Margen de Ganancia y Normalización
-                const precioOriginal = parseFloat(priceMatch[1]);
-                const precioFinal = Math.round(precioOriginal * PROFIT_MARGIN);
+                const precioCosto = parseFloat(priceMatch[1]);
                 const descripcion = descMatch ? descMatch[1].trim() : '';
                 let imagen_url = imgMatch ? imgMatch[1].trim() : '';
 
-                // Corrección de URLs de imagen relativas
                 if (imagen_url && !imagen_url.startsWith('http')) {
                     if (imagen_url.startsWith('//')) imagen_url = 'https:' + imagen_url;
                     else if (imagen_url.startsWith('/')) imagen_url = 'https://catalogo.treinta.co' + imagen_url;
                 }
 
-                // Evitar duplicados en la misma tanda por título
-                if (precioFinal > 0 && !extractedProducts.some(p => p.titulo === titulo)) {
-                    extractedProducts.push({ 
-                        titulo, 
-                        precio: precioFinal, 
-                        descripcion, 
-                        imagen_url 
-                    });
+                if (precioCosto > 0 && !scrapedProducts.some(p => p.titulo === titulo)) {
+                    scrapedProducts.push({ titulo, precioCosto, descripcion, imagen_url });
                 }
             }
         }
 
-        if (extractedProducts.length === 0) {
-            throw new Error("El escaneo radical no detectó productos. Es posible que la estructura del stream haya cambiado drásticamente.");
+        if (scrapedProducts.length === 0) throw new Error("No se extrajeron datos del proveedor.");
+
+        // 4. Clasificación de operaciones (Evita el vaciado destructivo de la tabla)
+        let inserts = [];
+        let updates = [];
+
+        for (const item of scrapedProducts) {
+            if (localMap.has(item.titulo)) {
+                // El producto ya existe: preservamos su margen personalizado del admin panel
+                const localItem = localMap.get(item.titulo);
+                const margen = localItem.porcentaje_ganancia !== null ? localItem.porcentaje_ganancia : DEFAULT_MARGIN;
+                const nuevoPrecioVenta = Math.round(item.precioCosto * (1 + margen / 100));
+
+                updates.push(
+                    supabase.from('productos').update({
+                        precio_costo: item.precioCosto,
+                        precio: nuevoPrecioVenta,
+                        descripcion: item.descripcion,
+                        imagen_url: item.imagen_url
+                    }).eq('id', localItem.id)
+                );
+            } else {
+                // Producto nuevo del mayorista: aplica margen por defecto
+                const precioVentaNuevo = Math.round(item.precioCosto * (1 + DEFAULT_MARGIN / 100));
+                inserts.push({
+                    titulo: item.titulo,
+                    precio_costo: item.precioCosto,
+                    porcentaje_ganancia: DEFAULT_MARGIN,
+                    precio: precioVentaNuevo,
+                    descripcion: item.descripcion,
+                    imagen_url: item.imagen_url
+                });
+            }
         }
 
-        console.log(`Se encontraron ${extractedProducts.length} productos. Actualizando base de datos...`);
+        // 5. Ejecutar operaciones en Supabase
+        if (inserts.length > 0) {
+            const { error: insErr } = await supabase.from('productos').insert(inserts);
+            if (insErr) throw insErr;
+            console.log(`Insertados ${inserts.length} productos nuevos.`);
+        }
 
-        /**
-         * 3. Estrategia de Sincronización: Limpiar e Insertar
-         * En un entorno gratuito, es más rápido borrar y reinsertar que hacer 100 upserts individuales.
-         * Usamos una transacción simulada (Delete + Insert).
-         */
-        
-        // Paso A: Borrar productos actuales (opcional, podrías usar upsert si tienes IDs fijos)
-        const { error: deleteError } = await supabase
-            .from('productos')
-            .delete()
-            .neq('id', 0); // Borra todo
+        if (updates.length > 0) {
+            await Promise.all(updates);
+            console.log(`Actualizados ${updates.length} productos existentes de forma no destructiva.`);
+        }
 
-        if (deleteError) throw deleteError;
-
-        // Paso B: Inserción masiva
-        const { error: insertError } = await supabase
-            .from('productos')
-            .insert(extractedProducts);
-
-        if (insertError) throw insertError;
-
-        console.log(`[Éxito] Catálogo actualizado correctamente con ${extractedProducts.length} productos.`);
+        console.log(`[Sincronización Exitosa] Proceso completado sin alteración de márgenes personalizados.`);
 
     } catch (error) {
-        console.error(`[Error de Sincronización]: ${error.message}`);
+        console.error(`[Fallo crítico del script]: ${error.message}`);
         process.exit(1);
     }
 }

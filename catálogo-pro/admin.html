@@ -87,7 +87,7 @@
                 <div class="flex justify-between items-center mb-10">
                     <div>
                         <h2 class="text-2xl font-bold text-slate-900">Inventario</h2>
-                        <p class="text-sm text-slate-400 mt-1">Gestión rápida de precios y detalles</p>
+                        <p class="text-sm text-slate-400 mt-1">Gestión de márgenes y sincronización</p>
                     </div>
                     <div class="flex items-center gap-4">
                         <span id="productCount" class="text-[10px] font-bold uppercase tracking-widest text-slate-400 bg-slate-100 px-3 py-1 rounded-full">0 ITEMS</span>
@@ -103,7 +103,9 @@
                             <thead class="bg-slate-50 border-b border-slate-100">
                                 <tr>
                                     <th class="px-8 py-5 text-[10px] font-bold uppercase tracking-widest text-slate-400">Producto</th>
-                                    <th class="px-8 py-5 text-[10px] font-bold uppercase tracking-widest text-slate-400">Precio</th>
+                                    <th class="px-8 py-5 text-[10px] font-bold uppercase tracking-widest text-slate-400">Costo Base</th>
+                                    <th class="px-8 py-5 text-[10px] font-bold uppercase tracking-widest text-slate-400">Margen (%)</th>
+                                    <th class="px-8 py-5 text-[10px] font-bold uppercase tracking-widest text-slate-400">Precio Venta</th>
                                     <th class="px-8 py-5 text-[10px] font-bold uppercase tracking-widest text-slate-400">Descripción</th>
                                     <th class="px-8 py-5 text-[10px] font-bold uppercase tracking-widest text-slate-400 text-right">Acciones</th>
                                 </tr>
@@ -127,7 +129,7 @@
                                 <input type="text" id="addTitle" required class="w-full input-minimal px-4 py-3.5 text-sm">
                             </div>
                             <div class="space-y-1.5">
-                                <label class="text-[10px] font-bold uppercase tracking-widest text-slate-400 ml-1">Precio ($)</label>
+                                <label class="text-[10px] font-bold uppercase tracking-widest text-slate-400 ml-1">Precio Costo ($)</label>
                                 <input type="number" id="addPrice" required class="w-full input-minimal px-4 py-3.5 text-sm">
                             </div>
                         </div>
@@ -149,13 +151,13 @@
             <section id="bulk" class="tab-content slide-in">
                 <div class="max-w-2xl mx-auto">
                     <div class="mb-10 text-center">
-                        <h2 class="text-2xl font-bold text-slate-900">Ajuste de Precios</h2>
-                        <p class="text-sm text-slate-400 mt-1">Actualización masiva por porcentaje</p>
+                        <h2 class="text-2xl font-bold text-slate-900">Ajuste de Margen</h2>
+                        <p class="text-sm text-slate-400 mt-1">Define un nuevo porcentaje de ganancia para todo el catálogo</p>
                     </div>
                     <div class="bg-white p-10 border border-slate-100 rounded-2xl shadow-sm">
                         <div class="space-y-8 text-center">
-                            <p class="text-xs text-slate-400">Ingresa un porcentaje para aumentar (+) o disminuir (-) todos los precios.</p>
-                            <input type="number" id="bulkPercent" placeholder="Ej: 10" class="w-32 mx-auto input-minimal px-4 py-4 text-center text-2xl font-bold">
+                            <p class="text-xs text-slate-400">Ingresa el nuevo porcentaje de ganancia basado en el costo del proveedor.</p>
+                            <input type="number" id="bulkPercent" placeholder="Ej: 15" class="w-32 mx-auto input-minimal px-4 py-4 text-center text-2xl font-bold">
                             <button id="applyBulkBtn" class="w-full btn-primary py-4 rounded-xl font-bold flex items-center justify-center gap-2 shadow-lg shadow-slate-100">
                                 <i data-lucide="zap" class="w-4 h-4"></i> Aplicar a Todo
                             </button>
@@ -334,13 +336,19 @@
                         </div>
                     </td>
                     <td class="px-6 py-4">
+                        <span class="text-xs font-semibold text-slate-500 mono">$${(p.precio_costo || p.precio || 0).toLocaleString()}</span>
+                    </td>
+                    <td class="px-6 py-4">
                         <div class="flex items-center gap-1">
-                            <span class="text-gray-300 font-bold">$</span>
-                            <input type="number" id="price-${p.id}" value="${p.precio}" class="w-24 bg-transparent border-b border-transparent focus:border-black focus:outline-none py-1 mono font-medium">
+                            <input type="number" id="margin-${p.id}" value="${p.porcentaje_ganancia || 15}" class="w-16 bg-transparent border-b border-transparent focus:border-black focus:outline-none py-1 mono font-medium text-center">
+                            <span class="text-slate-300 font-bold">%</span>
                         </div>
                     </td>
                     <td class="px-6 py-4">
-                        <textarea id="desc-${p.id}" class="w-full bg-transparent border-b border-transparent focus:border-black focus:outline-none py-1 text-xs text-gray-500 resize-none leading-relaxed" rows="1">${p.descripcion}</textarea>
+                        <span class="text-sm font-bold text-slate-900 mono">$${(p.precio || 0).toLocaleString()}</span>
+                    </td>
+                    <td class="px-6 py-4">
+                        <textarea id="desc-${p.id}" class="w-full bg-transparent border-b border-transparent focus:border-black focus:outline-none py-1 text-xs text-gray-500 resize-none leading-relaxed" rows="1">${p.descripcion || ''}</textarea>
                     </td>
                     <td class="px-6 py-4 text-right">
                         <div class="flex items-center justify-end gap-2 opacity-0 group-hover:opacity-100 transition-opacity">
@@ -356,25 +364,35 @@
             `).join('');
             lucide.createIcons();
             
-            // Auto resize textareas
             document.querySelectorAll('textarea[id^="desc-"]').forEach(ta => {
                 ta.addEventListener('input', () => { ta.style.height = 'auto'; ta.style.height = ta.scrollHeight + 'px'; });
             });
         }
 
         async function updateProduct(id) {
-            const precio = parseFloat(document.getElementById(`price-${id}`).value);
+            const product = products.find(p => p.id === id);
+            if (!product) return;
+
+            const porcentaje_ganancia = parseFloat(document.getElementById(`margin-${id}`).value) || 0;
             const descripcion = document.getElementById(`desc-${id}`).value;
+            
+            const costoBase = product.precio_costo || product.precio || 0;
+            const nuevoPrecioVenta = Math.round(costoBase * (1 + porcentaje_ganancia / 100));
 
             const { error } = await supabaseClient
                 .from('productos')
-                .update({ precio, descripcion })
+                .update({ 
+                    porcentaje_ganancia, 
+                    precio: nuevoPrecioVenta, 
+                    descripcion 
+                })
                 .eq('id', id);
 
             if (error) {
                 showToast('Error: ' + error.message, 'red');
             } else {
                 showToast('Producto actualizado');
+                fetchProducts();
             }
         }
 
@@ -397,28 +415,31 @@
         async function handleAddProduct(e) {
             e.preventDefault();
             const titulo = document.getElementById('addTitle').value;
-            const precio = parseFloat(document.getElementById('addPrice').value);
+            const precio_costo = parseFloat(document.getElementById('addPrice').value);
             const imagen_url = document.getElementById('addImageUrl').value;
             const descripcion = document.getElementById('addDescription').value;
             const btn = document.getElementById('submitProductBtn');
+
+            const porcentaje_ganancia = 15; // Margen inicial
+            const precio = Math.round(precio_costo * (1 + porcentaje_ganancia / 100));
 
             btn.classList.add('btn-loading');
             btn.innerHTML = 'Creando...';
 
             const { error } = await supabaseClient
                 .from('productos')
-                .insert([{ titulo, precio, imagen_url, descripcion }]);
+                .insert([{ titulo, precio_costo, porcentaje_ganancia, precio, imagen_url, descripcion }]);
 
             if (error) {
                 showToast('Error: ' + error.message, 'red');
                 btn.classList.remove('btn-loading');
-                btn.innerHTML = '<i data-lucide="plus" class="w-5 h-5"></i> Crear Producto';
+                btn.innerHTML = '<i data-lucide="plus" class="w-5 h-5"></i> Crear Ítem';
                 lucide.createIcons();
             } else {
                 showToast('Producto creado con éxito');
                 e.target.reset();
                 btn.classList.remove('btn-loading');
-                btn.innerHTML = '<i data-lucide="plus" class="w-5 h-5"></i> Crear Producto';
+                btn.innerHTML = '<i data-lucide="plus" class="w-5 h-5"></i> Crear Ítem';
                 lucide.createIcons();
                 fetchProducts();
                 showTab('inventory');
@@ -429,7 +450,7 @@
             const percent = parseFloat(document.getElementById('bulkPercent').value);
             if (isNaN(percent)) return alert('Ingresa un porcentaje válido');
 
-            if (!confirm(`¿Estás seguro de ajustar el precio de TODOS los productos en un ${percent}%?`)) return;
+            if (!confirm(`¿Estás seguro de fijar el margen de TODO el catálogo al ${percent}%?`)) return;
 
             const btn = document.getElementById('applyBulkBtn');
             btn.classList.add('btn-loading');
@@ -437,134 +458,30 @@
 
             try {
                 const updates = products.map(p => {
-                    const factor = 1 + (percent / 100);
-                    const newPrice = Math.round(p.precio * factor);
+                    const costoBase = p.precio_costo || p.precio || 0;
+                    const nuevoPrecio = Math.round(costoBase * (1 + percent / 100));
                     return supabaseClient
                         .from('productos')
-                        .update({ precio: newPrice })
+                        .update({ porcentaje_ganancia: percent, precio: nuevoPrecio })
                         .eq('id', p.id);
                 });
 
                 await Promise.all(updates);
-                showToast(`¡Ajuste del ${percent}% aplicado!`);
+                showToast(`¡Margen del ${percent}% aplicado a todo!`);
                 fetchProducts();
                 showTab('inventory');
             } catch (err) {
                 showToast('Error en actualización masiva', 'red');
             } finally {
                 btn.classList.remove('btn-loading');
-                btn.innerHTML = '<i data-lucide="zap" class="w-5 h-5"></i> Aplicar Ajuste Masivo';
+                btn.innerHTML = '<i data-lucide="zap" class="w-5 h-5"></i> Aplicar a Todo';
                 lucide.createIcons();
             }
         }
 
         async function handleTreintaImport() {
-            const source = document.getElementById('treintaSource').value;
-            const btn = document.getElementById('importTreintaBtn');
-            const status = document.getElementById('importStatus');
-            
-            if (!source.trim()) return alert('Por favor, pega el código fuente primero.');
-
-            btn.classList.add('btn-loading');
-            btn.innerHTML = 'Procesando flujo de datos...';
-            status.classList.remove('hidden', 'text-red-500', 'text-green-500');
-            status.textContent = 'Analizando flujo del catálogo (NextJS Stream)...';
-
-            try {
-                // NORMALIZACIÓN RADICAL: Unificamos escapes para poder leerlo como texto plano
-                let cleanText = source.replace(/[\n\r\t]/g, ' ');
-                cleanText = cleanText.replace(/\\"/g, '"');
-                cleanText = cleanText.replace(/\\\\/g, '\\');
-
-                let extractedProducts = [];
-                
-                // Mapeo directo sobre los tokens estables del JSON inyectado de NextJS
-                // Buscamos patrones del tipo: "name":"Nombre del producto" o "title":"Nombre"
-                const productRegex = /"(name|title)"\s*:\s*"([^"]+)"/g;
-                let match;
-
-                while ((match = productRegex.exec(cleanText)) !== null) {
-                    const titulo = match[2].trim();
-                    
-                    // Filtrar falsos positivos lógicos (nombres de la tienda, llaves de configuración, etc.)
-                    if (titulo.toLowerCase().includes("braja express") || 
-                        titulo.toLowerCase().includes("catálogo") || 
-                        titulo.toLowerCase() === "dashboard" ||
-                        titulo.length < 2 || 
-                        titulo.length > 85) {
-                        continue;
-                    }
-
-                    // Delimitamos una ventana amplia de 1800 caracteres adelante del nombre para capturar sus datos vinculados
-                    const startIdx = match.index;
-                    const endIdx = Math.min(cleanText.length, match.index + 1800);
-                    const chunk = cleanText.substring(startIdx, endIdx);
-
-                    // Buscar precio exacto con o sin comillas
-                    const priceMatch = chunk.match(/"price"\s*:\s*"?([0-9]+)"?/i) || 
-                                       chunk.match(/"price_amount"\s*:\s*"?([0-9]+)"?/i) ||
-                                       chunk.match(/"priceAmount"\s*:\s*"?([0-9]+)"?/i);
-
-                    // Buscar descripción vinculada
-                    const descMatch = chunk.match(/"description"\s*:\s*"([^"]*?)"/i) || 
-                                      chunk.match(/"desc"\s*:\s*"([^"]*?)"/i);
-
-                    // Buscar URL de imagen vinculada
-                    const imgMatch = chunk.match(/"image"\s*:\s*"([^"]+?)"/i) || 
-                                     chunk.match(/"imageUrl"\s*:\s*"([^"]+?)"/i) || 
-                                     chunk.match(/"url"\s*:\s*"([^"]+?)"/i) ||
-                                     chunk.match(/"src"\s*:\s*"([^"]+?)"/i);
-
-                    if (priceMatch) {
-                        const precio = parseFloat(priceMatch[1]);
-                        const descripcion = descMatch ? descMatch[1].trim() : '';
-                        let imagen_url = imgMatch ? imgMatch[1].trim() : '';
-
-                        // Normalización básica de la URL de la imagen
-                        if (imagen_url && !imagen_url.startsWith('http')) {
-                            if (imagen_url.startsWith('//')) imagen_url = 'https:' + imagen_url;
-                            else imagen_url = 'https://' + imagen_url;
-                        }
-
-                        // Evitar duplicación del mismo ítem en la tanda
-                        if (precio > 0 && !extractedProducts.some(p => p.titulo === titulo)) {
-                            extractedProducts.push({ titulo, precio, descripcion, imagen_url });
-                        }
-                    }
-                }
-
-                if (extractedProducts.length === 0) {
-                    throw new Error('El procesador de texto no detectó variables de productos en el bloque pegado. Asegúrate de copiar el código fuente de la página completa.');
-                }
-
-                status.textContent = `Se detectaron ${extractedProducts.length} productos en el stream. Subiendo a Supabase...`;
-                console.log('Productos listos para insertar:', extractedProducts);
-
-                // Inserción en bloque masivo a Supabase
-                const { error } = await supabaseClient
-                    .from('productos')
-                    .insert(extractedProducts);
-
-                if (error) throw error;
-
-                status.classList.add('text-green-500');
-                status.textContent = `¡Éxito! Se importaron de forma masiva ${extractedProducts.length} productos.`;
-                showToast(`¡Sincronización masiva de ${extractedProducts.length} ítems completada!`);
-                
-                document.getElementById('treintaSource').value = '';
-                fetchProducts();
-                showTab('inventory');
-
-            } catch (err) {
-                console.error('Fallo crítico en el importador por proximidad:', err);
-                status.classList.add('text-red-500');
-                status.textContent = 'Error en la importación: ' + err.message;
-                alert('Ocurrió un error en el procesamiento: ' + err.message);
-            } finally {
-                btn.classList.remove('btn-loading');
-                btn.innerHTML = '<i data-lucide="download-cloud" class="w-5 h-5"></i> Importar desde Treinta';
-                lucide.createIcons();
-            }
+            // Se mantiene la función para compatibilidad local
+            alert('Utilice el robot automatizado en las Actions de GitHub para sincronizaciones.');
         }
 
         // Feedback
@@ -583,7 +500,6 @@
 
         window.onload = init;
 
-        // Exponer funciones al scope global para que los atributos 'onclick' del HTML sigan funcionando
         window.showTab = showTab;
         window.fetchProducts = fetchProducts;
         window.updateProduct = updateProduct;

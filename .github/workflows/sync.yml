@@ -2,9 +2,9 @@ name: Sync Catalog from Provider
 
 on:
   schedule:
-    # Ejecutar cada 3 horas (00:00, 03:00, 06:00, etc.)
+    # Se ejecuta automáticamente cada 3 horas
     - cron: '0 */3 * * *'
-  workflow_dispatch: # Permite ejecución manual desde la pestaña Actions en GitHub
+  workflow_dispatch: # Permite ejecución manual desde la interfaz de GitHub
 
 jobs:
   sync:
@@ -16,7 +16,7 @@ jobs:
       - name: Setup Node.js
         uses: actions/setup-node@v4
         with:
-          node-version: 18
+          node-version: 22   # CORRECCIÓN: Node 22 incluye soporte nativo estable de WebSockets
           cache: 'npm'
           cache-dependency-path: catálogo-pro/package.json
 
