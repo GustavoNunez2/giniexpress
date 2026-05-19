@@ -16,87 +16,75 @@ const supabase = createClient(SUPABASE_URL, SUPABASE_KEY);
 // 🎯 MOTOR HÍBRIDO: ESCROLLEA, HACE CLIC EN BOTONES Y EXTRAE AL MISMO TIEMPO
 // =========================================================================
 async function scrollAndExtract(page) {
-    console.log("⏳ Iniciando motor híbrido anti-virtualización...");
+    console.log("⏳ Iniciando motor híbrido anti-colapso...");
 
     return await page.evaluate(async () => {
-        return await new Promise((resolve) => {
-            let foundMap = new Map(); // Memoria acumulativa para que no se dupliquen al hacer scroll
-            let lastHeight = document.documentElement.scrollHeight;
-            let distance = 600;
-            let noChangeCount = 0;
+        let foundMap = new Map();
+        let lastHeight = document.documentElement.scrollHeight;
+        let distance = 600;
+        let noChangeCount = 0;
 
-            let timer = setInterval(() => {
-                // 1. EXTRAEMOS TODO LO QUE ESTÉ VIVO EN PANTALLA EN ESTE MOMENTO EXACTO
+        for (let attempt = 0; attempt < 50; attempt++) {
+            // 1. Extraemos con Try-Catch interno para evitar el "Execution context was destroyed"
+            try {
                 const allImages = document.querySelectorAll('img');
                 allImages.forEach(img => {
                     let cardContainer = img.parentElement;
-                    let priceFound = null;
-                    let textBlocks = [];
-
                     for (let i = 0; i < 6; i++) {
                         if (!cardContainer) break;
 
-                        if (cardContainer.textContent && cardContainer.textContent.includes('$')) {
-                            const match = cardContainer.textContent.match(/\$[\s\u00a0]*([0-9.]+)/);
-                            if (match) priceFound = parseFloat(match[1].replace(/\./g, ''));
-                        }
+                        const textContent = cardContainer.textContent || '';
+                        if (textContent.includes('$')) {
+                            const match = textContent.match(/\$[\s\u00a0]*([0-9.]+)/);
+                            if (match) {
+                                const price = parseFloat(match[1].replace(/\./g, ''));
+                                // Buscamos textos
+                                const textElements = Array.from(cardContainer.querySelectorAll('h1, h2, h3, h4, p, span, div'))
+                                    .map(el => el.textContent.trim())
+                                    .filter(t => t && !t.includes('$') && t.length > 2 && t.length < 140);
 
-                        cardContainer.querySelectorAll('h1, h2, h3, h4, h5, h6, p, span, div').forEach(textEl => {
-                            const txt = textEl.textContent.trim();
-                            if (txt && !txt.includes('$') && txt.length > 2 && txt.length < 140) {
-                                if (!textBlocks.includes(txt)) textBlocks.push(txt);
+                                if (textElements.length > 0) {
+                                    let titulo = textElements.find(t => t.length < 50) || textElements[0];
+                                    titulo = titulo.replace(/[\*\'\´\"]/g, '').trim();
+                                    const key = titulo.toLowerCase();
+
+                                    if (!foundMap.has(key)) {
+                                        foundMap.set(key, {
+                                            titulo,
+                                            precioCosto: price,
+                                            descripcion: textElements.find(t => t.length > titulo.length) || '',
+                                            imagen_url: img.src
+                                        });
+                                    }
+                                    break;
+                                }
                             }
-                        });
-
-                        if (priceFound && priceFound > 0 && textBlocks.length > 0) {
-                            let titulo = textBlocks.find(t => t.toLowerCase().includes('ventilador') || t.length < 50);
-                            if (!titulo) titulo = textBlocks[0];
-                            titulo = titulo.replace(/[\*\'\´\"]/g, '').trim();
-
-                            let descripcion = textBlocks.find(t => t.length > titulo.length && t !== titulo) || '';
-                            if (descripcion.toLowerCase().includes('sin descripción') || descripcion.toLowerCase().includes('no descripción')) {
-                                descripcion = '';
-                            }
-
-                            // Guardamos en el Map usando el título como llave única
-                            const key = titulo.toLowerCase();
-                            if (!foundMap.has(key)) {
-                                foundMap.set(key, { titulo, precioCosto: priceFound, descripcion, imagen_url: img.src });
-                            }
-                            break;
                         }
                         cardContainer = cardContainer.parentElement;
                     }
                 });
+            } catch (e) {
+                console.log("Transición de DOM detectada, continuando...");
+            }
 
-                // 2. BUSCAMOS Y PULSAMOS EL BOTÓN DE "CARGAR MÁS" SI EXISTE (Sugerencia IA)
-                const keywords = ['ver más', 'cargar más', 'mostrar más', 'load more', 'ver mas', 'más productos'];
-                const buttons = Array.from(document.querySelectorAll('button, div[role="button"], a'));
-                const targetBtn = buttons.find(btn => keywords.some(kw => btn.textContent.toLowerCase().includes(kw)) && btn.offsetWidth > 0);
-                if (targetBtn) {
-                    targetBtn.scrollIntoView();
-                    targetBtn.click();
-                }
+            // 2. Intentar cargar más
+            const btns = Array.from(document.querySelectorAll('button, div[role="button"], a'));
+            const btn = btns.find(b => ['ver más', 'cargar más', 'mostrar más', 'load more'].some(kw => b.textContent.toLowerCase().includes(kw)));
+            if (btn) btn.click();
 
-                // 3. BAJAMOS UN TRAMO MÁS
-                window.scrollBy(0, distance);
+            window.scrollBy(0, distance);
+            await new Promise(r => setTimeout(r, 1000)); // Pausa larga para estabilizar
 
-                // 4. VERIFICAMOS SI LLEGAMOS AL FONDO REAL
-                let currentHeight = document.documentElement.scrollHeight;
-                if (currentHeight === lastHeight) {
-                    noChangeCount++;
-                    if (noChangeCount >= 5) { // Esperamos ~4 segundos sin cambios antes de rendirnos
-                        clearInterval(timer);
-                        resolve(Array.from(foundMap.values())); // Retornamos toda la memoria acumulada
-                    }
-                } else {
-                    noChangeCount = 0;
-                    lastHeight = currentHeight;
-                }
-            }, 800); // Ritmo de 800ms para dejar renderizar a la SPA
-
-            setTimeout(() => { clearInterval(timer); resolve(Array.from(foundMap.values())); }, 120000); // Max 2 min
-        });
+            let currentHeight = document.documentElement.scrollHeight;
+            if (currentHeight === lastHeight) {
+                noChangeCount++;
+                if (noChangeCount >= 3) break;
+            } else {
+                noChangeCount = 0;
+                lastHeight = currentHeight;
+            }
+        }
+        return Array.from(foundMap.values());
     });
 }
 
