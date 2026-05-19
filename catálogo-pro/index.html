@@ -722,6 +722,7 @@
             if (cart.length === 0) {
                 container.innerHTML = `<div class="h-full flex items-center justify-center text-slate-400 text-sm">Bolsa vacía</div>`;
                 totalEl.textContent = '$0';
+                countEl.textContent = '0';
                 countEl.classList.add('hidden');
                 return;
             }
@@ -771,16 +772,24 @@
         }
 
         function updateCartQty(id, delta) {
-            const item = cart.find(i => i.id === id);
-            if (item) {
-                item.qty += delta;
-                if (item.qty <= 0) removeFromCart(id);
-                else { saveCart(); renderCart(); }
+            const itemIndex = cart.findIndex(i => i.id === id);
+
+            if (itemIndex !== -1) {
+                cart[itemIndex].qty += delta;
+
+                // Si llega a 0 o menos, eliminar del carrito
+                if (cart[itemIndex].qty <= 0) {
+                    cart.splice(itemIndex, 1);
+                }
+
+                saveCart();
+                renderCart();
             }
         }
 
         function removeFromCart(id) {
             cart = cart.filter(item => item.id !== id);
+
             saveCart();
             renderCart();
         }
