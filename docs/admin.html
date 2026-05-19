@@ -4,7 +4,7 @@
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>GINI</title>
-    <link rel="icon" type="image/svg+xml" href="data:image/svg+xml;base64,PHN2ZyB4bWxucz0iaHR0cDovL3d3dy53My5vcmcvMjAwMC9zdmciIHZpZXdCb3g9IjAgMCA2NCA2NCI+PGcgaWQ9Imdpb3JnaW8iPjxjaXJjbGUgY3g9IjIyIiBjeT0iMzYiIHI9IjE0IiBmaWxsPSJub25lIiBzdHJva2U9IiMyMTk2RjMiIHN0cm9rZS13aWR0aD0iNSIgc3Ryb2tlLWxpbmVjYXA9InJvdW5kIi8+PHBhdGggZD0iTTIyLDIyIEMyMSwxNSAxNSwxNiAxOCwyMSIgZmlsbD0ibm9uZSIgc3Ryb2tlPSIjMjE5NkYzIiBzdHJva2Utd2lkdGg9IjQiIHN0cm9rZS1saW5lY2FwPSJyb3VuZCIvPjwvZz48ZyBpZD0ibmluYSI+PGNpcmNsZSBjeD0iNDIiIGN5PSIzNiIgcj0iMTQiIGZpbGw9Im5vbmUiIHN0cm9rZT0iI0U5MUU2MyIgc3Ryb2tlLXdpZHRoPSI1IiBzdHJva2UtbGluZWNhcD0icm91bmQiLz48cGF0aCBkPSJNNDIsMjIgTDM2LDE2IEwzNiwyNCBaIiBmaWxsPSIjRTkxRTYzIi8+PHBhdGggZD0iTTQyLDIyIEw0OCwxNiBMNDgsMjQgWiIgZmlsbD0iI0U5MUU2MyIvPjxjaXJjbGUgY3g9IjQyIiBjeT0iMjAiIHI9IjMiIGZpbGw9IiNFOTFFNjMiLz48L2c+PC9zdmc+">
+    <link rel="icon" type="image/svg+xml" href="data:image/svg+xml;base64,PHN2ZyB4bWxucz0iaHR0cDovL3d3dy53My5vcmcvMjAwMC9zdmciIHZpZXdCb3g9IjAgMCA2NCA2NCIgd2lkdGg9IjEwMCUiIGhlaWdodD0iMTAwJSI+PGcgaWQ9Imdpb3JnaW8iPjxjaXJjbGUgY3g9IjIyIiBjeT0iMzYiIHI9IjE0IiBmaWxsPSJub25lIiBzdHJva2U9IiMyMTk2RjMiIHN0cm9rZS13aWR0aD0iNSIgc3Ryb2tlLWxpbmVjYXA9InJvdW5kIi8+PHBhdGggZD0iTTIyLDIyIEMyMSwxNSAxNSwxNiAxOCwyMSIgZmlsbD0ibm9uZSIgc3Ryb2tlPSIjMjE5NkYzIiBzdHJva2Utd2lkdGg9IjQiIHN0cm9rZS1saW5lY2FwPSJyb3VuZCIvPjwvZz48ZyBpZD0ibmluYSI+PGNpcmNsZSBjeD0iNDIiIGN5PSIzNiIgcj0iMTQiIGZpbGw9Im5vbmUiIHN0cm9rZT0iI0U5MUU2MyIgc3Ryb2tlLXdpZHRoPSI1IiBzdHJva2UtbGluZWNhcD0icm91bmQiLz48cGF0aCBkPSJNNDIsMjIgTDM2LDE2IEwzNiwyNCBaIiBmaWxsPSIjRTkxRTYzIi8+PHBhdGggZD0iTTQyLDIyIEw0OCwxNiBMNDgsMjQgWiIgZmlsbD0iI0U5MUU2MyIvPjxjaXJjbGUgY3g9IjQyIiBjeT0iMjAiIHI9IjMiIGZpbGw9IiNFOTFFNjMiLz48/nPjwvc3ZnPg==">
     <script src="https://unpkg.com/@tailwindcss/browser@4"></script>
     <script src="https://unpkg.com/lucide@latest"></script>
     <link href="https://fonts.googleapis.com/css2?family=IBM+Plex+Mono:wght@400;500;600&family=Inter:wght@300;400;500;600;700&display=swap" rel="stylesheet">
@@ -21,12 +21,11 @@
         @keyframes slideIn { from { transform: translateY(10px); opacity: 0; } to { transform: translateY(0); opacity: 1; } }
         .slide-in { animation: slideIn 0.3s ease-out forwards; }
 
-        /* REGLAS COMPLEMENTARIAS DE INTEGRACIÓN DARK MODE */
         body.dark-mode { background-color: #020617; color: #F8FAFC; }
         body.dark-mode header { background-color: #0F172A !important; border-color: #1E293B !important; }
         body.dark-mode header span { color: #FFFFFF !important; }
-        body.dark-mode .bg-white, body.dark-mode #loginCard { background-color: #0F172A !important; border-color: #1E293B !important; }
-        body.dark-mode .text-slate-900, body.dark-mode #loginCard h1 { color: #FFFFFF !important; }
+        body.dark-mode .bg-white, body.dark-mode #loginCard, body.dark-mode #exportModalCard { background-color: #0F172A !important; border-color: #1E293B !important; }
+        body.dark-mode .text-slate-900, body.dark-mode #loginCard h1, body.dark-mode h2, body.dark-mode h3 { color: #FFFFFF !important; }
         body.dark-mode .text-slate-800 { color: #E2E8F0 !important; }
         body.dark-mode .border-slate-100, body.dark-mode .border-slate-200 { border-color: #1E293B !important; }
         body.dark-mode .bg-slate-50 { background-color: #1E293B !important; }
@@ -43,37 +42,26 @@
         body.dark-mode #loginSection { background-color: #020617 !important; }
         body.dark-mode #loginCard button[type="submit"] { background-color: #FFFFFF !important; color: #020617 !important; }
     </style>
-  <script type="module" crossorigin src="/giniexpress/assets/admin-hogWz3Jt.js"></script>
+  <script type="module" crossorigin src="/giniexpress/assets/admin-CUCvbWe_.js"></script>
   <link rel="modulepreload" crossorigin href="/giniexpress/assets/index-CMzVDswU.js">
 </head>
 <body class="min-h-screen">
 
     <div id="loginSection" class="hidden min-h-screen bg-slate-50 flex items-center justify-center p-6 select-none relative transition-colors">
-        
-        <button id="loginThemeToggle" class="absolute top-6 right-6 text-slate-400 hover:text-slate-900 p-2 rounded-lg border border-slate-200 bg-white cursor-pointer transition-colors flex items-center justify-center w-9 h-9">
+        <button id="loginThemeToggle" class="absolute top-6 right-6 text-slate-400 hover:text-slate-900 p-2 rounded-lg border border-slate-200 bg-white cursor-pointer flex items-center justify-center w-9 h-9">
             <i data-lucide="moon" class="w-4 h-4"></i>
         </button>
-
         <div id="loginCard" class="bg-white rounded-2xl p-10 shadow-2xl w-full max-w-md border border-slate-100 flex flex-col items-center slide-in transition-colors">
             <div class="text-center mb-8">
                 <div class="w-16 h-16 rounded-2xl flex items-center justify-center mx-auto mb-4 p-1">
                     <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 64 64" width="100%" height="100%">
-                        <g id="giorgio">
-                            <circle cx="22" cy="36" r="14" fill="none" stroke="#2196F3" stroke-width="5" stroke-linecap="round"/>
-                            <path d="M22,22 C21,15 15,16 18,21" fill="none" stroke="#2196F3" stroke-width="4" stroke-linecap="round"/>
-                        </g>
-                        <g id="nina">
-                            <circle cx="42" cy="36" r="14" fill="none" stroke="#E91E63" stroke-width="5" stroke-linecap="round"/>
-                            <path d="M42,22 L36,16 L36,24 Z" fill="#E91E63"/>
-                            <path d="M42,22 L48,16 L48,24 Z" fill="#E91E63"/>
-                            <circle cx="42" cy="20" r="3" fill="#E91E63"/>
-                        </g>
+                        <g id="giorgio"><circle cx="22" cy="36" r="14" fill="none" stroke="#2196F3" stroke-width="5" stroke-linecap="round"/><path d="M22,22 C21,15 15,16 18,21" fill="none" stroke="#2196F3" stroke-width="4" stroke-linecap="round"/></g>
+                        <g id="nina"><circle cx="42" cy="36" r="14" fill="none" stroke="#E91E63" stroke-width="5" stroke-linecap="round"/><path d="M42,22 L36,16 L36,24 Z" fill="#E91E63"/><path d="M42,22 L48,16 L48,24 Z" fill="#E91E63"/><circle cx="42" cy="20" r="3" fill="#E91E63"/></g>
                     </svg>
                 </div>
                 <h1 class="text-xl font-bold text-slate-900 tracking-tight">GINI EXPRESS</h1>
                 <p class="text-slate-400 text-xs mt-1.5">Identifícate para gestionar tu tienda</p>
             </div>
-            
             <form id="loginForm" class="w-full space-y-5">
                 <div class="space-y-1.5">
                     <label class="text-[10px] font-bold uppercase tracking-widest text-slate-400 ml-1">E-mail Address</label>
@@ -83,7 +71,7 @@
                     <label class="text-[10px] font-bold uppercase tracking-widest text-slate-400 ml-1">Password</label>
                     <input type="password" id="password" required class="w-full input-minimal px-4 py-3 text-sm focus:outline-none">
                 </div>
-                <button type="submit" id="loginBtn" class="w-full btn-primary py-3.5 rounded-xl font-bold flex items-center justify-center gap-2 transition-all shadow-xl text-sm mt-2 cursor-pointer">
+                <button type="submit" id="loginBtn" class="w-full btn-primary py-3.5 rounded-xl font-bold flex items-center justify-center gap-2 text-sm mt-2 cursor-pointer">
                     Comenzar sesión <i data-lucide="chevron-right" class="w-4 h-4 opacity-60"></i>
                 </button>
             </form>
@@ -100,16 +88,8 @@
                     <div class="flex items-center gap-3">
                         <div class="w-8 h-8 flex items-center justify-center">
                             <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 64 64" width="100%" height="100%">
-                                <g id="giorgio">
-                                    <circle cx="22" cy="36" r="14" fill="none" stroke="#2196F3" stroke-width="5" stroke-linecap="round"/>
-                                    <path d="M22,22 C21,15 15,16 18,21" fill="none" stroke="#2196F3" stroke-width="4" stroke-linecap="round"/>
-                                </g>
-                                <g id="nina">
-                                    <circle cx="42" cy="36" r="14" fill="none" stroke="#E91E63" stroke-width="5" stroke-linecap="round"/>
-                                    <path d="M42,22 L36,16 L36,24 Z" fill="#E91E63"/>
-                                    <path d="M42,22 L48,16 L48,24 Z" fill="#E91E63"/>
-                                    <circle cx="42" cy="20" r="3" fill="#E91E63"/>
-                                </g>
+                                <g id="giorgio"><circle cx="22" cy="36" r="14" fill="none" stroke="#2196F3" stroke-width="5" stroke-linecap="round"/><path d="M22,22 C21,15 15,16 18,21" fill="none" stroke="#2196F3" stroke-width="4" stroke-linecap="round"/></g>
+                                <g id="nina"><circle cx="42" cy="36" r="14" fill="none" stroke="#E91E63" stroke-width="5" stroke-linecap="round"/><path d="M42,22 L36,16 L36,24 Z" fill="#E91E63"/><path d="M42,22 L48,16 L48,24 Z" fill="#E91E63"/><circle cx="42" cy="20" r="3" fill="#E91E63"/></g>
                             </svg>
                         </div>
                         <span class="font-bold tracking-tight text-slate-900 uppercase text-sm">GINI EXPRESS</span>
@@ -122,7 +102,7 @@
                 </div>
                 <div class="flex items-center gap-3">
                     <div id="userEmail" class="text-[10px] font-bold text-slate-300 hidden sm:block bg-slate-50 px-3 py-1.5 rounded-md border border-slate-100">...</div>
-                    <button id="themeToggle" class="text-slate-400 hover:text-slate-900 p-2 rounded-lg border border-slate-100 bg-white cursor-pointer transition-colors flex items-center justify-center w-9 h-9">
+                    <button id="themeToggle" class="text-slate-400 hover:text-slate-900 p-2 rounded-lg border border-slate-100 bg-white cursor-pointer flex items-center justify-center w-9 h-9">
                         <i data-lucide="moon" class="w-4 h-4"></i>
                     </button>
                     <button id="logoutBtn" class="text-slate-300 hover:text-red-500 transition-colors bg-white p-2 rounded-lg border border-slate-100 cursor-pointer">
@@ -139,12 +119,15 @@
                         <h2 class="text-2xl font-bold text-slate-900">Inventario</h2>
                         <p class="text-sm text-slate-400 mt-1">Gestión avanzada de reglas de precios e importaciones</p>
                     </div>
-                    <div class="flex flex-col sm:flex-row items-center gap-4 w-full sm:w-auto">
+                    <div class="flex flex-col sm:flex-row items-center gap-3 w-full sm:w-auto">
+                        
+                        <button id="exportStoriesBtn" onclick="openExportModal()" class="hidden bg-orange-500 hover:bg-orange-600 text-white px-4 py-2 rounded-lg text-xs font-bold gap-2 items-center cursor-pointer transition-all shadow-md shadow-orange-500/10 slide-in">
+                            <i data-lucide="image-down" class="w-3.5 h-3.5"></i> Exportar Stories (<span id="selectedCount">0</span>)
+                        </button>
+
                         <div class="relative w-full sm:w-64">
                             <input type="text" id="adminSearchInput" placeholder="Buscar producto a editar..." class="w-full bg-white border border-slate-200 rounded-lg pl-9 pr-4 py-2 text-xs focus:border-slate-950 focus:outline-none transition-colors shadow-sm">
-                            <div class="absolute left-3 top-2.5 text-slate-400">
-                                <i data-lucide="search" class="w-3.5 h-3.5"></i>
-                            </div>
+                            <div class="absolute left-3 top-2.5 text-slate-400"><i data-lucide="search" class="w-3.5 h-3.5"></i></div>
                         </div>
                         <div class="flex items-center gap-4 flex-shrink-0">
                             <span id="productCount" class="text-[10px] font-bold uppercase tracking-widest text-slate-400 bg-slate-100 px-3 py-1 rounded-full">0 ITEMS</span>
@@ -160,6 +143,9 @@
                         <table class="w-full text-left">
                             <thead class="bg-slate-50 border-b border-slate-100">
                                 <tr>
+                                    <th class="px-4 py-4 w-10 text-center">
+                                        <input type="checkbox" id="selectAllCheckbox" onclick="toggleSelectAll()" class="w-4 h-4 rounded border-slate-300 accent-slate-900 cursor-pointer">
+                                    </th>
                                     <th class="px-6 py-4 text-[10px] font-bold uppercase tracking-widest text-slate-400">Producto</th>
                                     <th class="px-6 py-4 text-[10px] font-bold uppercase tracking-widest text-slate-400">Costo Base</th>
                                     <th class="px-6 py-4 text-[10px] font-bold uppercase tracking-widest text-slate-400">Estrategia / Parámetro</th>
@@ -176,27 +162,25 @@
 
             <section id="add" class="tab-content slide-in">
                 <div class="max-w-2xl mx-auto">
-                    <div class="mb-10 text-center">
-                        <h2 class="text-2xl font-bold text-slate-900">Nuevo Producto Manual</h2>
-                    </div>
+                    <div class="mb-10 text-center"><h2 class="text-2xl font-bold text-slate-900">Nuevo Producto Manual</h2></div>
                     <form id="addProductForm" class="bg-white p-10 border border-slate-100 rounded-2xl shadow-sm space-y-8">
                         <div class="grid grid-cols-1 md:grid-cols-2 gap-8">
                             <div class="space-y-1.5">
                                 <label class="text-[10px] font-bold uppercase tracking-widest text-slate-400 ml-1">Título</label>
-                                <input type="text" id="addTitle" required class="w-full input-minimal px-4 py-3.5 text-sm">
+                                <input type="text" id="addTitle" required class="w-full input-minimal px-4 py-3 text-sm">
                             </div>
                             <div class="space-y-1.5">
                                 <label class="text-[10px] font-bold uppercase tracking-widest text-slate-400 ml-1">Precio Costo ($)</label>
-                                <input type="number" id="addPrice" required class="w-full input-minimal px-4 py-3.5 text-sm">
+                                <input type="number" id="addPrice" required class="w-full input-minimal px-4 py-3 text-sm">
                             </div>
                         </div>
                         <div class="space-y-1.5">
                             <label class="text-[10px] font-bold uppercase tracking-widest text-slate-400 ml-1">URL Imagen</label>
-                            <input type="url" id="addImageUrl" required class="w-full input-minimal px-4 py-3.5 text-sm">
+                            <input type="url" id="addImageUrl" required class="w-full input-minimal px-4 py-3 text-sm">
                         </div>
                         <div class="space-y-1.5">
                             <label class="text-[10px] font-bold uppercase tracking-widest text-slate-400 ml-1">Descripción</label>
-                            <textarea id="addDescription" required rows="3" class="w-full input-minimal px-4 py-3.5 text-sm resize-none"></textarea>
+                            <textarea id="addDescription" required rows="3" class="w-full input-minimal px-4 py-3 text-sm resize-none"></textarea>
                         </div>
                         <button type="submit" id="submitProductBtn" class="w-full btn-primary py-4 rounded-xl font-bold cursor-pointer">Crear Ítem</button>
                     </form>
@@ -220,6 +204,25 @@
                 </div>
             </section>
         </main>
+    </div>
+
+    <div id="exportModal" class="fixed inset-0 bg-slate-950/60 z-[100] hidden items-center justify-center p-4 backdrop-blur-sm slide-in">
+        <div id="exportModalCard" class="bg-white border rounded-2xl max-w-lg w-full flex flex-col overflow-hidden shadow-2xl max-h-[85vh]">
+            <div class="p-6 border-b border-slate-100 flex items-center justify-between">
+                <h3 class="font-bold text-base text-slate-900 flex items-center gap-2">
+                    <i data-lucide="layers" class="w-4 h-4 text-orange-500"></i> Confirmar Exportación Masiva
+                </h3>
+                <button onclick="closeExportModal()" class="text-slate-400 hover:text-slate-600"><i data-lucide="x" class="w-4 h-4"></i></button>
+            </div>
+            <div id="exportModalList" class="p-6 overflow-y-auto space-y-4 bg-slate-50/50 dark:bg-slate-950/20 flex-1 divide-y divide-slate-100">
+                </div>
+            <div class="p-6 bg-slate-50 border-t border-slate-100 flex items-center gap-3 justify-end">
+                <button onclick="closeExportModal()" class="px-4 py-2.5 border rounded-xl text-xs font-semibold hover:bg-slate-100 cursor-pointer transition-colors text-slate-500">Cancelar</button>
+                <button id="confirmExportBtn" onclick="processBatchExport()" class="px-5 py-2.5 bg-orange-500 hover:bg-orange-600 text-white rounded-xl text-xs font-bold flex items-center gap-2 cursor-pointer transition-colors shadow-md shadow-orange-500/10">
+                    <i data-lucide="send-to-back" class="w-3.5 h-3.5"></i> Iniciar Renderizado
+                </button>
+            </div>
+        </div>
     </div>
 
     <div id="toast" class="fixed bottom-8 left-1/2 -translate-x-1/2 z-[100] px-6 py-3 bg-black text-white text-sm font-medium rounded-full shadow-2xl transition-all duration-300 translate-y-20 opacity-0 pointer-events-none"></div>
