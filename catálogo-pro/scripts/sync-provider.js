@@ -1,7 +1,7 @@
 import { createClient } from '@supabase/supabase-js';
 import puppeteer from 'puppeteer';
 
-const PROVIDER_URL = 'https://catalogo.treinta.co/brajaexpress-e8aefd';
+const PROVIDER_URL = 'https://catalogo.treinta.co/brajaexpress-e8aefd?sort=name-asc';
 const DEFAULT_MARGIN = 15;
 
 const { SUPABASE_URL, SUPABASE_KEY } = process.env;
@@ -12,51 +12,41 @@ if (!SUPABASE_URL || !SUPABASE_KEY) {
 
 const supabase = createClient(SUPABASE_URL, SUPABASE_KEY);
 
-// =========================================================================
-// 🎯 MOTOR HÍBRIDO: ESCROLLEA, HACE CLIC EN BOTONES Y EXTRAE AL MISMO TIEMPO
-// =========================================================================
 async function scrollAndExtract(page) {
     console.log("🐢 Iniciando extracción blindada...");
     let foundMap = new Map();
     let lastCount = 0;
     let attemptsWithoutNewProducts = 0;
 
-    for (let i = 0; i < 60; i++) { // Intentamos 60 ciclos de scroll
-        // 1. Extraemos productos en el contexto actual
-        const newProducts = await page.evaluate(() => {
-            const results = [];
-            document.querySelectorAll('img').forEach(img => {
-                let card = img.closest('div[class*="product"], article, li, div'); // Buscamos el contenedor padre
-                if (!card) return;
-
-                const priceMatch = card.textContent.match(/\$[\s\u00a0]*([0-9.]+)/);
-                if (!priceMatch) return;
-
-                const price = parseFloat(priceMatch[1].replace(/\./g, ''));
-                const titleEl = card.querySelector('h1, h2, h3, h4, p');
-                const title = titleEl ? titleEl.textContent.trim().replace(/[\*\'\´\"]/g, '') : "Producto";
-
-                results.push({ titulo: title, precioCosto: price, imagen_url: img.src });
-            });
-            return results;
-        });
-
-        // 2. Acumulamos productos sin duplicados
-        newProducts.forEach(p => foundMap.set(p.titulo.toLowerCase(), p));
-
-        if (foundMap.size > lastCount) {
-            console.log(`📦 Productos acumulados hasta ahora: ${foundMap.size}`);
-            lastCount = foundMap.size;
-            attemptsWithoutNewProducts = 0;
-        } else {
-            attemptsWithoutNewProducts++;
-        }
-
-        // 3. Si no encontramos nada nuevo en 5 ciclos, asumimos que terminamos
-        if (attemptsWithoutNewProducts >= 5) break;
-
-        // 4. Scroll y clic en botón (reintento seguro si el contexto se destruye)
+    for (let i = 0; i < 60; i++) {
         try {
+            const newProducts = await page.evaluate(() => {
+                const results = [];
+                document.querySelectorAll('img').forEach(img => {
+                    let card = img.closest('div[class*="product"], article, li, div');
+                    if (!card) return;
+                    const priceMatch = card.textContent.match(/\$[\s\u00a0]*([0-9.]+)/);
+                    if (!priceMatch) return;
+                    const price = parseFloat(priceMatch[1].replace(/\./g, ''));
+                    const titleEl = card.querySelector('h1, h2, h3, h4, p');
+                    const title = titleEl ? titleEl.textContent.trim().replace(/[\*\'\´\"]/g, '') : "Producto";
+                    results.push({ titulo: title, precioCosto: price, imagen_url: img.src });
+                });
+                return results;
+            });
+
+            newProducts.forEach(p => foundMap.set(p.titulo.toLowerCase(), p));
+
+            if (foundMap.size > lastCount) {
+                console.log(`📦 Productos acumulados hasta ahora: ${foundMap.size}`);
+                lastCount = foundMap.size;
+                attemptsWithoutNewProducts = 0;
+            } else {
+                attemptsWithoutNewProducts++;
+            }
+
+            if (attemptsWithoutNewProducts >= 5) break;
+
             await page.evaluate(() => {
                 window.scrollBy(0, 800);
                 const btns = Array.from(document.querySelectorAll('button, a'));
@@ -64,12 +54,10 @@ async function scrollAndExtract(page) {
                 if (btn) btn.click();
             });
         } catch (e) {
-            console.log("⚠️ Contexto destruido durante scroll, reintentando...");
+            console.log("⚠️ Contexto destruido, reintentando...");
         }
-
-        await new Promise(r => setTimeout(r, 2500)); // Pausa generosa para cargar DOM nuevo
+        await new Promise(r => setTimeout(r, 2500));
     }
-
     return Array.from(foundMap.values());
 }
 
@@ -77,7 +65,6 @@ async function syncCatalog() {
     console.log(`[${new Date().toISOString()}] Arrancando escáner...`);
     let browser;
     try {
-        // --- 🎯 SOLUCIÓN: PAGINACIÓN DE LECTURA SUPABASE ---
         let dbProducts = [];
         let rangeStart = 0;
         let rangeEnd = 999;
@@ -91,20 +78,18 @@ async function syncCatalog() {
                 .range(rangeStart, rangeEnd);
 
             if (error) throw error;
-
             if (data && data.length > 0) {
                 dbProducts = dbProducts.concat(data);
                 console.log(`📦 Productos cargados hasta ahora: ${dbProducts.length}`);
                 rangeStart += 1000;
                 rangeEnd += 1000;
             } else {
-                hasMore = false; // Ya no hay más páginas
+                hasMore = false;
             }
         }
 
         console.log(`✅ Catálogo cargado totalmente. Total: ${dbProducts.length} productos.`);
         const localMap = new Map(dbProducts.map(p => [p.titulo.toLowerCase(), p]));
-        // --- FIN DE PAGINACIÓN ---
 
         browser = await puppeteer.launch({
             headless: true,
@@ -116,37 +101,22 @@ async function syncCatalog() {
         await page.setUserAgent('Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/148.0.0.0 Safari/537.36');
 
         const cookies = [{
-            'name': 'session', // El nombre de la cookie de sesión
+            'name': 'session',
             'value': 'TU_VALOR_AQUI',
             'domain': 'catalogo.treinta.co'
         }];
         await page.setCookie(...cookies);
 
-        // 1. Antes del page.goto, configuramos la interceptación
         await page.setRequestInterception(true);
-        page.on('request', (request) => {
-            request.continue();
-        });
+        page.on('request', (request) => request.continue());
 
-        // 2. Escuchamos las respuestas para ver qué nos trae la API
         page.on('response', async (response) => {
             const url = response.url();
-            // Filtramos solo las peticiones que parecen cargar productos
             if (url.includes('products') || url.includes('catalog')) {
                 try {
-                    const status = response.status();
                     const data = await response.json();
-                    console.log(`📡 API detectada [${status}]: ${url}`);
-
-                    // Si es un array, contemos cuántos trae
-                    if (Array.isArray(data)) {
-                        console.log(`📦 Cantidad de productos en este paquete: ${data.length}`);
-                    } else if (data.items) {
-                        console.log(`📦 Cantidad de productos en este paquete: ${data.items.length}`);
-                    }
-                } catch (e) {
-                    // A veces la respuesta no es JSON, no importa
-                }
+                    console.log(`📡 API detectada: ${url}`);
+                } catch (e) {}
             }
         });
 
@@ -157,104 +127,47 @@ async function syncCatalog() {
         await page.evaluate(() => window.scrollTo(0, 500));
         await new Promise(r => setTimeout(r, 2000));
 
-        // Ejecutamos la función híbrida
         const scrapedProducts = await scrollAndExtract(page);
-
         await browser.close();
 
-        // DEBUG: Ver cuántos contenedores de producto estamos tocando realmente
-        const totalPotencial = await page.evaluate(() => {
-            // Buscamos los contenedores que Treinta usa para sus cards
-            const cards = document.querySelectorAll('[class*="product"], [class*="item"], article');
-            return cards.length;
-        });
-        console.log(`🔍 DEBUG: El DOM de la web tiene ${totalPotencial} elementos que parecen productos.`);
+        const totalPotencial = scrapedProducts.length;
+        console.log(`🔍 DEBUG: El total de productos únicos encontrados es: ${totalPotencial}`);
 
         const finalScraped = scrapedProducts.filter(p => p.titulo && p.precioCosto > 0);
 
-        // =========================================================================
-        // 🎯 AUDITORÍA DE CONTRASTE GINI
-        // =========================================================================
         console.log(`\n=== 📊 AUDITORÍA DE CONTRASTE GINI ===`);
-        console.log(`• Total de productos capturados por el acumulador en la web: ${finalScraped.length}`);
-
-        if (dbProducts) {
-            const faltantes = finalScraped.filter(pWeb =>
-                !localMap.has(pWeb.titulo.toLowerCase())
-            );
-
-            if (faltantes.length > 0) {
-                console.log(`⚠️ ALERTA: Ingresando ${faltantes.length} productos nuevos a Supabase:`);
-                // Solo imprimimos los primeros 10 para no saturar la consola si son cientos
-                faltantes.slice(0, 10).forEach((p, idx) => {
-                    console.log(`   [${idx + 1}] -> "${p.titulo}" | Costo: $${p.precioCosto}`);
-                });
-                if (faltantes.length > 10) console.log(`   ...y ${faltantes.length - 10} más.`);
-            } else {
-                console.log(`✅ ¡Sincronización perfecta! No quedan productos omitidos.`);
-            }
-        }
-        console.log(`=======================================\n`);
+        console.log(`• Total de productos capturados: ${finalScraped.length}`);
 
         let inserts = [];
         let updates = [];
 
         for (const item of finalScraped) {
             const key = item.titulo.toLowerCase();
-
             if (localMap.has(key)) {
                 const localItem = localMap.get(key);
-
-                if (localItem.precio_fijo !== null && localItem.precio_fijo !== undefined) {
-                    updates.push(
-                        supabase.from('productos').update({
-                            precio_costo: item.precioCosto,
-                            precio: localItem.precio_fijo,
-                            descripcion: item.descripcion,
-                            imagen_url: item.imagen_url
-                        }).eq('id', localItem.id)
-                    );
-                } else {
-                    const margen = localItem.porcentaje_ganancia !== null ? localItem.porcentaje_ganancia : DEFAULT_MARGIN;
-                    const nuevoPrecioVenta = Math.round(item.precioCosto * (1 + margen / 100));
-
-                    updates.push(
-                        supabase.from('productos').update({
-                            precio_costo: item.precioCosto,
-                            precio: nuevoPrecioVenta,
-                            porcentaje_ganancia: margen,
-                            precio_fijo: null,
-                            descripcion: item.descripcion,
-                            imagen_url: item.imagen_url
-                        }).eq('id', localItem.id)
-                    );
-                }
+                updates.push(supabase.from('productos').update({
+                    precio_costo: item.precioCosto,
+                    precio: localItem.precio_fijo || Math.round(item.precioCosto * (1 + (localItem.porcentaje_ganancia || DEFAULT_MARGIN) / 100)),
+                    descripcion: item.descripcion,
+                    imagen_url: item.imagen_url
+                }).eq('id', localItem.id));
             } else {
-                const precioVentaNuevo = Math.round(item.precioCosto * (1 + DEFAULT_MARGIN / 100));
                 inserts.push({
                     titulo: item.titulo,
                     precio_costo: item.precioCosto,
                     porcentaje_ganancia: DEFAULT_MARGIN,
                     precio_fijo: null,
-                    precio: precioVentaNuevo,
+                    precio: Math.round(item.precioCosto * (1 + DEFAULT_MARGIN / 100)),
                     descripcion: item.descripcion,
                     imagen_url: item.imagen_url
                 });
             }
         }
 
-        if (inserts.length > 0) {
-            const { error: insErr } = await supabase.from('productos').insert(inserts);
-            if (insErr) throw insErr;
-        }
-        if (updates.length > 0) {
-            // Partimos los updates en lotes para no saturar Supabase si son cientos
-            for (let i = 0; i < updates.length; i += 50) {
-                await Promise.all(updates.slice(i, i + 50));
-            }
-        }
+        if (inserts.length > 0) await supabase.from('productos').insert(inserts);
+        for (let i = 0; i < updates.length; i += 50) await Promise.all(updates.slice(i, i + 50));
 
-        console.log(`[SINCRO COMPLETADA] Base de datos actualizada con éxito.`);
+        console.log(`[SINCRO COMPLETADA] Base de datos actualizada.`);
     } catch (error) {
         console.error(`[Error]: ${error.message}`);
         if (browser) await browser.close();
