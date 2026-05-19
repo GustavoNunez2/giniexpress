@@ -2,7 +2,7 @@ import { createClient } from '@supabase/supabase-js';
 import puppeteer from 'puppeteer';
 
 const PROVIDER_URL = 'https://catalogo.treinta.co/brajaexpress-e8aefd';
-const DEFAULT_MARGIN = 15; // Margen de ganancia inicial para productos nuevos
+const DEFAULT_MARGIN = 15;
 
 const { SUPABASE_URL, SUPABASE_KEY } = process.env;
 if (!SUPABASE_URL || !SUPABASE_KEY) {
@@ -12,7 +12,6 @@ if (!SUPABASE_URL || !SUPABASE_KEY) {
 
 const supabase = createClient(SUPABASE_URL, SUPABASE_KEY);
 
-// Función para forzar el scroll tanto en la ventana como en contenedores internos ocultos
 async function forceDeepScroll(page) {
     await page.evaluate(async () => {
         await new Promise((resolve) => {
@@ -29,47 +28,38 @@ async function forceDeepScroll(page) {
 
             let timer = setInterval(() => {
                 let maxReached = 0;
-                
                 scrollableContainers.forEach(container => {
                     if (container === window) {
                         window.scrollBy(0, distance);
                         maxReached = Math.max(maxReached, document.body.scrollHeight);
                     } else {
                         container.scrollBy(0, distance);
-                        maxReached = Math.max(maxReached, container.scrollHeight);
+                        maxReached = Math.max(maxReached, container.scrollHeight);maxReached = Math.max(maxReached, container.scrollHeight);
                     }
                 });
-
                 totalHeight += distance;
-
                 if (totalHeight >= maxReached + 6000) {
                     clearInterval(timer);
                     resolve();
                 }
             }, 90);
 
-            // Salvaguarda de tiempo límite para el scroll masivo
-            setTimeout(() => {
-                clearInterval(timer);
-                resolve();
-            }, 15000);
+            setTimeout(() => { clearInterval(timer); resolve(); }, 15000);
         });
     });
 }
 
 async function syncCatalog() {
-    console.log(`[${new Date().toISOString()}] Iniciando escáner visual con aislamiento de galerías...`);
+    console.log(`[${new Date().toISOString()}] Iniciando escáner visual con sanitización de precios...`);
     let browser;
     try {
-        // 1. Descargar el mapa local para respetar tus modificaciones manuales de precios
         const { data: dbProducts, error: dbError } = await supabase
             .from('productos')
-            .select('id, titulo, precio, porcentaje_ganancia, precio_costo');
+            .select('id, titulo, precio, porcentaje_ganancia, precio_costo, precio_fijo');
         
         if (dbError) throw dbError;
         const localMap = new Map(dbProducts?.map(p => [p.titulo.toLowerCase(), p]) || []);
 
-        // 2. Lanzar navegador virtual controlado en la nube
         browser = await puppeteer.launch({
             headless: true,
             args: ['--no-sandbox', '--disable-setuid-sandbox', '--disable-dev-shm-usage']
@@ -79,63 +69,43 @@ async function syncCatalog() {
         await page.setViewport({ width: 1280, height: 800 });
         await page.setUserAgent('Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/120.0.0.0 Safari/537.36');
 
-        console.log(`Navegando hacia el catálogo del proveedor...`);
         await page.goto(PROVIDER_URL, { waitUntil: 'networkidle2', timeout: 60000 });
-
-        console.log('Ejecutando descenso continuo sobre contenedores dinámicos...');
         await forceDeepScroll(page);
-        
         await new Promise(resolve => setTimeout(resolve, 3000));
 
-        // 3. EXTRACCIÓN VISUAL FILTRADA POR CONTEXTO
         const scrapedProducts = await page.evaluate(() => {
             let found = [];
             const allElements = document.querySelectorAll('*');
 
             allElements.forEach(el => {
-                // Localizar nodos hoja que contengan el precio
                 if (el.textContent && el.textContent.includes('$') && el.children.length <= 1) {
-                    
-                    // ESCUDO ANTI-MODALES Y GALERÍAS INTERNAS:
-                    // Rastreamos hacia arriba para ver si este precio o imagen pertenece a un modal oculto o carrusel secundario
                     let isInsideInvalidContainer = false;
                     let current = el;
                     while (current) {
                         const className = current.className?.toString().toLowerCase() || '';
                         const id = current.id?.toString().toLowerCase() || '';
-                        const role = current.getAttribute?.('role')?.toLowerCase() || '';
-                        const ariaModal = current.getAttribute?.('aria-modal')?.toLowerCase() || '';
-                        
-                        if (
-                            className.includes('modal') || className.includes('dialog') || 
-                            className.includes('carousel') || className.includes('popup') ||
-                            className.includes('swiper') || className.includes('slider') ||
-                            className.includes('galeria') || className.includes('gallery') ||
-                            id.includes('modal') || id.includes('dialog') ||
-                            role === 'dialog' || ariaModal === 'true'
-                        ) {
+                        if (className.includes('modal') || className.includes('dialog') || className.includes('carousel') || className.includes('swiper') || id.includes('modal')) {
                             isInsideInvalidContainer = true;
                             break;
                         }
                         current = current.parentElement;
                     }
-
-                    // Si está metido adentro de un modal o carrusel de fotos secundarias, lo salteamos por completo
                     if (isInsideInvalidContainer) return;
 
                     const priceText = el.textContent.trim();
-                    const priceNumbers = priceText.replace(/[^0-9]/g, '');
+                    
+                    // AISLAMIENTO DE PRECIO CON REGEX: Captura únicamente la secuencia de números y puntos tras el '$'
+                    // Previene de forma absoluta la mezcla con números del título ("60led", "3 en 1")
+                    const matchPrice = priceText.match(/\$\s*([0-9.]+)/);
 
-                    if (priceNumbers.length >= 3 && priceNumbers.length <= 7) {
+                    if (matchPrice) {
+                        const priceNumbers = matchPrice[1].replace(/\./g, '');
                         const precioCosto = parseFloat(priceNumbers);
                         
-                        // Aislar la tarjeta principal subiendo hasta 5 niveles
                         let parent = el.parentElement;
                         for (let depth = 0; depth < 5; depth++) {
                             if (!parent) break;
-
                             const img = parent.querySelector('img');
-                            
                             let textBlocks = [];
                             parent.querySelectorAll('h1, h2, h3, h4, h5, h6, p, span, div').forEach(textEl => {
                                 const txt = textEl.textContent.trim();
@@ -147,15 +117,8 @@ async function syncCatalog() {
                             if (img && textBlocks.length > 0) {
                                 const titulo = textBlocks[0];
                                 const descripcion = textBlocks[1] && textBlocks[1].length > 10 ? textBlocks[1] : 'Sin descripción disponible.';
-                                
-                                // Evitar duplicar el artículo en el mismo escaneo
                                 if (!found.some(p => p.titulo.toLowerCase() === titulo.toLowerCase())) {
-                                    found.push({
-                                        titulo: titulo,
-                                        precioCosto: precioCosto,
-                                        descripcion: descripcion,
-                                        imagen_url: img.src
-                                    });
+                                    found.push({ titulo, precioCosto, descripcion, imagen_url: img.src });
                                 }
                                 break; 
                             }
@@ -169,15 +132,13 @@ async function syncCatalog() {
 
         await browser.close();
 
-        // Limpieza final de nombres del sistema
         const finalScraped = scrapedProducts.filter(p => {
             const t = p.titulo.toLowerCase();
             return !t.includes("viewport") && !t.includes("catálogo") && !t.includes("error") && p.precioCosto > 0;
         });
 
-        console.log(`\n[Filtro Aplicado] Se aislaron ${finalScraped.length} productos principales, eliminando fotos de modales.`);
+        console.log(`[OK] Detectados ${finalScraped.length} productos reales sanitizados.`);
 
-        // 4. Clasificación diferencial de datos para proteger tus modificaciones manuales del admin
         let inserts = [];
         let updates = [];
 
@@ -186,23 +147,41 @@ async function syncCatalog() {
             
             if (localMap.has(key)) {
                 const localItem = localMap.get(key);
-                const margen = localItem.porcentaje_ganancia !== null ? localItem.porcentaje_ganancia : DEFAULT_MARGIN;
-                const nuevoPrecioVenta = Math.round(item.precioCosto * (1 + margen / 100));
+                
+                // ARQUITECTURA DE PRECIOS HÍBRIDA:
+                // Si el producto posee un Precio Fijo Manual activo en el admin, el robot actualiza el costo base pero NO toca el precio de venta final
+                if (localItem.precio_fijo !== null && localItem.precio_fijo !== undefined) {
+                    updates.push(
+                        supabase.from('productos').update({
+                            precio_costo: item.precioCosto,
+                            precio: localItem.precio_fijo,
+                            descripcion: item.descripcion,
+                            imagen_url: item.imagen_url
+                        }).eq('id', localItem.id)
+                    );
+                } else {
+                    // Si opera en modo automático, recalcula el valor final en base al porcentaje guardado
+                    const margen = localItem.porcentaje_ganancia !== null ? localItem.porcentaje_ganancia : DEFAULT_MARGIN;
+                    const nuevoPrecioVenta = Math.round(item.precioCosto * (1 + margen / 100));
 
-                updates.push(
-                    supabase.from('productos').update({
-                        precio_costo: item.precioCosto,
-                        precio: nuevoPrecioVenta,
-                        descripcion: item.descripcion,
-                        imagen_url: item.imagen_url
-                    }).eq('id', localItem.id)
-                );
+                    updates.push(
+                        supabase.from('productos').update({
+                            precio_costo: item.precioCosto,
+                            precio: nuevoPrecioVenta,
+                            porcentaje_ganancia: margen,
+                            precio_fijo: null,
+                            descripcion: item.descripcion,
+                            imagen_url: item.imagen_url
+                        }).eq('id', localItem.id)
+                    );
+                }
             } else {
                 const precioVentaNuevo = Math.round(item.precioCosto * (1 + DEFAULT_MARGIN / 100));
                 inserts.push({
                     titulo: item.titulo,
                     precio_costo: item.precioCosto,
                     porcentaje_ganancia: DEFAULT_MARGIN,
+                    precio_fijo: null,
                     precio: precioVentaNuevo,
                     descripcion: item.descripcion,
                     imagen_url: item.imagen_url
@@ -210,22 +189,17 @@ async function syncCatalog() {
             }
         }
 
-        // 5. Transmitir cambios hacia Supabase
         if (inserts.length > 0) {
             const { error: insErr } = await supabase.from('productos').insert(inserts);
             if (insErr) throw insErr;
-            console.log(`[Base de Datos] Insertados ${inserts.length} productos nuevos.`);
         }
-
         if (updates.length > 0) {
             await Promise.all(updates);
-            console.log(`[Base de Datos] Sincronizados costos de ${updates.length} productos existentes.`);
         }
 
-        console.log(`\n[PROCESO COMPLETADO] Catálogo espejado sin duplicaciones.`);
-
+        console.log(`[SINCRO COMPLETADA] Base de datos actualizada correctamente.`);
     } catch (error) {
-        console.error(`[Fallo crítico del robot]: ${error.message}`);
+        console.error(`[Error]: ${error.message}`);
         if (browser) await browser.close();
         process.exit(1);
     }
