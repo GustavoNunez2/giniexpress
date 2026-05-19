@@ -13,50 +13,103 @@ if (!SUPABASE_URL || !SUPABASE_KEY) {
 const supabase = createClient(SUPABASE_URL, SUPABASE_KEY);
 
 async function scrollAndExtract(page) {
-    console.log("🐢 Iniciando extracción blindada...");
+    console.log(" Iniciando extracción por Intercepción de Red y DOM Progresivo...");
     let foundMap = new Map();
-    let lastCount = 0;
-    let attemptsWithoutNewProducts = 0;
 
-    for (let i = 0; i < 60; i++) {
+    // 1. INTERCEPTOR DE API (Estrategia Maestra)
+    // Treinta carga sus datos vía JSON. Capturamos el objeto directamente de la red.
+    page.on('response', async (response) => {
+        const url = response.url();
+        // Patrones comunes en Treinta: Next.js data o llamadas a su API de catálogo
+        if (url.includes('_next/data') || url.includes('/api/catalog') || url.includes('/api/products')) {
+            try {
+                const data = await response.json();
+                // Navegamos por la estructura del JSON de Treinta (usualmente bajo pageProps)
+                const products = data?.pageProps?.products || data?.products || data?.data || [];
+                
+                if (Array.isArray(products) && products.length > 0) {
+                    products.forEach(p => {
+                        // Mapeamos al formato que espera tu base de datos
+                        const titulo = (p.name || p.title || "").trim();
+                        if (titulo) {
+                            foundMap.set(titulo.toLowerCase(), {
+                                titulo: titulo.replace(/[\*\'\´\"]/g, ''),
+                                precioCosto: parseFloat(p.price || p.price_amount || 0),
+                                imagen_url: p.image || p.imageUrl || (p.images && p.images[0]) || "",
+                                descripcion: p.description || ""
+                            });
+                        }
+                    });
+                    console.log(`📡 API capturada: +${products.length} productos detectados en red.`);
+                }
+            } catch (e) {
+                // Silencioso: algunas respuestas no son JSON
+            }
+        }
+    });
+
+    let lastSize = 0;
+    let idleCycles = 0;
+
+    // 2. CICLO DE SCROLL RESILIENTE
+    for (let i = 0; i < 100; i++) {
         try {
-            const newProducts = await page.evaluate(() => {
+            // Extracción de seguridad desde el DOM (Fallback si la API cambia)
+            const domItems = await page.evaluate(() => {
                 const results = [];
                 document.querySelectorAll('img').forEach(img => {
                     let card = img.closest('div[class*="product"], article, li, div');
-                    if (!card) return;
+                    if (!card || card.textContent.length > 500) return; // Evitar contenedores gigantes
+                    
                     const priceMatch = card.textContent.match(/\$[\s\u00a0]*([0-9.]+)/);
-                    if (!priceMatch) return;
-                    const price = parseFloat(priceMatch[1].replace(/\./g, ''));
+                    if (priceMatch) {
+                        const price = parseFloat(priceMatch[1].replace(/\./g, ''));
                     const titleEl = card.querySelector('h1, h2, h3, h4, p');
-                    const title = titleEl ? titleEl.textContent.trim().replace(/[\*\'\´\"]/g, '') : "Producto";
-                    results.push({ titulo: title, precioCosto: price, imagen_url: img.src });
+                        const title = titleEl ? titleEl.textContent.trim() : "";
+                        if (title.length > 2) {
+                            results.push({ titulo: title, precioCosto: price, imagen_url: img.src });
+                        }
+                    }
                 });
                 return results;
             });
 
-            newProducts.forEach(p => foundMap.set(p.titulo.toLowerCase(), p));
+            domItems.forEach(p => {
+                const key = p.titulo.toLowerCase();
+                if (!foundMap.has(key)) foundMap.set(key, p);
+            });
 
-            if (foundMap.size > lastCount) {
+            if (foundMap.size > lastSize) {
                 console.log(`📦 Productos acumulados hasta ahora: ${foundMap.size}`);
-                lastCount = foundMap.size;
-                attemptsWithoutNewProducts = 0;
+                lastSize = foundMap.size;
+                idleCycles = 0;
             } else {
-                attemptsWithoutNewProducts++;
+                idleCycles++;
             }
 
-            if (attemptsWithoutNewProducts >= 5) break;
+            // Si llevamos 8 ciclos sin nada nuevo, probablemente terminamos
+            if (idleCycles >= 8) break;
 
+            // Scroll y click en "Ver más"
             await page.evaluate(() => {
-                window.scrollBy(0, 800);
-                const btns = Array.from(document.querySelectorAll('button, a'));
-                const btn = btns.find(b => ['ver más', 'cargar más', 'mostrar más'].some(kw => b.textContent.toLowerCase().includes(kw)));
+                window.scrollBy(0, 1200);
+                // Buscar botón de carga por texto, clases o proximidad
+                const btns = Array.from(document.querySelectorAll('button, a, div[role="button"]'));
+                const btn = btns.find(b => {
+                    const txt = b.textContent.toLowerCase();
+                    return txt.includes('ver más') || txt.includes('cargar más') || txt.includes('mostrar más');
+                });
                 if (btn) btn.click();
             });
+
+            // Espera dinámica para permitir que la API responda y el DOM se estabilice
+            await new Promise(r => setTimeout(r, 1500));
+
         } catch (e) {
-            console.log("⚠️ Contexto destruido, reintentando...");
+            console.log("⚠️ Interrupción de contexto detectada. Recuperando flujo...");
+            // No salimos del bucle, simplemente esperamos y reintentamos en la siguiente iteración
+            await new Promise(r => setTimeout(r, 3000));
         }
-        await new Promise(r => setTimeout(r, 2500));
     }
     return Array.from(foundMap.values());
 }
