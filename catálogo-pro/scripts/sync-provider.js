@@ -13,40 +13,42 @@ if (!SUPABASE_URL || !SUPABASE_KEY) {
 const supabase = createClient(SUPABASE_URL, SUPABASE_KEY);
 
 async function forceDeepScroll(page) {
+    console.log("⏳ Iniciando scroll de persistencia dinámica profunda...");
+
     await page.evaluate(async () => {
         await new Promise((resolve) => {
-            let totalHeight = 0;
-            let distance = 140;
-            
-            const scrollableContainers = [window];
-            document.querySelectorAll('*').forEach(el => {
-                const overflow = window.getComputedStyle(el).overflowY;
-                if ((overflow === 'auto' || overflow === 'scroll') && el.scrollHeight > el.clientHeight) {
-                    scrollableContainers.push(el);
-                }
-            });
+            let lastHeight = document.documentElement.scrollHeight;
+            let distance = 600; // Bajamos tramos más grandes de pixelado
+            let noChangeCount = 0;
 
             let timer = setInterval(() => {
-                let maxReached = 0;
-                scrollableContainers.forEach(container => {
-                    if (container === window) {
-                        window.scrollBy(0, distance);
-                        maxReached = Math.max(maxReached, document.body.scrollHeight);
-                    } else {
-                        container.scrollBy(0, distance);
-                        maxReached = Math.max(maxReached, container.scrollHeight);maxReached = Math.max(maxReached, container.scrollHeight);
-                    }
-                });
-                totalHeight += distance;
-                if (totalHeight >= maxReached + 6000) {
-                    clearInterval(timer);
-                    resolve();
-                }
-            }, 90);
+                window.scrollBy(0, distance);
 
-            setTimeout(() => { clearInterval(timer); resolve(); }, 15000);
+                let currentHeight = document.documentElement.scrollHeight;
+
+                // Si la altura actual es igual a la anterior, es porque puede estar cargando datos
+                if (currentHeight === lastHeight) {
+                    noChangeCount++;
+                    // Si pasa 4 veces seguidas sin crecer (más de 3 segundos de espera total), llegamos al fondo real
+                    if (noChangeCount >= 4) {
+                        clearInterval(timer);
+                        resolve();
+                    }
+                } else {
+                    // Si la altura cambió, reiniciamos el contador y actualizamos la marca
+                    noChangeCount = 0;
+                    lastHeight = currentHeight;
+                }
+            }, 800); // 800ms: pausa clave para que la API de Treinta inyecte la siguiente tanda en el HTML
+
+            // Salvavidas absoluto: a los 90 segundos corta pase lo que pase para no dejar colgado el servidor
+            setTimeout(() => { clearInterval(timer); resolve(); }, 90000);
         });
     });
+
+    // Pausa de estabilización final fuera de la evaluación
+    await new Promise(r => setTimeout(r, 3000));
+    console.log("✅ Scroll profundo finalizado. Catálogo completamente expandido.");
 }
 
 async function syncCatalog() {
@@ -56,18 +58,23 @@ async function syncCatalog() {
         const { data: dbProducts, error: dbError } = await supabase
             .from('productos')
             .select('id, titulo, precio, porcentaje_ganancia, precio_costo, precio_fijo');
-        
+
         if (dbError) throw dbError;
         const localMap = new Map(dbProducts?.map(p => [p.titulo.toLowerCase(), p]) || []);
 
         browser = await puppeteer.launch({
             headless: true,
-            args: ['--no-sandbox', '--disable-setuid-sandbox', '--disable-dev-shm-usage']
+            args: [
+                '--no-sandbox',
+                '--disable-setuid-sandbox',
+                '--disable-dev-shm-usage',
+                '--window-size=1920,1080' // Forzamos tamaño de monitor de escritorio
+            ]
         });
 
         const page = await browser.newPage();
-        await page.setViewport({ width: 1280, height: 800 });
-        await page.setUserAgent('Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/120.0.0.0 Safari/537.36');
+        await page.setViewport({ width: 1920, height: 1080 }); // Viewport expandido anti-bloqueos
+        await page.setUserAgent('Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/122.0.0.0 Safari/537.36');
 
         await page.goto(PROVIDER_URL, { waitUntil: 'networkidle2', timeout: 60000 });
         await forceDeepScroll(page);
@@ -75,81 +82,107 @@ async function syncCatalog() {
 
         const scrapedProducts = await page.evaluate(() => {
             let found = [];
-            const allElements = document.querySelectorAll('*');
 
-            allElements.forEach(el => {
-                if (el.textContent && el.textContent.includes('$') && el.children.length <= 1) {
-                    let isInsideInvalidContainer = false;
-                    let current = el;
-                    while (current) {
-                        const className = current.className?.toString().toLowerCase() || '';
-                        const id = current.id?.toString().toLowerCase() || '';
-                        if (className.includes('modal') || className.includes('dialog') || className.includes('carousel') || className.includes('swiper') || id.includes('modal')) {
-                            isInsideInvalidContainer = true;
-                            break;
+            // 🎯 CAPTURA DIRECTA DE TARJETAS: Buscamos cualquier elemento que actúe como bloque de producto
+            // En Treinta, los productos suelen estar contenidos en etiquetas de listas, artículos o divs con bordes.
+            // Para ser universales, buscamos todas las imágenes primero y rastreamos sus contenedores.
+            const allImages = document.querySelectorAll('img');
+
+            allImages.forEach(img => {
+                // Buscamos el contenedor padre más cercano que encierre a la imagen y a su texto (subimos hasta 6 niveles)
+                let cardContainer = img.parentElement;
+                let priceFound = null;
+                let textBlocks = [];
+
+                for (let i = 0; i < 6; i++) {
+                    if (!cardContainer) break;
+
+                    // Si este contenedor ya lo procesamos mediante otra imagen, saltamos
+                    if (cardContainer.textContent && cardContainer.textContent.includes('$')) {
+                        // Buscamos el precio dentro de este bloque
+                        const match = cardContainer.textContent.match(/\$[\s\u00a0]*([0-9.]+)/);
+                        if (match) {
+                            priceFound = parseFloat(match[1].replace(/\./g, ''));
                         }
-                        current = current.parentElement;
                     }
-                    if (isInsideInvalidContainer) return;
 
-                    const priceText = el.textContent.trim();
-                    
-                    // AISLAMIENTO DE PRECIO CON REGEX: Captura únicamente la secuencia de números y puntos tras el '$'
-                    // Previene de forma absoluta la mezcla con números del título ("60led", "3 en 1")
-                    const matchPrice = priceText.match(/\$\s*([0-9.]+)/);
-
-                    if (matchPrice) {
-                        const priceNumbers = matchPrice[1].replace(/\./g, '');
-                        const precioCosto = parseFloat(priceNumbers);
-                        
-                        let parent = el.parentElement;
-                        for (let depth = 0; depth < 5; depth++) {
-                            if (!parent) break;
-                            const img = parent.querySelector('img');
-                            let textBlocks = [];
-                            parent.querySelectorAll('h1, h2, h3, h4, h5, h6, p, span, div').forEach(textEl => {
-                                const txt = textEl.textContent.trim();
-                                if (txt && !txt.includes('$') && txt.length > 2 && txt.length < 90 && textEl.children.length === 0) {
-                                    textBlocks.push(txt);
-                                }
-                            });
-
-                            if (img && textBlocks.length > 0) {
-                                const titulo = textBlocks[0];
-                                const descripcion = textBlocks[1] && textBlocks[1].length > 10 ? textBlocks[1] : '';
-                                if (!found.some(p => p.titulo.toLowerCase() === titulo.toLowerCase())) {
-                                    found.push({ titulo, precioCosto, descripcion, imagen_url: img.src });
-                                }
-                                break; 
+                    // Extraemos todos los textos limpios de los alrededores de la imagen
+                    cardContainer.querySelectorAll('h1, h2, h3, h4, h5, h6, p, span, div').forEach(textEl => {
+                        const txt = textEl.textContent.trim();
+                        if (txt && !txt.includes('$') && txt.length > 2 && txt.length < 140) {
+                            if (!textBlocks.includes(txt)) {
+                                textBlocks.push(txt);
                             }
-                            parent = parent.parentElement;
                         }
+                    });
+
+                    // Si encontramos un precio válido y texto en este bloque, es un producto legítimo
+                    if (priceFound && priceFound > 0 && textBlocks.length > 0) {
+                        // Limpieza de títulos (remover asteriscos y comillas raras de pulgadas)
+                        let titulo = textBlocks.find(t => t.toLowerCase().includes('ventilador') || t.length < 50);
+                        if (!titulo) titulo = textBlocks[0]; // Fallback al primer texto
+
+                        titulo = titulo.replace(/[\*\'\´\"]/g, '').trim();
+
+                        let descripcion = textBlocks.find(t => t.length > titulo.length && t !== titulo) || '';
+                        if (descripcion.toLowerCase().includes('sin descripción') || descripcion.toLowerCase().includes('no descripción')) {
+                            descripcion = '';
+                        }
+
+                        if (!found.some(p => p.titulo.toLowerCase() === titulo.toLowerCase())) {
+                            found.push({
+                                titulo: titulo,
+                                precioCosto: priceFound,
+                                descripcion: descripcion,
+                                imagen_url: img.src
+                            });
+                        }
+                        break; // Salimos del bucle de niveles para esta imagen
                     }
+
+                    cardContainer = cardContainer.parentElement;
                 }
             });
+
             return found;
         });
 
         await browser.close();
 
-        const finalScraped = scrapedProducts.filter(p => {
-            const t = p.titulo.toLowerCase();
-            return !t.includes("viewport") && !t.includes("catálogo") && !t.includes("error") && p.precioCosto > 0;
-        });
+        // FILTRO DE CONTROL REPARADO: Removimos la condición agresiva de exclusión de texto
+        const finalScraped = scrapedProducts.filter(p => p.titulo && p.precioCosto > 0);
 
-        console.log(`[OK] Detectados ${finalScraped.length} productos reales sanitizados.`);
+        // =========================================================================
+        // 🎯 BLOQUE DE AUDITORÍA DE CONTRASTE INTEGRADO
+        // =========================================================================
+        console.log(`\n=== 📊 AUDITORÍA DE CONTRASTE GINI ===`);
+        console.log(`• Productos detectados vivos en la web hoy: ${finalScraped.length}`);
+
+        if (dbProducts) {
+            const faltantes = finalScraped.filter(pWeb =>
+                !localMap.has(pWeb.titulo.toLowerCase())
+            );
+
+            if (faltantes.length > 0) {
+                console.log(`⚠️ ALERTA: Hay ${faltantes.length} productos omitidos en Supabase que se van a impactar ahora:`);
+                faltantes.forEach((p, idx) => {
+                    console.log(`   [${idx + 1}] -> "${p.titulo}" | Costo Base: $${p.precioCosto}`);
+                });
+            } else {
+                console.log(`✅ ¡Sincronización perfecta! No quedan productos colgados en el puente.`);
+            }
+        }
+        console.log(`=======================================\n`);
 
         let inserts = [];
         let updates = [];
 
         for (const item of finalScraped) {
             const key = item.titulo.toLowerCase();
-            
+
             if (localMap.has(key)) {
                 const localItem = localMap.get(key);
-                
-                // ARQUITECTURA DE PRECIOS HÍBRIDA:
-                // Si el producto posee un Precio Fijo Manual activo en el admin, el robot actualiza el costo base pero NO toca el precio de venta final
+
                 if (localItem.precio_fijo !== null && localItem.precio_fijo !== undefined) {
                     updates.push(
                         supabase.from('productos').update({
@@ -160,7 +193,6 @@ async function syncCatalog() {
                         }).eq('id', localItem.id)
                     );
                 } else {
-                    // Si opera en modo automático, recalcula el valor final en base al porcentaje guardado
                     const margen = localItem.porcentaje_ganancia !== null ? localItem.porcentaje_ganancia : DEFAULT_MARGIN;
                     const nuevoPrecioVenta = Math.round(item.precioCosto * (1 + margen / 100));
 
