@@ -2,145 +2,170 @@ import { createClient } from '@supabase/supabase-js';
 import puppeteer from 'puppeteer';
 
 const PROVIDER_URL = 'https://catalogo.treinta.co/brajaexpress-e8aefd';
-const DEFAULT_MARGIN = 15; // Margen por defecto para productos nuevos
+const DEFAULT_MARGIN = 15; // Margen de ganancia inicial para productos nuevos
 
 const { SUPABASE_URL, SUPABASE_KEY } = process.env;
 if (!SUPABASE_URL || !SUPABASE_KEY) {
-    console.error('Error: Faltan variables de entorno de Supabase.');
+    console.error('Error fatal: Faltan las variables de entorno de Supabase.');
     process.exit(1);
 }
 
 const supabase = createClient(SUPABASE_URL, SUPABASE_KEY);
 
-// Función para simular el scroll humano continuo hasta el fin de la página
-async function autoScroll(page) {
+// Función avanzada para forzar el scroll tanto en la ventana como en contenedores internos ocultos
+async function forceDeepScroll(page) {
     await page.evaluate(async () => {
         await new Promise((resolve) => {
             let totalHeight = 0;
-            let distance = 120; // Distancia de cada avance del scroll
+            let distance = 140;
+            
+            // Detectar todos los elementos de la pantalla que puedan tener scrollbars ocultos
+            const scrollableContainers = [window];
+            document.querySelectorAll('*').forEach(el => {
+                const overflow = window.getComputedStyle(el).overflowY;
+                if ((overflow === 'auto' || overflow === 'scroll') && el.scrollHeight > el.clientHeight) {
+                    scrollableContainers.push(el);
+                }
+            });
+
             let timer = setInterval(() => {
-                let scrollHeight = document.body.scrollHeight;
-                window.scrollBy(0, distance);
+                let maxReached = 0;
+                
+                scrollableContainers.forEach(container => {
+                    if (container === window) {
+                        window.scrollBy(0, distance);
+                        maxReached = Math.max(maxReached, document.body.scrollHeight);
+                    } else {
+                        container.scrollBy(0, distance);
+                        maxReached = Math.max(maxReached, container.scrollHeight);
+                    }
+                });
+
                 totalHeight += distance;
 
-                if (totalHeight >= scrollHeight - window.innerHeight) {
-                    // Esperamos un segundo extra para verificar si el scroll infinito cargó más productos
-                    setTimeout(() => {
-                        if (document.body.scrollHeight === scrollHeight) {
-                            clearInterval(timer);
-                            resolve();
-                        }
-                    }, 1200);
+                // Si recorrimos una distancia masiva proporcional al tamaño del catálogo, detenemos
+                if (totalHeight >= maxReached + 6000) {
+                    clearInterval(timer);
+                    resolve();
                 }
-            }, 80);
+            }, 90);
+
+            // Salvaguarda: Cortar el scroll automáticamente a los 14 segundos para evitar esperas eternas
+            setTimeout(() => {
+                clearInterval(timer);
+                resolve();
+            }, 14000);
         });
     });
 }
 
 async function syncCatalog() {
-    console.log(`[${new Date().toISOString()}] Lanzando navegador virtual para evadir límite de scroll...`);
+    console.log(`[${new Date().toISOString()}] Desplegando escáner visual híbrido...`);
     let browser;
     try {
-        // 1. Obtener los productos locales para respetar tus cambios de márgenes manuales
+        // 1. Descargar el mapa local para respetar tus modificaciones manuales de precios
         const { data: dbProducts, error: dbError } = await supabase
             .from('productos')
             .select('id, titulo, precio, porcentaje_ganancia, precio_costo');
         
         if (dbError) throw dbError;
-        const localMap = new Map(dbProducts?.map(p => [p.titulo, p]) || []);
+        const localMap = new Map(dbProducts?.map(p => [p.titulo.toLowerCase(), p]) || []);
 
-        // 2. Iniciar Chrome en modo headless compatible con los servidores de GitHub
+        // 2. Lanzar navegador virtual controlado en la nube
         browser = await puppeteer.launch({
             headless: true,
             args: ['--no-sandbox', '--disable-setuid-sandbox', '--disable-dev-shm-usage']
         });
 
         const page = await browser.newPage();
-        
-        // Evitamos firmas básicas de bots configurando un User-Agent real
+        await page.setViewport({ width: 1280, height: 800 });
         await page.setUserAgent('Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/120.0.0.0 Safari/537.36');
-        
-        console.log(`Navegando a: ${PROVIDER_URL}`);
+
+        console.log(`Navegando hacia el catálogo del proveedor...`);
         await page.goto(PROVIDER_URL, { waitUntil: 'networkidle2', timeout: 60000 });
 
-        console.log('Iniciando descenso por scroll infinito. Esperando carga total de cards...');
-        await autoScroll(page);
+        console.log('Ejecutando descenso continuo sobre contenedores dinámicos...');
+        await forceDeepScroll(page);
         
-        // Estabilización final para asegurar la hidratación de los scripts de Next.js
+        // Espera técnica para garantizar el renderizado de las imágenes diferidas (lazy-load)
         await new Promise(resolve => setTimeout(resolve, 3000));
 
-        // Extraemos el código fuente completo con el DOM expandido al 100%
-        const html = await page.content();
-        await browser.close();
+        // 3. EXTRACCIÓN VISUAL DIRECTA DEL DOM (Extrae los componentes ya dibujados tras el scroll)
+        const scrapedProducts = await page.evaluate(() => {
+            let found = [];
+            const allElements = document.querySelectorAll('*');
 
-        // 3. Normalización radical del texto plano
-        let cleanText = html.replace(/[\n\r\t]/g, ' ').replace(/\\"/g, '"').replace(/\\\\/g, '\\');
-        
-        // DECODIFICADOR UNICODE: Corrige los nombres rotos convirtiendo cosas como \u0026 en "&"
-        cleanText = cleanText.replace(/\\u([0-9a-fA-F]{4})/g, (match, grp) => {
-            return String.fromCharCode(parseInt(grp, 16));
+            allElements.forEach(el => {
+                // Localizar nodos que contengan texto de precio con el caracter '$'
+                if (el.textContent && el.textContent.includes('$') && el.children.length <= 1) {
+                    const priceText = el.textContent.trim();
+                    const priceNumbers = priceText.replace(/[^0-9]/g, '');
+
+                    if (priceNumbers.length >= 3 && priceNumbers.length <= 7) {
+                        const precioCosto = parseFloat(priceNumbers);
+                        
+                        // Rastrear componentes ascendentes (padres) para aislar la tarjeta del artículo
+                        let parent = el.parentElement;
+                        for (let depth = 0; depth < 5; depth++) {
+                            if (!parent) break;
+
+                            const img = parent.querySelector('img');
+                            
+                            // Extraer bloques de texto candidatos para el título y descripción
+                            let textBlocks = [];
+                            parent.querySelectorAll('h1, h2, h3, h4, h5, h6, p, span, div').forEach(textEl => {
+                                const txt = textEl.textContent.trim();
+                                if (txt && !txt.includes('$') && txt.length > 2 && txt.length < 90 && textEl.children.length === 0) {
+                                    textBlocks.push(txt);
+                                }
+                            });
+
+                            if (img && textBlocks.length > 0) {
+                                const titulo = textBlocks[0];
+                                // Si existe un segundo bloque de texto largo, lo tomamos como descripción
+                                const descripcion = textBlocks[1] && textBlocks[1].length > 10 ? textBlocks[1] : 'Sin descripción detallada disponible.';
+                                
+                                // Evitar duplicaciones internas de elementos en la lectura visual
+                                if (!found.some(p => p.titulo.toLowerCase() === titulo.toLowerCase())) {
+                                    found.push({
+                                        titulo: titulo,
+                                        precioCosto: precioCosto,
+                                        descripcion: descripcion,
+                                        imagen_url: img.src
+                                    });
+                                }
+                                break; 
+                            }
+                            parent = parent.parentElement;
+                        }
+                    }
+                }
+            });
+            return found;
         });
 
-        let scrapedProducts = [];
-        const productRegex = /"(name|title)"\s*:\s*"([^"]+)"/g;
-        let match;
+        await browser.close();
 
-        // 4. Raspado semántico por proximidad sobre el documento entero
-        while ((match = productRegex.exec(cleanText)) !== null) {
-            const titulo = match[2].trim();
+        // Filtrado de seguridad sobre los nombres del sistema o vacíos
+        const finalScraped = scrapedProducts.filter(p => {
+            const t = p.titulo.toLowerCase();
+            return !t.includes("viewport") && !t.includes("catálogo") && !t.includes("error") && p.precioCosto > 0;
+        });
 
-            const blacklist = [
-                "braja express", "catálogo", "dashboard", "viewport", 
-                "no es posible acceder", "error", "icon", "manifest", 
-                "robots", "width", "initial-scale", "device-width", "og:", "twitter:"
-            ];
+        if (finalScraped.length === 0) throw new Error("El escáner visual no detectó elementos de tarjetas válidas en la pantalla.");
 
-            if (blacklist.some(word => titulo.toLowerCase().includes(word)) || 
-                titulo.length < 3 || titulo.length > 85) {
-                continue;
-            }
+        console.log(`\n[Éxito de lectura] Se capturaron un total de ${finalScraped.length} productos del catálogo entero.`);
 
-            const startIdx = match.index;
-            const endIdx = Math.min(cleanText.length, match.index + 1800);
-            const chunk = cleanText.substring(startIdx, endIdx);
-
-            const priceMatch = chunk.match(/"price"\s*:\s*"?([0-9]+)"?/i) || 
-                               chunk.match(/"price_amount"\s*:\s*"?([0-9]+)"?/i);
-
-            const descMatch = chunk.match(/"description"\s*:\s*"([^"]*?)"/i) || 
-                              chunk.match(/"desc"\s*:\s*"([^"]*?)"/i);
-
-            const imgMatch = chunk.match(/"image"\s*:\s*"([^"]+?)"/i) || 
-                             chunk.match(/"imageUrl"\s*:\s*"([^"]+?)"/i) || 
-                             chunk.match(/"url"\s*:\s*"([^"]+?)"/i);
-
-            if (priceMatch) {
-                const precioCosto = parseFloat(priceMatch[1]);
-                const descripcion = descMatch ? descMatch[1].trim() : 'Sin descripción disponible.';
-                let imagen_url = imgMatch ? imgMatch[1].trim() : '';
-
-                if (imagen_url && !imagen_url.startsWith('http')) {
-                    if (imagen_url.startsWith('//')) imagen_url = 'https:' + imagen_url;
-                    else if (imagen_url.startsWith('/')) imagen_url = 'https://catalogo.treinta.co' + imagen_url;
-                }
-
-                if (precioCosto > 0 && !scrapedProducts.some(p => p.titulo === titulo)) {
-                    scrapedProducts.push({ titulo, precioCosto, descripcion, imagen_url });
-                }
-            }
-        }
-
-        if (scrapedProducts.length === 0) throw new Error("No se detectaron variables de productos tras el scroll.");
-
-        console.log(`\n¡Éxito de captura! Se detectaron ${scrapedProducts.length} productos reales en total.`);
-
-        // 5. Mapeo inteligente sin romper tus modificaciones manuales del admin
+        // 4. Clasificación diferencial de datos para proteger tus modificaciones manuales del admin
         let inserts = [];
         let updates = [];
 
-        for (const item of scrapedProducts) {
-            if (localMap.has(item.titulo)) {
-                const localItem = localMap.get(item.titulo);
+        for (const item of finalScraped) {
+            const key = item.titulo.toLowerCase();
+            
+            if (localMap.has(key)) {
+                // Producto existente: Preservamos el margen asignado manualmente en el Panel de Control
+                const localItem = localMap.get(key);
                 const margen = localItem.porcentaje_ganancia !== null ? localItem.porcentaje_ganancia : DEFAULT_MARGIN;
                 const nuevoPrecioVenta = Math.round(item.precioCosto * (1 + margen / 100));
 
@@ -153,6 +178,7 @@ async function syncCatalog() {
                     }).eq('id', localItem.id)
                 );
             } else {
+                // Artículo nuevo del distribuidor: Se inyecta con el margen base
                 const precioVentaNuevo = Math.round(item.precioCosto * (1 + DEFAULT_MARGIN / 100));
                 inserts.push({
                     titulo: item.titulo,
@@ -165,18 +191,19 @@ async function syncCatalog() {
             }
         }
 
+        // 5. Transmitir cambios hacia la base de datos de Supabase
         if (inserts.length > 0) {
             const { error: insErr } = await supabase.from('productos').insert(inserts);
             if (insErr) throw insErr;
-            console.log(`[OK] Insertados ${inserts.length} productos nuevos.`);
+            console.log(`[Base de Datos] Insertados ${inserts.length} productos nuevos.`);
         }
 
         if (updates.length > 0) {
             await Promise.all(updates);
-            console.log(`[OK] Sincronizados costos de ${updates.length} productos existentes.`);
+            console.log(`[Base de Datos] Sincronizados costos de ${updates.length} productos existentes.`);
         }
 
-        console.log(`\n[SINCRO FINALIZADA] Tu base de datos quedó perfectamente espejada.`);
+        console.log(`\n[PROCESO COMPLETADO] Sincronización exitosa.`);
 
     } catch (error) {
         console.error(`[Fallo crítico del robot]: ${error.message}`);
