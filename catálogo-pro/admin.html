@@ -84,16 +84,26 @@
 
         <main class="flex-1 max-w-7xl w-full mx-auto p-6 md:p-10">
             <section id="inventory" class="tab-content active slide-in">
-                <div class="flex justify-between items-center mb-10">
+                <div class="flex flex-col sm:flex-row justify-between items-start sm:items-center mb-10 gap-4">
                     <div>
                         <h2 class="text-2xl font-bold text-slate-900">Inventario</h2>
                         <p class="text-sm text-slate-400 mt-1">Gestión de márgenes y sincronización</p>
                     </div>
-                    <div class="flex items-center gap-4">
-                        <span id="productCount" class="text-[10px] font-bold uppercase tracking-widest text-slate-400 bg-slate-100 px-3 py-1 rounded-full">0 ITEMS</span>
-                        <button onclick="fetchProducts()" class="p-2 border border-slate-200 rounded-lg text-slate-400 hover:text-slate-900 hover:bg-white transition-all">
-                            <i data-lucide="rotate-cw" class="w-4 h-4"></i>
-                        </button>
+                    
+                    <div class="flex flex-col sm:flex-row items-center gap-4 w-full sm:w-auto">
+                        <div class="relative w-full sm:w-64">
+                            <input type="text" id="adminSearchInput" placeholder="Buscar producto a editar..." class="w-full bg-white border border-slate-200 rounded-lg pl-9 pr-4 py-2 text-xs focus:border-slate-950 focus:outline-none transition-colors shadow-sm">
+                            <div class="absolute left-3 top-2.5 text-slate-400">
+                                <i data-lucide="search" class="w-3.5 h-3.5"></i>
+                            </div>
+                        </div>
+                        
+                        <div class="flex items-center gap-4 flex-shrink-0">
+                            <span id="productCount" class="text-[10px] font-bold uppercase tracking-widest text-slate-400 bg-slate-100 px-3 py-1 rounded-full">0 ITEMS</span>
+                            <button onclick="fetchProducts()" class="p-2 border border-slate-200 rounded-lg text-slate-400 hover:text-slate-900 hover:bg-white transition-all">
+                                <i data-lucide="rotate-cw" class="w-4 h-4"></i>
+                            </button>
+                        </div>
                     </div>
                 </div>
 
@@ -238,7 +248,9 @@
             document.getElementById('logoutBtn').onclick = handleLogout;
             document.getElementById('addProductForm').onsubmit = handleAddProduct;
             document.getElementById('applyBulkBtn').onclick = handleBulkUpdate;
-            document.getElementById('importTreintaBtn').onclick = handleTreintaImport;
+            
+            // Evento de escucha para el buscador de administración
+            document.getElementById('adminSearchInput').oninput = handleAdminSearch;
             
             // Auth State Change
             supabaseClient.auth.onAuthStateChange((event, session) => {
@@ -276,8 +288,6 @@
         function showLogin() {
             document.getElementById('loginSection').classList.remove('hidden');
             document.getElementById('adminPanel').classList.add('hidden');
-            document.body.classList.remove('bg-gray-50');
-            document.body.classList.add('bg-[#fafafa]');
         }
 
         function showAdminPanel(user) {
@@ -285,7 +295,6 @@
             document.getElementById('loginSection').classList.add('hidden');
             document.getElementById('adminPanel').classList.remove('hidden');
             document.getElementById('userEmail').textContent = user.email;
-            document.body.classList.add('bg-gray-50');
             fetchProducts();
         }
 
@@ -314,29 +323,47 @@
 
                 if (error) throw error;
                 products = data;
-                renderInventory();
-                document.getElementById('productCount').textContent = `${products.length} PRODUCTOS`;
+                
+                // Al cargar por completo, pasamos los productos al renderizador
+                renderInventory(products);
+                document.getElementById('adminSearchInput').value = ''; // Limpiar buscador al refrescar
             } catch (error) {
                 console.error(error);
                 showToast('Error al cargar inventario', 'red');
             }
         }
 
-        function renderInventory() {
+        // Modificamos para aceptar listas filtradas por la barra de búsqueda
+        function renderInventory(productsToRender = products) {
             const table = document.getElementById('inventoryTable');
-            table.innerHTML = products.map((p, idx) => `
+            const countEl = document.getElementById('productCount');
+            
+            countEl.textContent = `${productsToRender.length} ITEMS`;
+
+            if (productsToRender.length === 0) {
+                table.innerHTML = `
+                    <tr>
+                        <td colspan="6" class="px-8 py-16 text-center text-slate-400 text-sm">
+                            No se encontraron productos que coincidan con la búsqueda.
+                        </td>
+                    </tr>
+                `;
+                return;
+            }
+
+            table.innerHTML = productsToRender.map((p, idx) => `
                 <tr class="hover:bg-gray-50/50 transition-colors group">
                     <td class="px-6 py-4">
                         <div class="flex items-center gap-3">
                             <img src="${p.imagen_url}" class="w-10 h-10 object-cover rounded-lg bg-gray-100 border border-gray-100">
                             <div>
-                                <span class="block font-bold text-sm">${p.titulo}</span>
+                                <span class="block font-bold text-sm text-slate-800">${p.titulo}</span>
                                 <span class="block text-[10px] text-gray-400 mono">ID: ${p.id}</span>
                             </div>
                         </div>
                     </td>
                     <td class="px-6 py-4">
-                        <span class="text-xs font-semibold text-slate-500 mono">$${(p.precio_costo || p.precio || 0).toLocaleString()}</span>
+                        <span class="text-xs font-semibold text-slate-500 mono">$${(p.precio_costo || 0).toLocaleString()}</span>
                     </td>
                     <td class="px-6 py-4">
                         <div class="flex items-center gap-1">
@@ -365,8 +392,22 @@
             lucide.createIcons();
             
             document.querySelectorAll('textarea[id^="desc-"]').forEach(ta => {
+                ta.style.height = 'auto'; 
+                ta.style.height = ta.scrollHeight + 'px';
                 ta.addEventListener('input', () => { ta.style.height = 'auto'; ta.style.height = ta.scrollHeight + 'px'; });
             });
+        }
+
+        // Función del motor de búsqueda de administración
+        function handleAdminSearch() {
+            const query = document.getElementById('adminSearchInput').value.toLowerCase().trim();
+            
+            // Filtra sobre el array maestro global basado en el título del artículo
+            const filtered = products.filter(p => 
+                p.titulo.toLowerCase().includes(query)
+            );
+            
+            renderInventory(filtered);
         }
 
         async function updateProduct(id) {
@@ -376,7 +417,7 @@
             const porcentaje_ganancia = parseFloat(document.getElementById(`margin-${id}`).value) || 0;
             const descripcion = document.getElementById(`desc-${id}`).value;
             
-            const costoBase = product.precio_costo || product.precio || 0;
+            const costoBase = p.precio_costo || 0;
             const nuevoPrecioVenta = Math.round(costoBase * (1 + porcentaje_ganancia / 100));
 
             const { error } = await supabaseClient
@@ -420,7 +461,7 @@
             const descripcion = document.getElementById('addDescription').value;
             const btn = document.getElementById('submitProductBtn');
 
-            const porcentaje_ganancia = 15; // Margen inicial
+            const porcentaje_ganancia = 15; 
             const precio = Math.round(precio_costo * (1 + porcentaje_ganancia / 100));
 
             btn.classList.add('btn-loading');
@@ -433,13 +474,13 @@
             if (error) {
                 showToast('Error: ' + error.message, 'red');
                 btn.classList.remove('btn-loading');
-                btn.innerHTML = '<i data-lucide="plus" class="w-5 h-5"></i> Crear Ítem';
+                btn.innerHTML = '<i data-lucide="plus" class="w-4 h-4"></i> Crear Ítem';
                 lucide.createIcons();
             } else {
                 showToast('Producto creado con éxito');
                 e.target.reset();
                 btn.classList.remove('btn-loading');
-                btn.innerHTML = '<i data-lucide="plus" class="w-5 h-5"></i> Crear Ítem';
+                btn.innerHTML = '<i data-lucide="plus" class="w-4 h-4"></i> Crear Ítem';
                 lucide.createIcons();
                 fetchProducts();
                 showTab('inventory');
@@ -458,7 +499,7 @@
 
             try {
                 const updates = products.map(p => {
-                    const costoBase = p.precio_costo || p.precio || 0;
+                    const costoBase = p.precio_costo || 0;
                     const nuevoPrecio = Math.round(costoBase * (1 + percent / 100));
                     return supabaseClient
                         .from('productos')
@@ -474,17 +515,12 @@
                 showToast('Error en actualización masiva', 'red');
             } finally {
                 btn.classList.remove('btn-loading');
-                btn.innerHTML = '<i data-lucide="zap" class="w-5 h-5"></i> Aplicar a Todo';
+                btn.innerHTML = '<i data-lucide="zap" class="w-4 h-4"></i> Aplicar a Todo';
                 lucide.createIcons();
             }
         }
 
-        async function handleTreintaImport() {
-            // Se mantiene la función para compatibilidad local
-            alert('Utilice el robot automatizado en las Actions de GitHub para sincronizaciones.');
-        }
-
-        // Feedback
+        // Feedback Toast
         function showToast(msg, bg = 'black') {
             const toast = document.getElementById('toast');
             toast.textContent = msg;
@@ -498,12 +534,14 @@
             }, 3000);
         }
 
-        window.onload = init;
+        init();
 
+        // Exponer funciones al alcance global para Vite/HTML onclick
         window.showTab = showTab;
         window.fetchProducts = fetchProducts;
         window.updateProduct = updateProduct;
         window.deleteProduct = deleteProduct;
+        window.handleAdminSearch = handleAdminSearch;
     </script>
 </body>
 </html>
