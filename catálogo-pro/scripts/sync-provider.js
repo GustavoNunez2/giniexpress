@@ -17,12 +17,12 @@ const supabase = createClient(SUPABASE_URL, SUPABASE_KEY);
 // =========================================================================
 async function scrollAndExtract(page) {
     console.log("⏳ Iniciando motor híbrido anti-virtualización...");
-    
+
     return await page.evaluate(async () => {
         return await new Promise((resolve) => {
             let foundMap = new Map(); // Memoria acumulativa para que no se dupliquen al hacer scroll
             let lastHeight = document.documentElement.scrollHeight;
-            let distance = 600; 
+            let distance = 600;
             let noChangeCount = 0;
 
             let timer = setInterval(() => {
@@ -50,9 +50,9 @@ async function scrollAndExtract(page) {
 
                         if (priceFound && priceFound > 0 && textBlocks.length > 0) {
                             let titulo = textBlocks.find(t => t.toLowerCase().includes('ventilador') || t.length < 50);
-                            if (!titulo) titulo = textBlocks[0]; 
+                            if (!titulo) titulo = textBlocks[0];
                             titulo = titulo.replace(/[\*\'\´\"]/g, '').trim();
-                            
+
                             let descripcion = textBlocks.find(t => t.length > titulo.length && t !== titulo) || '';
                             if (descripcion.toLowerCase().includes('sin descripción') || descripcion.toLowerCase().includes('no descripción')) {
                                 descripcion = '';
@@ -63,7 +63,7 @@ async function scrollAndExtract(page) {
                             if (!foundMap.has(key)) {
                                 foundMap.set(key, { titulo, precioCosto: priceFound, descripcion, imagen_url: img.src });
                             }
-                            break; 
+                            break;
                         }
                         cardContainer = cardContainer.parentElement;
                     }
@@ -80,7 +80,7 @@ async function scrollAndExtract(page) {
 
                 // 3. BAJAMOS UN TRAMO MÁS
                 window.scrollBy(0, distance);
-                
+
                 // 4. VERIFICAMOS SI LLEGAMOS AL FONDO REAL
                 let currentHeight = document.documentElement.scrollHeight;
                 if (currentHeight === lastHeight) {
@@ -120,11 +120,39 @@ async function syncCatalog() {
         await page.setViewport({ width: 1920, height: 1080 });
         await page.setUserAgent('Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/122.0.0.0 Safari/537.36');
 
+        // 1. Antes del page.goto, configuramos la interceptación
+        await page.setRequestInterception(true);
+        page.on('request', (request) => {
+            request.continue();
+        });
+
+        // 2. Escuchamos las respuestas para ver qué nos trae la API
+        page.on('response', async (response) => {
+            const url = response.url();
+            // Filtramos solo las peticiones que parecen cargar productos
+            if (url.includes('products') || url.includes('catalog')) {
+                try {
+                    const status = response.status();
+                    const data = await response.json();
+                    console.log(`📡 API detectada [${status}]: ${url}`);
+
+                    // Si es un array, contemos cuántos trae
+                    if (Array.isArray(data)) {
+                        console.log(`📦 Cantidad de productos en este paquete: ${data.length}`);
+                    } else if (data.items) {
+                        console.log(`📦 Cantidad de productos en este paquete: ${data.items.length}`);
+                    }
+                } catch (e) {
+                    // A veces la respuesta no es JSON, no importa
+                }
+            }
+        });
+
         await page.goto(PROVIDER_URL, { waitUntil: 'networkidle2', timeout: 60000 });
-        
+
         // Ejecutamos la función híbrida
         const scrapedProducts = await scrollAndExtract(page);
-        
+
         await browser.close();
 
         const finalScraped = scrapedProducts.filter(p => p.titulo && p.precioCosto > 0);
@@ -134,9 +162,9 @@ async function syncCatalog() {
         // =========================================================================
         console.log(`\n=== 📊 AUDITORÍA DE CONTRASTE GINI ===`);
         console.log(`• Total de productos capturados por el acumulador en la web: ${finalScraped.length}`);
-        
+
         if (dbProducts) {
-            const faltantes = finalScraped.filter(pWeb => 
+            const faltantes = finalScraped.filter(pWeb =>
                 !localMap.has(pWeb.titulo.toLowerCase())
             );
 
@@ -146,7 +174,7 @@ async function syncCatalog() {
                 faltantes.slice(0, 10).forEach((p, idx) => {
                     console.log(`   [${idx + 1}] -> "${p.titulo}" | Costo: $${p.precioCosto}`);
                 });
-                if(faltantes.length > 10) console.log(`   ...y ${faltantes.length - 10} más.`);
+                if (faltantes.length > 10) console.log(`   ...y ${faltantes.length - 10} más.`);
             } else {
                 console.log(`✅ ¡Sincronización perfecta! No quedan productos omitidos.`);
             }
