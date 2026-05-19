@@ -116,7 +116,7 @@ async function syncCatalog() {
 
                             if (img && textBlocks.length > 0) {
                                 const titulo = textBlocks[0];
-                                const descripcion = textBlocks[1] && textBlocks[1].length > 10 ? textBlocks[1] : 'Sin descripción disponible.';
+                                const descripcion = textBlocks[1] && textBlocks[1].length > 10 ? textBlocks[1] : '';
                                 if (!found.some(p => p.titulo.toLowerCase() === titulo.toLowerCase())) {
                                     found.push({ titulo, precioCosto, descripcion, imagen_url: img.src });
                                 }

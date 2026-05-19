@@ -6,7 +6,7 @@
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>GINI</title>
     <link rel="icon" type="image/svg+xml"
-        href="data:image/svg+xml;base64,PHN2ZyB4bWxucz0iaHR0cDovL3d3dy53My5vcmcvMjAwMC9zdmciIHZpZXdCb3g9IjAgMCA2NCA2NCIgd2lkdGg9IjEwMCUiIGhlaWdodD0iMTAwJSI+PGcgaWQ9Imdpb3JnaW8iPjxjaXJjbGUgY3g9IjIyIiBjeT0iMzYiIHI9IjE0IiBmaWxsPSJub25lIiBzdHJva2U9IiMyMTk2RjMiIHN0cm9rZS13aWR0aD0iNSIgc3Ryb2tlLWxpbmVjYXA9InJvdW5kIi8+PHBhdGggZD0iTTIyLDIyIEMyMSwxNSAxNSwxNiAxOCwyMSIgZmlsbD0ibm9uZSIgc3Ryb2tlPSIjMjE5NkYzIiBzdHJva2Utd2lkdGg9IjQiIHN0cm9rZS1saW5lY2FwPSJyb3VuZCIvPjwvZz48ZyBpZD0ibmluYSI+PGNpcmNsZSBjeD0iNDIiIGN5PSIzNiIgcj0iMTQiIGZpbGw9Im5vbmUiIHN0cm9rZT0iI0U5MUU2MyIgc3Ryb2tlLXdpZHRoPSI1IiBzdHJva2UtbGluZWNhcD0icm91bmQiLz48pGF0aCBkPSJNNDIsMjIgTDM2LDE2IEwzNiwyNCBaIiBmaWxsPSIjRTkxRTYzIi8+PHBhdGggZD0iTTQyLDIyIEw0OCwxNiBMNDgsMjQgWiIgZmlsbD0iI0U5MUU2MyIvPjxjaXJjbGUgY3g9IjQyIiBjeT0iMjAiIHI9IjMiIGZpbGw9IiNFOTFFNjMiLz48L2c+PC9zdmc+">
+        href="data:image/svg+xml;base64,PHN2ZyB4bWxucz0iaHR0cDovL3d3dy53My5vcmcvMjAwMC9zdmciIHZpZXdCb3g9IjAgMCA2NCA2NCIgd2lkdGg9IjEwMCUiIGhlaWdodD0iMTAwJSI+PGcgaWQ9Imdpb3JnaW8iPjxjaXJjbGUgY3g9IjIyIiBjeT0iMzYiIHI9IjE0IiBmaWxsPSJub25lIiBzdHJva2U9IiMyMTk2RjMiIHN0cm9rZS13aWR0aD0iNSIgc3Ryb2tlLWxpbmVjYXA9InJvdW5kIi8+PHBhdGggZD0iTTIyLDIyIEMyMSwxNSAxNSwxNiAxOCwyMSIgZmlsbD0ibm9uZSIgc3Ryb2tlPSIjMjE5NkYzIiBzdHJva2Utd2lkdGg9IjQiIHN0cm9rZS1saW5lY2FwPSJyb3VuZCIvPjwvZz48ZyBpZD0ibmluYSI+PGNpcmNsZSBjeD0iNDIiIGN5PSIzNiIgcj0iMTQiIGZpbGw9Im5vbmUiIHN0cm9rZT0iI0U5MUU2MyIgc3Ryb2tlLXdpZHRoPSI1IiBzdHJva2UtbGluZWNhcD0icm91bmQiLz48cGF0aCBkPSJNNDIsMjIgTDM2LDE2IEwzNiwyNCBaIiBmaWxsPSIjRTkxRTYzIi8+PHBhdGggZD0iTTQyLDIyIEw0OCwxNiBMNDgsMjQgWiIgZmlsbD0iI0U5MUU2MyIvPjxjaXJjbGUgY3g9IjQyIiBjeT0iMjAiIHI9IjMiIGZpbGw9IiNFOTFFNjMiLz48/Zz48L3N2Zz4=">
     <script src="https://unpkg.com/@tailwindcss/browser@4"></script>
     <script src="https://unpkg.com/lucide@latest"></script>
     <link
@@ -687,7 +687,6 @@
             document.body.style.overflow = 'auto';
         }
 
-        // MOTOR DE RENDERIZADO ASÍNCRONO DE CANVAS (Reemplaza a Sharp)
         async function processBatchExport() {
             const confirmBtn = document.getElementById('confirmExportBtn');
             confirmBtn.classList.add('btn-loading');
@@ -712,7 +711,6 @@
                 }
 
                 try {
-                    // Cargar imagen de forma asíncrona controlando CORS
                     const img = await new Promise((resolve, reject) => {
                         const i = new Image();
                         i.crossOrigin = "anonymous";
@@ -731,7 +729,6 @@
                     const yBase = (1920 - hBase) / 2;
                     ctx.drawImage(img, xBase, yBase, wBase, hBase);
 
-                    // Filtro de desenfoque y oscurecimiento
                     ctx.filter = "blur(50px) brightness(0.4)";
                     ctx.drawImage(canvas, 0, 0);
                     ctx.filter = "none";
@@ -761,20 +758,27 @@
                     ctx.fillStyle = "rgba(15, 23, 42, 0.92)";
                     ctx.fillRect(0, 1420, 1080, 500);
 
-                    // Título
+                    // Control condicional de texto según descripción vacía
+                    const cleanDesc = descValue ? descValue.replace(/sin descripción disponible\./gi, '').trim() : '';
+
                     ctx.fillStyle = "#FFFFFF";
                     ctx.textAlign = "left";
-                    ctx.font = "bold 40px Arial, Helvetica, sans-serif";
-                    let titleText = p.titulo.toUpperCase();
-                    if (titleText.length > 45) titleText = titleText.substring(0, 42) + "...";
-                    ctx.fillText(titleText, 50, 1495);
 
-                    // Líneas de Descripción
-                    if (descValue) {
+                    if (cleanDesc === '') {
+                        ctx.font = "bold 52px Arial, Helvetica, sans-serif";
+                        let titleText = p.titulo.toUpperCase();
+                        if (titleText.length > 38) titleText = titleText.substring(0, 35) + "...";
+                        ctx.fillText(titleText, 50, 1660);
+                    } else {
+                        ctx.font = "bold 40px Arial, Helvetica, sans-serif";
+                        let titleText = p.titulo.toUpperCase();
+                        if (titleText.length > 45) titleText = titleText.substring(0, 42) + "...";
+                        ctx.fillText(titleText, 50, 1495);
+
                         ctx.fillStyle = "#94a3b8";
                         ctx.font = "30px Arial, Helvetica, sans-serif";
 
-                        const rawLines = descValue.replace(/\*/g, '').split('\n').map(l => l.trim()).filter(l => l.length > 0);
+                        const rawLines = cleanDesc.replace(/\*/g, '').split('\n').map(l => l.trim()).filter(l => l.length > 0);
                         const cleanLines = rawLines.filter(line => {
                             const l = line.toLowerCase();
                             return !(l.includes('precio') || l.includes('$') || l.includes('valor') || l.includes('💸') || l.includes('🔥') || l.includes('pídelo') || l.includes('costo'));
@@ -787,7 +791,6 @@
                         });
                     }
 
-                    // Descarga local directa
                     const dataUrl = canvas.toDataURL("image/jpeg", 0.92);
                     const downloadLink = document.createElement("a");
                     downloadLink.download = `story-${p.titulo.toLowerCase().replace(/[^a-z0-9]/g, "-")}.jpg`;
@@ -797,7 +800,7 @@
                     document.body.removeChild(downloadLink);
 
                     downloadedCount++;
-                    await new Promise(r => setTimeout(r, 250)); // Delay anti-bloqueo de ráfaga
+                    await new Promise(r => setTimeout(r, 250));
 
                 } catch (err) {
                     console.error(`Error procesando la Story del ID ${p.id}:`, err);
@@ -812,7 +815,7 @@
             showToast(`¡Renderizado local completado! ${downloadedCount} Stories descargadas.`);
             fetchProducts();
         }
-        
+
         function toggleRowMode(id) {
             const mode = document.getElementById(`mode-${id}`).value;
             document.getElementById(`container-margin-${id}`).classList.toggle('hidden', mode !== 'porcentaje');
@@ -868,8 +871,24 @@
                 .update({ porcentaje_ganancia, precio_fijo, precio: nuevoPrecioVenta, descripcion })
                 .eq('id', id);
 
-            if (error) showToast('Error: ' + error.message, 'red');
-            else { showToast('Producto actualizado'); fetchProducts(); }
+            if (error) {
+                showToast('Error: ' + error.message, 'red');
+            } else {
+                product.porcentaje_ganancia = porcentaje_ganancia;
+                product.precio_fijo = precio_fijo;
+                product.precio = nuevoPrecioVenta;
+                product.descripcion = descripcion;
+
+                showToast('Producto guardado correctamente');
+
+                const query = document.getElementById('adminSearchInput').value.toLowerCase().trim();
+                if (query) {
+                    const filtered = products.filter(p => p.titulo.toLowerCase().includes(query));
+                    renderInventory(filtered);
+                } else {
+                    renderInventory(products);
+                }
+            }
         }
 
         async function deleteProduct(id) {
