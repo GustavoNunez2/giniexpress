@@ -67,16 +67,26 @@
         </div>
     </header>
 
-    <nav id="catalog" class="max-w-7xl mx-auto px-6 py-12">
-        <div class="flex flex-col md:flex-row justify-between items-end mb-12 gap-6">
+    <main id="catalog" class="max-w-7xl mx-auto px-6 py-12">
+        <div class="flex flex-col lg:flex-row justify-between items-start lg:items-end mb-12 gap-6 w-full">
             <div>
                 <span class="bg-blue-50 text-blue-600 px-3 py-1 rounded-full text-[10px] font-bold uppercase tracking-wider border border-blue-100">Public View</span>
                 <h3 class="text-3xl font-bold mt-3 text-slate-900">Nuestra Colección</h3>
                 <span id="productCount" class="text-[10px] font-bold uppercase tracking-widest text-slate-400 mt-1">0 PRODUCTOS</span>
             </div>
-            <div class="flex gap-2 p-1 bg-white border border-slate-200 rounded-xl">
-                <button class="px-5 py-2 bg-slate-900 text-white rounded-lg text-sm font-semibold">Todos</button>
-                <button class="px-5 py-2 text-slate-500 hover:bg-slate-50 rounded-lg text-sm font-semibold transition-colors">Exclusivos</button>
+            
+            <div class="flex flex-col sm:flex-row gap-4 w-full lg:w-auto items-center">
+                <div class="relative w-full sm:w-80">
+                    <input type="text" id="searchInput" placeholder="Buscar producto por nombre..." class="w-full bg-white border border-slate-200 rounded-xl pl-10 pr-4 py-2.5 text-sm focus:border-slate-950 focus:outline-none transition-colors shadow-sm">
+                    <div class="absolute left-3.5 top-3 text-slate-400">
+                        <i data-lucide="search" class="w-4 h-4"></i>
+                    </div>
+                </div>
+                
+                <div class="flex gap-2 p-1 bg-white border border-slate-200 rounded-xl w-full sm:w-auto justify-center">
+                    <button class="px-5 py-2 bg-slate-900 text-white rounded-lg text-sm font-semibold">Todos</button>
+                    <button class="px-5 py-2 text-slate-500 hover:bg-slate-50 rounded-lg text-sm font-semibold transition-colors">Exclusivos</button>
+                </div>
             </div>
         </div>
 
@@ -85,7 +95,7 @@
                 <div class="w-12 h-12 border-4 border-slate-100 border-t-slate-900 rounded-full animate-spin"></div>
             </div>
         </div>
-    </nav>
+    </main>
 
     <div id="cartOverlay" class="fixed inset-0 bg-slate-900/40 z-[60] opacity-0 pointer-events-none transition-opacity backdrop-blur-[2px]"></div>
     <div id="cartDrawer" class="cart-drawer closed fixed top-0 right-0 h-full w-full max-w-[340px] bg-white z-[70] shadow-2xl flex flex-col border-l border-slate-200">
@@ -183,6 +193,9 @@
                 if (e.target === document.getElementById('productModal')) closeModal();
             };
             document.getElementById('checkoutBtn').onclick = finalizeOrder;
+            
+            // Evento de escucha en tiempo real para la caja buscadora
+            document.getElementById('searchInput').oninput = handleSearch;
         }
 
         async function fetchProducts() {
@@ -194,8 +207,7 @@
 
                 if (error) throw error;
                 products = data;
-                renderProducts();
-                document.getElementById('productCount').textContent = `${products.length} PRODUCTOS`;
+                renderProducts(products);
             } catch (error) {
                 console.error('Error fetching products:', error);
                 document.getElementById('productGrid').innerHTML = `
@@ -207,15 +219,31 @@
             }
         }
 
-        function renderProducts() {
+        // Modificamos el render para aceptar listas filtradas dinámicamente
+        function renderProducts(productsToRender = products) {
             const grid = document.getElementById('productGrid');
-            if (products.length === 0) {
-                grid.innerHTML = '<p class="col-span-full text-center py-20 text-slate-400">No hay productos disponibles.</p>';
+            const countEl = document.getElementById('productCount');
+            
+            // Control de Coincidencias Vacías
+            if (productsToRender.length === 0) {
+                grid.innerHTML = `
+                    <div class="col-span-full py-24 flex flex-col items-center text-center text-slate-400">
+                        <div class="w-16 h-16 bg-slate-100 rounded-full flex items-center justify-center mb-4">
+                            <i data-lucide="search-x" class="w-6 h-6 text-slate-400"></i>
+                        </div>
+                        <h4 class="text-lg font-bold text-slate-800">No hay coincidencias</h4>
+                        <p class="text-sm text-slate-400 mt-1 max-w-xs">No encontramos ningún producto que coincida con lo que estás buscando.</p>
+                    </div>
+                `;
+                countEl.textContent = '0 PRODUCTOS';
+                lucide.createIcons();
                 return;
             }
 
-            grid.innerHTML = products.map((product, index) => `
-                <div class="card-minimal flex flex-col overflow-hidden fade-in" style="animation-delay: ${index * 0.05}s">
+            countEl.textContent = `${productsToRender.length} PRODUCTOS`;
+
+            grid.innerHTML = productsToRender.map((product, index) => `
+                <div class="card-minimal flex flex-col overflow-hidden fade-in" style="animation-delay: ${index * 0.02}s">
                     <div class="relative bg-slate-50 aspect-square cursor-pointer overflow-hidden group" onclick="openProductDetail(${product.id})">
                         <img src="${product.imagen_url}" alt="${product.titulo}" class="w-full h-full object-cover group-hover:scale-105 transition-transform duration-500">
                         <div class="absolute inset-0 bg-slate-900/0 group-hover:bg-slate-900/20 transition-all flex items-center justify-center opacity-0 group-hover:opacity-100 backdrop-blur-[1px]">
@@ -244,6 +272,18 @@
                 </div>
             `).join('');
             lucide.createIcons();
+        }
+
+        // Lógica del motor de búsqueda en tiempo real
+        function handleSearch() {
+            const query = document.getElementById('searchInput').value.toLowerCase().trim();
+            
+            // Filtramos el array principal basándonos en el título del artículo
+            const filteredProducts = products.filter(product => 
+                product.titulo.toLowerCase().includes(query)
+            );
+            
+            renderProducts(filteredProducts);
         }
 
         function renderCart() {
@@ -428,10 +468,9 @@
             setTimeout(() => cartBtn.classList.remove('scale-110'), 300);
         }
 
-        // Ejecutar inicialización directa
         init();
 
-        // Exponer funciones al scope global para Vite
+        // Exponer funciones al scope global para Vite/HTML onclick
         window.openProductDetail = openProductDetail;
         window.updateModalQty = updateModalQty;
         window.changeQtyInGrid = changeQtyInGrid;
@@ -442,6 +481,7 @@
         window.updateCartQty = updateCartQty;
         window.finalizeOrder = finalizeOrder;
         window.updateWhatsAppLink = updateWhatsAppLink;
+        window.handleSearch = handleSearch;
     </script>
 </body>
 </html>

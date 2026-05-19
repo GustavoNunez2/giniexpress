@@ -31,7 +31,7 @@
         @keyframes fadeIn { from { opacity: 0; transform: translateY(10px); } to { opacity: 1; transform: translateY(0); } }
         .fade-in { animation: fadeIn 0.4s ease-out forwards; }
     </style>
-  <script type="module" crossorigin src="/giniexpress/assets/main-DNEXlF9N.js"></script>
+  <script type="module" crossorigin src="/giniexpress/assets/main-CczagtBV.js"></script>
   <link rel="modulepreload" crossorigin href="/giniexpress/assets/index-CMzVDswU.js">
 </head>
 <body class="overflow-x-hidden">
@@ -69,16 +69,26 @@
         </div>
     </header>
 
-    <nav id="catalog" class="max-w-7xl mx-auto px-6 py-12">
-        <div class="flex flex-col md:flex-row justify-between items-end mb-12 gap-6">
+    <main id="catalog" class="max-w-7xl mx-auto px-6 py-12">
+        <div class="flex flex-col lg:flex-row justify-between items-start lg:items-end mb-12 gap-6 w-full">
             <div>
                 <span class="bg-blue-50 text-blue-600 px-3 py-1 rounded-full text-[10px] font-bold uppercase tracking-wider border border-blue-100">Public View</span>
                 <h3 class="text-3xl font-bold mt-3 text-slate-900">Nuestra Colección</h3>
                 <span id="productCount" class="text-[10px] font-bold uppercase tracking-widest text-slate-400 mt-1">0 PRODUCTOS</span>
             </div>
-            <div class="flex gap-2 p-1 bg-white border border-slate-200 rounded-xl">
-                <button class="px-5 py-2 bg-slate-900 text-white rounded-lg text-sm font-semibold">Todos</button>
-                <button class="px-5 py-2 text-slate-500 hover:bg-slate-50 rounded-lg text-sm font-semibold transition-colors">Exclusivos</button>
+            
+            <div class="flex flex-col sm:flex-row gap-4 w-full lg:w-auto items-center">
+                <div class="relative w-full sm:w-80">
+                    <input type="text" id="searchInput" placeholder="Buscar producto por nombre..." class="w-full bg-white border border-slate-200 rounded-xl pl-10 pr-4 py-2.5 text-sm focus:border-slate-950 focus:outline-none transition-colors shadow-sm">
+                    <div class="absolute left-3.5 top-3 text-slate-400">
+                        <i data-lucide="search" class="w-4 h-4"></i>
+                    </div>
+                </div>
+                
+                <div class="flex gap-2 p-1 bg-white border border-slate-200 rounded-xl w-full sm:w-auto justify-center">
+                    <button class="px-5 py-2 bg-slate-900 text-white rounded-lg text-sm font-semibold">Todos</button>
+                    <button class="px-5 py-2 text-slate-500 hover:bg-slate-50 rounded-lg text-sm font-semibold transition-colors">Exclusivos</button>
+                </div>
             </div>
         </div>
 
@@ -87,7 +97,7 @@
                 <div class="w-12 h-12 border-4 border-slate-100 border-t-slate-900 rounded-full animate-spin"></div>
             </div>
         </div>
-    </nav>
+    </main>
 
     <div id="cartOverlay" class="fixed inset-0 bg-slate-900/40 z-[60] opacity-0 pointer-events-none transition-opacity backdrop-blur-[2px]"></div>
     <div id="cartDrawer" class="cart-drawer closed fixed top-0 right-0 h-full w-full max-w-[340px] bg-white z-[70] shadow-2xl flex flex-col border-l border-slate-200">
