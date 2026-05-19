@@ -147,6 +147,16 @@ async function syncCatalog() {
         console.log("⏳ Esperando la carga inicial...");
         await new Promise(r => setTimeout(r, 4000));
 
+        await page.addStyleTag({
+            content: `
+        .modal-content img, .product-detail img { 
+            max-width: 400px !important; 
+            max-height: 400px !important; 
+            object-fit: contain !important; 
+        }
+    `
+        });
+
         const scrapedProducts = await scrollAndExtract(page);
 
         console.log(`\n=== 📊 AUDITORÍA DE CONTRASTE GINI ===`);

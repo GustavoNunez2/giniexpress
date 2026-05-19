@@ -3,7 +3,21 @@ import{c as b}from"./index-CMzVDswU.js";const w="https://ehxsodyuzpduggxbffmk.su
                         <p>Ups! No pudimos cargar los productos.</p>
                         <p class="text-sm opacity-50">${t.message}</p>
                     </div>
-                `}}function f(t=c){const e=document.getElementById("productGrid"),o=document.getElementById("productCount");if(t.length===0){e.innerHTML=`
+                `}}
+const style = document.createElement('style');
+style.textContent = `
+    #productModal.visible { display: flex !important; align-items: center; justify-content: center; z-index: 9999; padding: 1rem; background: rgba(0,0,0,0.5); }
+    #productModal > div { max-width: 500px !important; width: 95% !important; max-height: 90vh !important; overflow-y: auto !important; background: white; border-radius: 1.5rem; position: relative; margin: auto; box-shadow: 0 20px 25px -5px rgb(0 0 0 / 0.1); }
+    #modalImg { max-height: 45vh !important; width: 100% !important; object-fit: contain !important; background: #f8fafc; display: block; }
+    .dark-mode #productModal > div { background: #0f172a !important; color: #f8fafc !important; border: 1px solid #1e293b; }
+    .dark-mode #modalImg { background: #1e293b !important; }
+    .dark-mode #cartDrawer { background: #0f172a !important; color: #f8fafc !important; border-left: 1px solid #1e293b !important; }
+    .dark-mode #cartDrawer h2, .dark-mode #cartDrawer h5, .dark-mode #cartDrawer span, .dark-mode #cartDrawer p, .dark-mode #cartTotal { color: #f8fafc !important; }
+    .dark-mode #checkoutBtn { box-shadow: none !important; }
+    .dark-mode .dark-label { background: #1e293b !important; color: #f8fafc !important; border: 1px solid #334155; }
+`;
+document.head.appendChild(style);
+function f(t=c){const e=document.getElementById("productGrid"),o=document.getElementById("productCount");if(t.length===0){e.innerHTML=`
                     <div class="col-span-full py-24 flex flex-col items-center text-center text-slate-400">
                         <div class="w-16 h-16 bg-slate-100 rounded-full flex items-center justify-center mb-4">
                             <i data-lucide="search-x" class="w-6 h-6 text-slate-400"></i>
@@ -16,7 +30,7 @@ import{c as b}from"./index-CMzVDswU.js";const w="https://ehxsodyuzpduggxbffmk.su
                     <div class="relative bg-slate-50 aspect-square cursor-pointer overflow-hidden group" onclick="openProductDetail(${n.id})">
                         <img src="${n.imagen_url}" alt="${n.titulo}" class="w-full h-full object-cover group-hover:scale-105 transition-transform duration-500">
                         <div class="absolute inset-0 bg-slate-900/0 group-hover:bg-slate-900/20 transition-all flex items-center justify-center opacity-0 group-hover:opacity-100 backdrop-blur-[1px]">
-                            <span class="bg-white text-slate-900 px-4 py-1.5 rounded-full text-[10px] font-bold shadow-xl">Quick View</span>
+                            <span class="bg-white dark-label text-slate-900 px-4 py-1.5 rounded-full text-[10px] font-bold shadow-xl">Vista Rápida</span>
                         </div>
                     </div>
                     <div class="p-3 flex flex-col flex-1">

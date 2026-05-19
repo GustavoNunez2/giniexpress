@@ -1,107 +1,429 @@
 <!DOCTYPE html>
 <html lang="es">
+
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <meta name="color-scheme" content="light dark">
     <title>GINI</title>
-    <link rel="icon" type="image/svg+xml" href="data:image/svg+xml;base64,PHN2ZyB4bWxucz0iaHR0cDovL3d3dy53My5vcmcvMjAwMC9zdmciIHZpZXdCb3g9IjAgMCA2NCA2NCI+PGcgaWQ9Imdpb3JnaW8iPjxjaXJjbGUgY3g9IjIyIiBjeT0iMzYiIHI9IjE0IiBmaWxsPSJub25lIiBzdHJva2U9IiMyMTk2RjMiIHN0cm9rZS13aWR0aD0iNSIgc3Ryb2tlLWxpbmVjYXA9InJvdW5kIi8+PHBhdGggZD0iTTIyLDIyIEMyMSwxNSAxNSwxNiAxOCwyMSIgZmlsbD0ibm9uZSIgc3Ryb2tlPSIjMjE5NkYzIiBzdHJva2Utd2lkdGg9IjQiIHN0cm9rZS1saW5lY2FwPSJyb3VuZCIvPjwvZz48ZyBpZD0ibmluYSI+PGNpcmNsZSBjeD0iNDIiIGN5PSIzNiIgcj0iMTQiIGZpbGw9Im5vbmUiIHN0cm9rZT0iI0U5MUU2MyIgc3Ryb2tlLXdpZHRoPSI1IiBzdHJva2UtbGluZWNhcD0icm91bmQiLz48cGF0aCBkPSJNNDIsMjIgTDM2LDE2IEwzNiwyNCBaIiBmaWxsPSIjRTkxRTYzIi8+PHBhdGggZD0iTTQyLDIyIEw0OCwxNiBMNDgsMjQgWiIgZmlsbD0iI0U5MUU2MyIvPjxjaXJjbGUgY3g9IjQyIiBjeT0iMjAiIHI9IjMiIGZpbGw9IiNFOTFFNjMiLz48L2c+PC9zdmc+">
+    <script>
+        // Aplicar tema antes de renderizar para evitar flash
+        const theme = localStorage.getItem('gini_theme') || 'light';
+        if (theme === 'dark') {
+            document.documentElement.classList.add('dark');
+            document.documentElement.style.colorScheme = 'dark';
+        } else {
+            document.documentElement.classList.remove('dark');
+            document.documentElement.style.colorScheme = 'light';
+        }
+    </script>
+    <link rel="icon" type="image/svg+xml" href="./imagensvg.svg">
+    <script>
+        window.tailwind = {
+            config: {
+                darkMode: 'class'
+            }
+        };
+    </script>
     <script src="https://unpkg.com/@tailwindcss/browser@4"></script>
     <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
     <script src="https://unpkg.com/lucide@latest"></script>
     <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700&display=swap" rel="stylesheet">
     <style>
-        body { font-family: 'Inter', system-ui, -apple-system, sans-serif; background-color: #F8FAFC; color: #1E293B; transition: background-color 0.2s, color 0.2s; }
-        .cart-drawer { transition: transform 0.3s cubic-bezier(0.4, 0, 0.2, 1); }
-        .cart-drawer.open { transform: translateX(0); }
-        .cart-drawer.closed { transform: translateX(100%); }
-        .modal { transition: opacity 0.2s ease; }
-        .modal.hidden { opacity: 0; pointer-events: none; }
-        .modal.visible { opacity: 1; pointer-events: auto; }
-        .btn-primary { background-color: #0F172A; color: white; transition: all 0.2s; }
-        .btn-primary:hover { background-color: #1e293b; transform: translateY(-1px); }
-        .card-minimal { background: white; border: 1px solid #E2E8F0; border-radius: 8px; transition: all 0.3s; box-shadow: 0 1px 3px rgba(0,0,0,0.05); }
-        .card-minimal:hover { border-color: #CBD5E1; box-shadow: 0 4px 12px rgba(0,0,0,0.05); }
-        .qty-minimal { background-color: #F1F5F9; border-radius: 6px; padding: 4px; }
-        @keyframes fadeIn { from { opacity: 0; transform: translateY(10px); } to { opacity: 1; transform: translateY(0); } }
-        .fade-in { animation: fadeIn 0.4s ease-out forwards; }
+        /* Minimal, theme-agnostic helpers only. Colors and dark mode use Tailwind classes. */
+        :root {
+            font-family: 'Inter', system-ui, -apple-system, sans-serif;
+        }
 
-        /* REGLAS COMPLEMENTARIAS PARA DARK MODE EN LA TIENDA */
-        body.dark-mode { background-color: #020617; color: #F8FAFC; }
-        body.dark-mode nav { background-color: #0F172A !important; border-color: #1E293B !important; }
-        body.dark-mode nav span, body.dark-mode nav a { color: #FFFFFF !important; }
-        body.dark-mode main h3 { color: #FFFFFF !important; }
-        body.dark-mode .card-minimal { background-color: #0F172A !important; border-color: #1E293B !important; }
-        body.dark-mode .card-minimal h4 { color: #FFFFFF !important; }
-        body.dark-mode .card-minimal span { color: #FFFFFF !important; }
-        body.dark-mode select, body.dark-mode input { background-color: #020617 !important; border-color: #1E293B !important; color: #FFFFFF !important; }
-        body.dark-mode .qty-minimal { background-color: #1E293B !important; }
-        body.dark-mode .qty-minimal input { color: #FFFFFF !important; }
-        body.dark-mode .cart-drawer { background-color: #0F172A !important; border-color: #1E293B !important; }
-        body.dark-mode .cart-drawer h2, body.dark-mode .cart-drawer h5, body.dark-mode .cart-drawer span, body.dark-mode #cartTotal { color: #FFFFFF !important; }
-        body.dark-mode .cart-drawer .bg-slate-50 { background-color: #1E293B !important; border-color: #1E293B !important; }
-        body.dark-mode .modal > div { background-color: #0F172A !important; color: #FFFFFF !important; border-color: #1E293B !important; }
-        body.dark-mode .modal h2, body.dark-mode #modalPrice { color: #FFFFFF !important; }
-        body.dark-mode .modal p { color: #94A3B8 !important; }
-        body.dark-mode .modal button { border-color: #1E293B !important; background-color: #020617 !important; }
-        body.dark-mode #themeToggle, body.dark-mode #openCart { border-color: #1E293B !important; }
-        body.dark-mode .border-slate-100 { border-color: #1E293B !important; }
+        .cart-drawer {
+            transition: transform 0.28s cubic-bezier(0.4, 0, 0.2, 1);
+        }
+
+        .cart-drawer.closed {
+            transform: translateX(100%);
+        }
+
+        .cart-drawer.open {
+            transform: translateX(0);
+        }
+
+        .modal {
+            transition: opacity 0.18s ease;
+        }
+
+        .modal.hidden {
+            opacity: 0;
+            pointer-events: none;
+        }
+
+        .modal.visible {
+            opacity: 1;
+            pointer-events: auto;
+        }
+
+        @keyframes fadeIn {
+            from {
+                opacity: 0;
+                transform: translateY(10px);
+            }
+
+            to {
+                opacity: 1;
+                transform: translateY(0);
+            }
+        }
+
+        .fade-in {
+            animation: fadeIn 0.4s ease-out forwards;
+        }
+
+        /* Light mode (default) */
+        html {
+            color-scheme: light;
+        }
+
+        body {
+            background-color: #f8fafc;
+            color: #1e293b;
+        }
+
+        nav {
+            background-color: #ffffff;
+            border-color: #e2e8f0;
+        }
+
+        nav span,
+        nav h3 {
+            color: #1e293b;
+            border-color: #e2e8f0;
+        }
+
+        input,
+        select {
+            background-color: #ffffff;
+            border-color: #e2e8f0;
+            color: #1e293b;
+        }
+
+        input::placeholder {
+            color: #94a3b8;
+        }
+
+        button:not([class*="bg-"]) {
+            color: #1e293b;
+        }
+
+        h2,
+        h3,
+        h4,
+        h5,
+        p {
+            color: #1e293b;
+        }
+
+        .text-slate-900 {
+            color: #1e293b !important;
+        }
+
+        .text-slate-400,
+        .text-slate-300 {
+            color: #94a3b8 !important;
+        }
+
+        .bg-slate-50,
+        .bg-white {
+            background-color: #ffffff;
+            color: #1e293b;
+        }
+
+        .bg-slate-100 {
+            background-color: #f1f5f9;
+        }
+
+        .border-slate-50,
+        .border-slate-100,
+        .border-slate-200 {
+            border-color: #e2e8f0 !important;
+        }
+
+        /* Card styles for light mode */
+        .bg-white {
+            background-color: #ffffff;
+            border: 1px solid #e2e8f0;
+            border-radius: 0.5rem;
+            transition: all 0.3s;
+            box-shadow: 0 1px 3px rgba(0, 0, 0, 0.05);
+        }
+
+        .bg-white:hover {
+            border-color: #cbd5e1;
+            box-shadow: 0 4px 12px rgba(0, 0, 0, 0.05);
+        }
+
+        /* Carrito counter - visible en ambos modos con alto contraste */
+        #cartCount {
+            color: #ffffff !important;
+            background-color: #1e293b !important;
+            display: inline-block !important;
+            font-weight: 700;
+        }
+
+        /* WhatsApp button con sombra y animación */
+        #checkoutBtn {
+            color: #fff !important;
+            background-color: #0f172a !important;
+            font-weight: 700;
+        }
+
+        #checkoutBtn:hover {
+            background-color: #0a3e1d !important;
+            box-shadow: 0 6px 16px rgba(0, 0, 0, 0.15);
+            transform: translateY(-2px);
+        }
+
+        #checkoutBtn:active {
+            transform: translateY(0);
+            box-shadow: 0 2px 8px rgba(0, 0, 0, 0.1);
+        }
+
+        html.dark #checkoutBtn:hover {
+            background-color: #ffffff !important;
+            color: #0a3e1d !important;
+            box-shadow: 0 6px 16px rgba(0, 0, 0, 0.3);
+            transform: translateY(-2px);
+        }
+
+        /* Delete button en carrito */
+        .cart-item-delete {
+            color: #ef4444;
+            cursor: pointer;
+            font-size: 18px;
+            line-height: 1;
+            transition: all 0.2s;
+            padding: 4px;
+            border-radius: 4px;
+            flex-shrink: 0;
+            min-width: 24px;
+            text-align: center;
+        }
+
+        .cart-item-delete:hover {
+            background-color: rgba(239, 68, 68, 0.1);
+            color: #dc2626;
+        }
+
+        html.dark .cart-item-delete:hover {
+            background-color: rgba(239, 68, 68, 0.2);
+        }
+
+        /* Cart item title truncation */
+        .cart-item-title {
+            max-width: 200px;
+            white-space: nowrap;
+            overflow: hidden;
+            text-overflow: ellipsis;
+        }
+
+        /* Carrito button styles */
+        #openCart {
+            transition: all 0.2s ease;
+        }
+
+        #openCart:hover {
+            background-color: #1e293b !important;
+            box-shadow: 0 4px 12px rgba(0, 0, 0, 0.2);
+            transform: translateY(-2px);
+        }
+
+        #openCart:active {
+            transform: translateY(0);
+            box-shadow: 0 2px 6px rgba(0, 0, 0, 0.1);
+        }
+
+        html.dark #openCart:hover {
+            background-color: #f1f5f9 !important;
+            color: #0f172a !important;
+            box-shadow: 0 4px 12px rgba(255, 255, 255, 0.1);
+        }
+
+        /* Explicit dark mode styles */
+        html.dark {
+            color-scheme: dark;
+            background-color: #050812;
+            color: #ffffff;
+        }
+
+        html.dark body {
+            background-color: #050812;
+            color: #ffffff;
+        }
+
+        html.dark nav {
+            background-color: #0a0e1a;
+            border-color: #162031;
+        }
+
+        html.dark nav span,
+        html.dark nav h3 {
+            color: #ffffff;
+            border-color: #162031;
+        }
+
+        html.dark input,
+        html.dark select {
+            background-color: #0f1423;
+            border-color: #162031;
+            color: #ffffff;
+        }
+
+        html.dark input::placeholder {
+            color: #64748b;
+        }
+
+        html.dark [id="cartDrawer"],
+        html.dark [id="productModal"]>div {
+            background-color: #050812;
+            color: #ffffff;
+            border-color: #162031;
+        }
+
+        html.dark [id="cartDrawer"] header,
+        html.dark [id="cartDrawer"] footer,
+        html.dark [id="productModal"]>div>div {
+            border-color: #162031;
+        }
+
+        html.dark button:not([class*="bg-"]) {
+            color: inherit;
+        }
+
+        html.dark h2,
+        html.dark h3,
+        html.dark h4,
+        html.dark h5,
+        html.dark p {
+            color: #ffffff;
+        }
+
+        html.dark .text-slate-900 {
+            color: #ffffff !important;
+        }
+
+        html.dark .text-slate-400,
+        html.dark .text-slate-300 {
+            color: #94a3b8 !important;
+        }
+
+        html.dark .bg-slate-50,
+        html.dark .bg-white {
+            background-color: #0f1423;
+            color: #ffffff;
+        }
+
+        html.dark .bg-slate-100 {
+            background-color: #162031;
+        }
+
+        html.dark .border-slate-50,
+        html.dark .border-slate-100,
+        html.dark .border-slate-200 {
+            border-color: #162031 !important;
+        }
+
+        /* Dark mode cards with enhanced shadows */
+        html.dark .bg-white {
+            background-color: #0f1423;
+            border-color: #1e293b;
+            box-shadow: 0 4px 15px rgba(0, 0, 0, 0.5);
+        }
+
+        html.dark .bg-white:hover {
+            border-color: #2d3a52;
+            box-shadow: 0 8px 25px rgba(0, 0, 0, 0.6);
+        }
+
+        input[type="number"]::-webkit-inner-spin-button,
+        input[type="number"]::-webkit-outer-spin-button {
+            -webkit-appearance: none;
+            margin: 0;
+        }
+
+        input[type="number"] {
+            -moz-appearance: textfield;
+            /* Para Firefox */
+        }
+
+        .logo-svg {
+            /* AZUL OSCURO EN LIGHT MODE */
+            filter:
+                brightness(0) saturate(100%) invert(10%) sepia(24%) saturate(1190%) hue-rotate(182deg) brightness(94%) contrast(95%);
+            transition: filter 0.2s ease;
+        }
+
+        /* EN DARK MODE = BLANCO */
+        html.dark .logo-svg {
+            filter: brightness(0) invert(1);
+        }
     </style>
 </head>
-<body class="overflow-x-hidden">
 
-    <nav class="sticky top-0 z-50 bg-white border-b border-slate-200 h-16 flex items-center">
+<body class="bg-slate-50 text-slate-900 dark:bg-slate-950 dark:text-white overflow-x-hidden">
+
+    <nav
+        class="sticky top-0 z-50 bg-white dark:bg-slate-950 border-b border-slate-200 dark:border-slate-800 h-16 flex items-center">
         <div class="max-w-7xl w-full mx-auto px-6 flex items-center justify-between">
             <div class="flex items-center gap-3">
-                <div class="w-9 h-9 flex items-center justify-center">
-                    <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 64 64" width="100%" height="100%">
-                        <g id="giorgio">
-                            <circle cx="22" cy="36" r="14" fill="none" stroke="#2196F3" stroke-width="5" stroke-linecap="round"/>
-                            <path d="M22,22 C21,15 15,16 18,21" fill="none" stroke="#2196F3" stroke-width="4" stroke-linecap="round"/>
-                        </g>
-                        <g id="nina">
-                            <circle cx="42" cy="36" r="14" fill="none" stroke="#E91E63" stroke-width="5" stroke-linecap="round"/>
-                            <path d="M42,22 L36,16 L36,24 Z" fill="#E91E63"/>
-                            <path d="M42,22 L48,16 L48,24 Z" fill="#E91E63"/>
-                            <circle cx="42" cy="20" r="3" fill="#E91E63"/>
-                        </g>
-                    </svg>
+                <div class="w-12 h-12 flex items-center justify-center">
+                    <img src="./imagensvg.svg" alt="GINI Logo" class="logo-svg w-full h-full object-contain">
                 </div>
-                <span class="font-bold text-lg tracking-tight text-slate-900 border-l-2 border-slate-200 pl-3">GINI EXPRESS</span>
+                <span
+                    class="font-bold text-lg tracking-tight text-slate-900 dark:text-white border-l-2 border-slate-200 dark:border-slate-800 pl-3">GINI
+                    EXPRESS</span>
             </div>
-            
+
             <div class="flex items-center gap-4">
-                <a href="admin.html" class="text-sm font-medium text-slate-400 hover:text-slate-900 transition-colors">Admin Panel</a>
-                
-                <button id="themeToggle" class="text-slate-400 hover:text-slate-900 p-2 rounded-lg border border-slate-200 bg-white cursor-pointer transition-colors flex items-center justify-center w-9 h-9">
+                <a href="admin.html"
+                    class="text-sm font-medium text-slate-400 dark:text-slate-400 hover:text-slate-900 dark:hover:text-white transition-colors">Admin
+                    Panel</a>
+
+                <button id="themeToggle"
+                    class="text-slate-500 hover:text-slate-900 dark:hover:text-white p-2 rounded-lg border border-slate-200 dark:border-slate-800 bg-white dark:bg-slate-900 cursor-pointer transition-colors flex items-center justify-center w-9 h-9">
                     <i data-lucide="moon" class="w-4 h-4"></i>
                 </button>
 
-                <button id="openCart" class="relative group flex items-center gap-2 btn-primary px-4 py-2 rounded-lg text-sm font-semibold cursor-pointer">
-                    <i data-lucide="shopping-bag" class="w-4 h-4 text-white/80"></i>
+                <button id="openCart"
+                    class="relative group flex items-center gap-2 bg-slate-900 text-white dark:bg-white dark:text-slate-900 px-4 py-2 rounded-lg text-sm font-semibold cursor-pointer shadow-md">
+                    <i data-lucide="shopping-bag" class="w-4 h-4"></i>
                     Carrito
-                    <span id="cartCount" class="bg-white/20 text-white text-[10px] px-1.5 py-0.5 rounded-md hidden">0</span>
+                    <span id="cartCount"
+                        class="ml-2 bg-white/20 text-white dark:bg-slate-800 dark:text-white text-[10px] px-1.5 py-0.5 rounded-md hidden font-bold">0</span>
                 </button>
             </div>
         </div>
     </nav>
 
     <main id="catalog" class="max-w-7xl mx-auto px-6 py-10">
-        <div class="flex flex-col lg:flex-row justify-between items-start lg:items-center mb-10 gap-6 w-full border-b border-slate-100 pb-6">
+        <div
+            class="flex flex-col lg:flex-row justify-between items-start lg:items-center mb-10 gap-6 w-full border-b border-slate-100 pb-6">
             <div>
-                <h3 class="text-2xl font-bold text-slate-900">Nuestra Colección</h3>
-                <span id="productCount" class="text-[10px] font-bold uppercase tracking-widest text-slate-400 mt-1 block">0 PRODUCTOS</span>
+                <h3 class="text-2xl font-bold text-slate-900 dark:text-white">Nuestra Colección</h3>
+                <span id="productCount"
+                    class="text-[10px] font-bold uppercase tracking-widest text-slate-400 dark:text-slate-400 mt-1 block">0
+                    PRODUCTOS</span>
             </div>
-            
+
             <div class="flex flex-col sm:flex-row gap-3 w-full lg:w-auto items-center">
                 <div class="relative w-full sm:w-72">
-                    <input type="text" id="searchInput" placeholder="Buscar producto..." class="w-full bg-white border border-slate-200 rounded-xl pl-10 pr-4 py-2 text-xs focus:border-slate-950 focus:outline-none transition-colors shadow-sm">
+                    <input type="text" id="searchInput" placeholder="Buscar producto..."
+                        class="w-full bg-white dark:bg-slate-900 border border-slate-200 dark:border-slate-800 rounded-xl pl-10 pr-4 py-2 text-xs dark:text-white focus:border-slate-950 focus:outline-none transition-colors shadow-sm">
                     <div class="absolute left-3.5 top-2.5 text-slate-400">
                         <i data-lucide="search" class="w-3.5 h-3.5"></i>
                     </div>
                 </div>
-                
+
                 <div class="relative w-full sm:w-52">
-                    <select id="sortSelect" class="w-full bg-white border border-slate-200 rounded-xl pl-9 pr-8 py-2 text-xs focus:border-slate-950 focus:outline-none transition-colors shadow-sm appearance-none cursor-pointer font-medium text-slate-700">
+                    <select id="sortSelect"
+                        class="w-full bg-white dark:bg-slate-900 border border-slate-200 dark:border-slate-800 rounded-xl pl-9 pr-8 py-2 text-xs dark:text-white focus:border-slate-950 focus:outline-none transition-colors shadow-sm appearance-none cursor-pointer font-medium text-slate-700">
                         <option value="default">Relevancia / Novedades</option>
                         <option value="price-asc">Precio: Menor a Mayor</option>
                         <option value="price-desc">Precio: Mayor a Menor</option>
@@ -120,60 +442,82 @@
 
         <div id="productGrid" class="grid grid-cols-2 sm:grid-cols-4 lg:grid-cols-6 xl:grid-cols-6 gap-6">
             <div class="col-span-full py-32 flex flex-col items-center">
-                <div class="w-12 h-12 border-4 border-slate-100 border-t-slate-900 rounded-full animate-spin"></div>
+                <div
+                    class="w-12 h-12 border-4 border-slate-100 dark:border-slate-800 border-t-slate-900 dark:border-t-white rounded-full animate-spin">
+                </div>
             </div>
         </div>
     </main>
 
-    <div id="cartOverlay" class="fixed inset-0 bg-slate-900/40 z-[60] opacity-0 pointer-events-none transition-opacity backdrop-blur-[2px]"></div>
-    <div id="cartDrawer" class="cart-drawer closed fixed top-0 right-0 h-full w-full max-w-[340px] bg-white z-[70] shadow-2xl flex flex-col border-l border-slate-200">
-        <div class="p-6 border-b border-slate-100 flex items-center justify-between bg-white">
-            <h2 class="text-lg font-bold text-slate-900 flex items-center gap-2">Mi Carrito</h2>
-            <button id="closeCart" class="p-2 hover:bg-slate-50 rounded-full transition-colors text-slate-400 cursor-pointer">
-                <i data-lucide="x" class="w-5 h-5"></i>
-            </button>
-        </div>
-        <div id="cartItems" class="flex-1 overflow-y-auto p-6 space-y-8 bg-white">
-            <div class="h-full flex flex-col items-center justify-center text-slate-300 text-center">
-                <p class="text-sm font-medium">Bolsa vacía</p>
-            </div>
-        </div>
-        <div class="p-6 bg-slate-50 border-t border-slate-200 space-y-5">
-            <div class="flex justify-between items-end">
-                <span class="text-xs font-bold text-slate-400 uppercase tracking-widest leading-none">Total Play.</span>
-                <span id="cartTotal" class="text-2xl font-bold text-slate-900 leading-none">$0</span>
-            </div>
-            <button id="checkoutBtn" class="w-full btn-primary py-4 rounded-xl font-bold flex items-center justify-center gap-2 shadow-lg shadow-slate-200 cursor-pointer">
-                Finalizar pedido via WhatsApp
-            </button>
-        </div>
+    <div id="cartOverlay"
+        class="fixed inset-0 bg-slate-900/40 z-[60] opacity-0 pointer-events-none transition-opacity backdrop-blur-[2px]">
     </div>
 
-    <div id="productModal" class="modal hidden fixed inset-0 bg-slate-900/60 z-[100] flex items-center justify-center p-6 backdrop-blur-sm">
-        <div class="bg-white rounded-2xl max-w-4xl w-full overflow-hidden flex flex-col md:flex-row relative shadow-2xl border border-white/20">
-            <button id="closeModal" class="absolute top-4 right-4 z-10 bg-white p-2 rounded-lg shadow-sm border border-slate-100 text-slate-400 hover:text-slate-900 transition-colors cursor-pointer">
+    <aside id="cartDrawer"
+        class="cart-drawer closed fixed top-0 right-0 h-full w-full max-w-[340px] z-[70] shadow-2xl flex flex-col border-l border-slate-200 dark:border-slate-800 bg-white dark:bg-slate-950">
+        <header class="p-6 border-b border-slate-100 dark:border-slate-800 flex items-center justify-between">
+            <div class="flex items-center gap-4">
+                <h2 class="text-lg font-bold text-slate-900 dark:text-white">Mi Carrito</h2>
+                <button onclick="openConfirmModal()"
+                    class="px-2.5 py-1 text-[10px] font-bold uppercase tracking-wider bg-red-500 text-white rounded hover:bg-red-600 transition-all active:scale-95 shadow-sm flex items-center gap-1 cursor-pointer">
+                    <i data-lucide="trash-2" class="w-3 h-3"></i> Vaciar
+                </button>
+            </div>
+            <button id="closeCart"
+                class="p-2 hover:bg-slate-100 dark:hover:bg-slate-800 rounded-full transition-colors text-slate-400 cursor-pointer">
+                <i data-lucide="x" class="w-5 h-5"></i>
+            </button>
+        </header>
+
+        <div id="cartItems" class="flex-1 overflow-y-auto p-6 space-y-8"></div>
+
+        <footer class="p-6 bg-slate-50 dark:bg-slate-900 border-t border-slate-200 dark:border-slate-800 space-y-5">
+            <div class="flex justify-between items-end">
+                <span class="text-xs font-bold text-slate-400 uppercase tracking-widest">Total</span>
+                <span id="cartTotal" class="text-2xl font-bold text-slate-900 dark:text-white">$0</span>
+            </div>
+            <button id="checkoutBtn"
+                class="w-full bg-slate-900 text-white dark:bg-white dark:text-slate-900 py-4 rounded-xl font-bold cursor-pointer shadow-lg transition-all active:scale-95">
+                Finalizar pedido via WhatsApp
+            </button>
+        </footer>
+    </aside>
+
+    <div id="productModal"
+        class="modal hidden fixed inset-0 bg-slate-900/60 z-[100] flex items-center justify-center p-6 backdrop-blur-sm">
+        <div
+            class="bg-white rounded-2xl max-w-4xl w-full overflow-hidden flex flex-col md:flex-row relative shadow-2xl border border-white/20 dark:bg-slate-900">
+            <button id="closeModal"
+                class="absolute top-4 right-4 z-10 bg-white dark:bg-slate-900 p-2 rounded-lg shadow-sm border border-slate-100 dark:border-slate-800 text-slate-400 hover:text-slate-900 dark:hover:text-white transition-colors cursor-pointer">
                 <i data-lucide="x" class="w-4 h-4"></i>
             </button>
-            <div class="md:w-1/2 h-80 md:h-auto bg-slate-50">
+            <div class="md:w-1/2 h-80 md:h-auto bg-slate-50 dark:bg-slate-800">
                 <img id="modalImg" src="" alt="" class="w-full h-full object-cover">
             </div>
             <div class="md:w-1/2 p-10 md:p-14 flex flex-col">
                 <div class="mb-2">
-                    <span class="text-[10px] font-bold uppercase tracking-[0.2em] text-slate-400">Detalle del Producto</span>
+                    <span class="text-[10px] font-bold uppercase tracking-[0.2em] text-slate-400">Detalle del
+                        Producto</span>
                 </div>
-                <h2 id="modalTitle" class="text-3xl font-bold mb-4 text-slate-900"></h2>
-                <div id="modalPrice" class="text-2xl font-bold text-slate-900 mb-8">$0</div>
+                <h2 id="modalTitle" class="text-3xl font-bold mb-4 text-slate-900 dark:text-white"></h2>
+                <div id="modalPrice" class="text-2xl font-bold text-slate-900 dark:text-white mb-8">$0</div>
                 <div class="flex-1">
-                    <h3 class="text-xs font-bold uppercase tracking-widest text-slate-300 mb-3">Características</h3>
-                    <p id="modalDescription" class="text-slate-500 text-sm leading-relaxed mb-8"></p>
+                    <h3 class="text-xs font-bold uppercase tracking-widest text-slate-300 dark:text-slate-400 mb-3">
+                        Características</h3>
+                    <p id="modalDescription" class="text-slate-500 dark:text-slate-300 text-sm leading-relaxed mb-8">
+                    </p>
                 </div>
-                <div class="flex items-center gap-4 mt-auto pt-8 border-t border-slate-50">
-                    <div class="qty-minimal flex items-center gap-3 px-3 py-2">
-                        <button onclick="updateModalQty(-1)" class="w-6 h-6 flex items-center justify-center font-bold text-slate-400 hover:text-slate-900 transition-colors">-</button>
-                        <input type="number" id="modalQty" value="1" min="1" class="w-8 text-center text-sm font-bold border-none focus:ring-0 p-0 bg-transparent">
-                        <button onclick="updateModalQty(1)" class="w-6 h-6 flex items-center justify-center font-bold text-slate-400 hover:text-slate-900 transition-colors">+</button>
+                <div class="flex items-center gap-4 mt-auto pt-8 border-t border-slate-50 dark:border-slate-800">
+                    <div class="flex items-center gap-3 px-3 py-2 bg-slate-50 dark:bg-slate-800 rounded-md">
+                        <button onclick="updateModalQty(-1)"
+                            class="w-6 h-6 flex items-center justify-center font-bold text-slate-400 hover:text-slate-900 dark:hover:text-white transition-colors">-</button>
+                        <input type="number" id="modalQty" value="1" min="1"
+                            class="w-8 text-center text-sm font-bold border-none focus:ring-0 p-0 bg-transparent text-slate-900 dark:text-white">
+                        <button onclick="updateModalQty(1)"
+                            class="w-6 h-6 flex items-center justify-center font-bold text-slate-400 hover:text-slate-900 dark:hover:text-white transition-colors">+</button>
                     </div>
-                    <button id="modalAddBtn" class="flex-1 btn-primary py-4 rounded-xl font-bold shadow-xl shadow-slate-200 cursor-pointer">
+                    <button id="modalAddBtn"
+                        class="flex-1 bg-slate-900 text-white dark:bg-white dark:text-slate-900 py-4 rounded-xl font-bold shadow-xl cursor-pointer">
                         Añadir a la bolsa
                     </button>
                 </div>
@@ -181,35 +525,61 @@
         </div>
     </div>
 
-    <a id="whatsappFloating" href="#" target="_blank" class="fixed bottom-6 right-6 w-16 h-16 bg-[#25d366] text-white rounded-full flex items-center justify-center shadow-2xl hover:scale-110 transition-transform z-50">
+    <div id="confirmModal"
+        class="modal hidden fixed inset-0 bg-slate-900/60 z-[110] flex items-center justify-center p-6 backdrop-blur-sm">
+        <div
+            class="bg-white dark:bg-slate-900 rounded-2xl max-w-sm w-full p-6 shadow-2xl border border-slate-100 dark:border-slate-800 text-center relative">
+            <div
+                class="w-12 h-12 rounded-full bg-red-50 dark:bg-red-900/20 text-red-500 flex items-center justify-center mx-auto mb-4">
+                <i data-lucide="alert-triangle" class="w-6 h-6"></i>
+            </div>
+            <h3 class="text-xl font-bold text-slate-900 dark:text-white mb-2">¿Vaciar carrito?</h3>
+            <p class="text-sm text-slate-500 dark:text-slate-400 mb-6">Esta acción eliminará todos los productos de tu
+                bolsa y no se puede deshacer.</p>
+            <div class="flex gap-3">
+                <button onclick="closeConfirmModal()"
+                    class="flex-1 px-4 py-3 rounded-xl font-bold text-slate-700 dark:text-slate-300 bg-slate-100 dark:bg-slate-800 hover:bg-slate-200 dark:hover:bg-slate-700 transition-all active:scale-95 cursor-pointer">Cancelar</button>
+                <button onclick="executeClearCart()"
+                    class="flex-1 px-4 py-3 rounded-xl font-bold text-white bg-red-500 hover:bg-red-600 transition-all active:scale-95 shadow-md hover:shadow-lg cursor-pointer">Sí,
+                    vaciar</button>
+            </div>
+        </div>
+    </div>
+
+    <a id="whatsappFloating" href="#" target="_blank"
+        class="fixed bottom-6 right-6 w-16 h-16 bg-[#25d366] text-white rounded-full flex items-center justify-center shadow-2xl hover:shadow-lg hover:scale-110 transition-all z-50 active:scale-95">
         <i data-lucide="message-circle" class="w-8 h-8 fill-current"></i>
     </a>
+
+    <div
+        class="fixed bottom-4 left-4 z-[999] pointer-events-none select-none opacity-40 transition-opacity hover:opacity-100">
+        <span class="text-[10px] font-mono font-bold tracking-widest text-slate-500 dark:text-slate-400">
+            v0.0.1
+        </span>
+    </div>
 
     <script type="module">
         import { createClient } from '@supabase/supabase-js';
 
         const SUPABASE_URL = "https://ehxsodyuzpduggxbffmk.supabase.co";
         const SUPABASE_KEY = "sb_publishable_uy1GN_7GdX5y-D-WwWnB3w_NFUJHT-S";
-        
+
         const supabaseClient = createClient(SUPABASE_URL, SUPABASE_KEY);
         let products = [];
         let cart = JSON.parse(localStorage.getItem('cart_pro')) || [];
 
         async function init() {
-            // Sincronización inicial del tema persistente compartido
             const savedTheme = localStorage.getItem('gini_theme') || 'light';
             if (savedTheme === 'dark') {
-                document.body.classList.add('dark-mode');
+                document.documentElement.classList.add('dark');
             }
             updateThemeToggleIcon();
-
             lucide.createIcons();
             setupEventListeners();
             await fetchProducts();
             renderCart();
             updateWhatsAppLink();
         }
-
         function setupEventListeners() {
             document.getElementById('openCart').onclick = toggleCart;
             document.getElementById('closeCart').onclick = toggleCart;
@@ -225,15 +595,27 @@
         }
 
         function toggleTheme() {
-            const isDark = document.body.classList.toggle('dark-mode');
-            localStorage.setItem('gini_theme', isDark ? 'dark' : 'light');
+            const isDark = document.documentElement.classList.contains('dark');
+            if (isDark) {
+                // Si está en dark, cambiar a light
+                document.documentElement.classList.remove('dark');
+                document.documentElement.style.colorScheme = 'light';
+                localStorage.setItem('gini_theme', 'light');
+            } else {
+                // Si está en light, cambiar a dark
+                document.documentElement.classList.add('dark');
+                document.documentElement.style.colorScheme = 'dark';
+                localStorage.setItem('gini_theme', 'dark');
+            }
             updateThemeToggleIcon();
+            // Forzar que Tailwind recalcule los estilos
+            window.tailwind?.preflightStyleSheet?.remove?.();
         }
 
         function updateThemeToggleIcon() {
             const toggleBtn = document.getElementById('themeToggle');
             if (!toggleBtn) return;
-            const isDark = document.body.classList.contains('dark-mode');
+            const isDark = document.documentElement.classList.contains('dark');
             toggleBtn.innerHTML = isDark ? '<i data-lucide="sun" class="w-4 h-4 text-amber-400"></i>' : '<i data-lucide="moon" class="w-4 h-4"></i>';
             lucide.createIcons();
         }
@@ -256,11 +638,11 @@
         function handleSearchAndSort() {
             const query = document.getElementById('searchInput').value.toLowerCase().trim();
             const sortCriteria = document.getElementById('sortSelect').value;
-            
-            let processedList = products.filter(product => 
+
+            let processedList = products.filter(product =>
                 product.titulo.toLowerCase().includes(query)
             );
-            
+
             if (sortCriteria === 'price-asc') {
                 processedList.sort((a, b) => (a.precio || 0) - (b.precio || 0));
             } else if (sortCriteria === 'price-desc') {
@@ -270,21 +652,21 @@
             } else if (sortCriteria === 'name-desc') {
                 processedList.sort((a, b) => b.titulo.localeCompare(a.titulo));
             }
-            
+
             renderProducts(processedList);
         }
 
         function renderProducts(productsToRender) {
             const grid = document.getElementById('productGrid');
             const countEl = document.getElementById('productCount');
-            
+
             if (productsToRender.length === 0) {
                 grid.innerHTML = `
                     <div class="col-span-full py-24 flex flex-col items-center text-center text-slate-400">
                         <div class="w-14 h-14 bg-slate-100 rounded-full flex items-center justify-center mb-4">
                             <i data-lucide="search-x" class="w-5 h-5 text-slate-400"></i>
                         </div>
-                        <h4 class="text-sm font-bold text-slate-800">No hay coincidencias</h4>
+                            <h4 class="text-sm font-bold text-slate-800 dark:text-white">No hay coincidencias</h4>
                     </div>
                 `;
                 countEl.textContent = '0 PRODUCTOS';
@@ -295,31 +677,34 @@
             countEl.textContent = `${productsToRender.length} PRODUCTOS`;
 
             grid.innerHTML = productsToRender.map((product, index) => `
-                <div class="card-minimal flex flex-col overflow-hidden fade-in" style="animation-delay: ${index * 0.01}s">
-                    <div class="relative bg-slate-50 aspect-square cursor-pointer overflow-hidden group" onclick="openProductDetail(${product.id})">
+                <div class="bg-white dark:bg-slate-950 border border-slate-200 dark:border-slate-800 rounded-lg transition-all shadow-sm hover:shadow-md flex flex-col overflow-hidden fade-in" style="animation-delay: ${index * 0.01}s">
+                    <div class="relative bg-slate-50 dark:bg-slate-900 aspect-square cursor-pointer overflow-hidden group" onclick="openProductDetail(${product.id})">
                         <img src="${product.imagen_url}" alt="${product.titulo}" class="w-full h-full object-cover group-hover:scale-105 transition-transform duration-500">
                         <div class="absolute inset-0 bg-slate-900/0 group-hover:bg-slate-900/20 transition-all flex items-center justify-center opacity-0 group-hover:opacity-100 backdrop-blur-[1px]">
-                            <span class="bg-white text-slate-900 px-4 py-1.5 rounded-full text-[10px] font-bold shadow-xl">Quick View</span>
+                            <span class="bg-white dark:bg-slate-900 text-slate-900 dark:text-white px-4 py-1.5 rounded-full text-[10px] font-bold shadow-xl">Vista rápida</span>
                         </div>
                     </div>
                     <div class="p-3 flex flex-col flex-1">
-                        <h4 class="font-bold text-slate-900 mb-0.5 leading-tight line-clamp-1 text-xs capitalize">${product.titulo}</h4>
-                        <p class="text-slate-400 text-[11px] mb-3 line-clamp-1 leading-relaxed">${product.descripcion || 'Sin descripción'}</p>
-                        
-                        <div class="mt-auto pt-2 border-t border-slate-50 flex items-center justify-between">
-                            <span class="text-xs font-bold text-slate-900">$${(product.precio || 0).toLocaleString()}</span>
-                            
-                            <div class="flex items-center gap-1.5">
-                                <div class="qty-minimal flex items-center gap-1.5">
-                                    <button onclick="event.stopPropagation(); changeQtyInGrid(${product.id}, -1)" class="w-5 h-5 flex items-center justify-center font-bold text-slate-400 hover:text-slate-900 transition-colors text-xs">-</button>
-                                    <input type="number" id="qty-${product.id}" value="1" min="1" class="w-5 text-center text-[11px] font-bold border-none focus:ring-0 p-0 bg-transparent" onclick="event.stopPropagation()">
-                                    <button onclick="event.stopPropagation(); changeQtyInGrid(${product.id}, 1)" class="w-5 h-5 flex items-center justify-center font-bold text-slate-400 hover:text-slate-900 transition-colors text-xs">+</button>
-                                </div>
-                                <button onclick="event.stopPropagation(); addToCart(${product.id}, parseInt(document.getElementById('qty-${product.id}').value))" class="btn-primary p-2 rounded-lg cursor-pointer">
-                                    <i data-lucide="shopping-cart" class="w-3.5 h-3.5"></i>
-                                </button>
-                            </div>
-                        </div>
+                        <h4 class="font-bold text-slate-900 dark:text-white mb-0.5 leading-tight line-clamp-1 text-xs capitalize">${product.titulo}</h4>
+                        <p class="text-slate-400 dark:text-slate-300 text-[11px] mb-3 line-clamp-1 leading-relaxed">${product.descripcion || 'Sin descripción'}</p>
+                        <div class="mt-auto pt-2 border-t border-slate-50 dark:border-slate-800 flex items-center justify-between gap-1 overflow-hidden">
+    
+    <span class="text-xs font-bold text-slate-900 dark:text-white truncate flex-1" title="$${(product.precio || 0).toLocaleString()}">
+        $${(product.precio || 0).toLocaleString()}
+    </span>
+    
+    <div class="flex items-center gap-1.5 shrink-0">
+        <div class="flex items-center bg-slate-100 dark:bg-slate-800 rounded px-0.5" onclick="event.stopPropagation();">
+            <button onclick="changeQtyInGrid(${product.id}, -1)" class="w-5 h-6 flex items-center justify-center font-bold text-slate-500 hover:text-slate-900 dark:text-slate-400 dark:hover:text-white transition-transform active:scale-75 cursor-pointer">-</button>
+            <input type="number" id="qty-${product.id}" value="1" min="1" readonly class="w-4 text-center text-[11px] font-bold border-none focus:ring-0 p-0 bg-transparent text-slate-900 dark:text-white pointer-events-none">
+            <button onclick="changeQtyInGrid(${product.id}, 1)" class="w-5 h-6 flex items-center justify-center font-bold text-slate-500 hover:text-slate-900 dark:text-slate-400 dark:hover:text-white transition-transform active:scale-75 cursor-pointer">+</button>
+        </div>
+        
+        <button onclick="event.stopPropagation(); addToCart(${product.id}, parseInt(document.getElementById('qty-${product.id}').value))" class="p-1.5 rounded-lg cursor-pointer bg-slate-900 text-white dark:bg-white dark:text-slate-900 transition-transform active:scale-95 shadow-sm">
+            <i data-lucide="shopping-cart" class="w-4 h-4 pointer-events-none"></i>
+        </button>
+    </div>
+</div>
                     </div>
                 </div>
             `).join('');
@@ -330,49 +715,38 @@
             const container = document.getElementById('cartItems');
             const totalEl = document.getElementById('cartTotal');
             const countEl = document.getElementById('cartCount');
-            
+
+            let total = 0;
+            let count = 0;
+
             if (cart.length === 0) {
-                container.innerHTML = `
-                    <div class="h-full flex flex-col items-center justify-center text-slate-300 text-center">
-                        <p class="text-sm font-medium">Bolsa vacía</p>
-                    </div>
-                `;
+                container.innerHTML = `<div class="h-full flex items-center justify-center text-slate-400 text-sm">Bolsa vacía</div>`;
                 totalEl.textContent = '$0';
                 countEl.classList.add('hidden');
                 return;
             }
 
-            let total = 0;
-            let count = 0;
-
             container.innerHTML = cart.map(item => {
-                const subtotal = (item.precio || 0) * item.qty;
-                total += subtotal;
+                total += (item.precio || 0) * item.qty;
                 count += item.qty;
                 return `
-                <div class="flex gap-4 group">
-                    <div class="w-14 h-14 bg-slate-50 rounded-lg overflow-hidden flex-shrink-0 border">
-                        <img src="${item.imagen_url}" alt="${item.titulo}" class="w-full h-full object-cover">
-                    </div>
-                    <div class="flex-1 min-w-0">
-                        <div class="flex justify-between items-start mb-1">
-                            <h5 class="font-bold text-xs text-slate-900 truncate leading-none capitalize">${item.titulo}</h5>
-                            <button onclick="removeFromCart(${item.id})" class="text-slate-300 hover:text-red-500 transition-colors cursor-pointer">
-                                <i data-lucide="x" class="w-3 h-3"></i>
-                            </button>
-                        </div>
-                        <p class="text-[10px] font-bold text-slate-400 mb-2 uppercase tracking-wider">${item.qty} x $${(item.precio || 0).toLocaleString()}</p>
-                        <div class="flex items-center justify-between">
-                             <div class="qty-minimal flex items-center gap-1.5 px-1 py-0.5">
-                                <button onclick="updateCartQty(${item.id}, -1)" class="w-4 h-4 flex items-center justify-center text-[10px] text-slate-400 hover:text-slate-900">-</button>
-                                <span class="text-[10px] font-bold text-slate-900 w-3 text-center">${item.qty}</span>
-                                <button onclick="updateCartQty(${item.id}, 1)" class="w-4 h-4 flex items-center justify-center text-[10px] text-slate-400 hover:text-slate-900">+</button>
-                            </div>
-                            <span class="text-xs font-bold text-slate-900">$${subtotal.toLocaleString()}</span>
-                        </div>
-                    </div>
+    <div class="flex gap-4 justify-between items-start">
+        <div class="w-14 h-14 rounded-lg overflow-hidden flex-shrink-0 border border-slate-200 dark:border-slate-800">
+            <img src="${item.imagen_url}" class="w-full h-full object-cover">
+        </div>
+        <div class="flex-1 min-w-0">
+            <h5 class="font-bold text-xs text-slate-900 dark:text-white truncate cart-item-title" title="${item.titulo}">${item.titulo}</h5>
+            <p class="text-[10px] text-slate-400 dark:text-slate-300 uppercase">${item.qty} x $${item.precio}</p>
+            <div class="flex items-center justify-between mt-1">
+                <div class="flex items-center gap-2">
+                    <button onclick="updateCartQty(${item.id}, -1)" class="text-slate-400 dark:text-slate-300 hover:text-slate-900 dark:hover:text-white">-</button>
+                    <span class="text-slate-900 dark:text-white">${item.qty}</span>
+                    <button onclick="updateCartQty(${item.id}, 1)" class="text-slate-400 dark:text-slate-300 hover:text-slate-900 dark:hover:text-white">+</button>
                 </div>
-                `;
+            </div>
+        </div>
+        <button onclick="removeFromCart(${item.id})" class="cart-item-delete" title="Eliminar">×</button>
+    </div>`;
             }).join('');
 
             totalEl.textContent = `$${total.toLocaleString()}`;
@@ -411,6 +785,24 @@
             renderCart();
         }
 
+        function openConfirmModal() {
+            if (cart.length === 0) return; // Si ya está vacío, no hace nada
+            const modal = document.getElementById('confirmModal');
+            modal.classList.replace('hidden', 'visible');
+        }
+
+        function closeConfirmModal() {
+            const modal = document.getElementById('confirmModal');
+            modal.classList.replace('visible', 'hidden');
+        }
+
+        function executeClearCart() {
+            cart = [];
+            saveCart();
+            renderCart();
+            closeConfirmModal();
+        }
+
         function saveCart() { localStorage.setItem('cart_pro', JSON.stringify(cart)); }
 
         function toggleCart() {
@@ -432,17 +824,17 @@
         function openProductDetail(id) {
             const product = products.find(p => p.id === id);
             if (!product) return;
-            
+
             document.getElementById('modalImg').src = product.imagen_url;
             document.getElementById('modalTitle').textContent = product.titulo;
             document.getElementById('modalPrice').textContent = `$${(product.precio || 0).toLocaleString()}`;
             document.getElementById('modalDescription').textContent = product.descripcion || 'Sin descripción detallada disponible.';
             document.getElementById('modalQty').value = 1;
-            
+
             const modal = document.getElementById('productModal');
             modal.classList.replace('hidden', 'visible');
             document.body.style.overflow = 'hidden';
-            
+
             document.getElementById('modalAddBtn').onclick = () => {
                 addToCart(product.id, parseInt(document.getElementById('modalQty').value));
                 closeModal();
@@ -504,6 +896,10 @@
         window.finalizeOrder = finalizeOrder;
         window.handleSearchAndSort = handleSearchAndSort;
         window.toggleTheme = toggleTheme;
+        window.openConfirmModal = openConfirmModal;
+        window.closeConfirmModal = closeConfirmModal;
+        window.executeClearCart = executeClearCart;
     </script>
 </body>
+
 </html>

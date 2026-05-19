@@ -3,12 +3,26 @@ import{c as v}from"./index-CMzVDswU.js";const b="https://ehxsodyuzpduggxbffmk.su
                         <p>Ups! No pudimos cargar los productos.</p>
                         <p class="text-sm opacity-50">${e.message}</p>
                     </div>
-                `}}function B(){const e=document.getElementById("productGrid");if(c.length===0){e.innerHTML='<p class="col-span-full text-center py-20 text-slate-400">No hay productos disponibles.</p>';return}e.innerHTML=c.map((t,n)=>`
+                `}}
+const style = document.createElement('style');
+style.textContent = `
+    #productModal.visible { display: flex !important; align-items: center; justify-content: center; z-index: 9999; padding: 1rem; background: rgba(0,0,0,0.5); }
+    #productModal > div { max-width: 500px !important; width: 95% !important; max-height: 90vh !important; overflow-y: auto !important; background: white; border-radius: 1.5rem; position: relative; margin: auto; box-shadow: 0 20px 25px -5px rgb(0 0 0 / 0.1); }
+    #modalImg { max-height: 45vh !important; width: 100% !important; object-fit: contain !important; background: #f8fafc; display: block; }
+    .dark-mode #productModal > div { background: #0f172a !important; color: #f8fafc !important; border: 1px solid #1e293b; }
+    .dark-mode #modalImg { background: #1e293b !important; }
+    .dark-mode #cartDrawer { background: #0f172a !important; color: #f8fafc !important; border-left: 1px solid #1e293b !important; }
+    .dark-mode #cartDrawer h2, .dark-mode #cartDrawer h5, .dark-mode #cartDrawer span, .dark-mode #cartDrawer p, .dark-mode #cartTotal { color: #f8fafc !important; }
+    .dark-mode #checkoutBtn { box-shadow: none !important; }
+    .dark-mode .dark-label { background: #1e293b !important; color: #f8fafc !important; border: 1px solid #334155; }
+`;
+document.head.appendChild(style);
+function B(){const e=document.getElementById("productGrid");if(c.length===0){e.innerHTML='<p class="col-span-full text-center py-20 text-slate-400">No hay productos disponibles.</p>';return}e.innerHTML=c.map((t,n)=>`
                 <div class="card-minimal flex flex-col overflow-hidden fade-in" style="animation-delay: ${n*.05}s">
                     <div class="relative bg-slate-50 aspect-square cursor-pointer overflow-hidden group" onclick="openProductDetail(${t.id})">
                         <img src="${t.imagen_url}" alt="${t.titulo}" class="w-full h-full object-cover group-hover:scale-105 transition-transform duration-500">
                         <div class="absolute inset-0 bg-slate-900/0 group-hover:bg-slate-900/20 transition-all flex items-center justify-center opacity-0 group-hover:opacity-100 backdrop-blur-[1px]">
-                            <span class="bg-white text-slate-900 px-6 py-2 rounded-full text-xs font-bold shadow-xl">Quick View</span>
+                            <span class="bg-white dark-label text-slate-900 px-6 py-2 rounded-full text-xs font-bold shadow-xl">Vista Rápida</span>
                         </div>
                     </div>
                     <div class="p-6 flex flex-col flex-1">
