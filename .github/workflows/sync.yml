@@ -2,9 +2,9 @@ name: Sync Catalog from Provider
 
 on:
   schedule:
-    # Se ejecuta automáticamente cada 3 horas
+    # Sincroniza de forma invisible cada 3 horas
     - cron: '0 */3 * * *'
-  workflow_dispatch: # Permite ejecución manual desde la interfaz de GitHub
+  workflow_dispatch: # Permite dispararlo manualmente desde la web de GitHub
 
 jobs:
   sync:
@@ -16,14 +16,14 @@ jobs:
       - name: Setup Node.js
         uses: actions/setup-node@v4
         with:
-          node-version: 22   # CORRECCIÓN: Node 22 incluye soporte nativo estable de WebSockets
+          node-version: 22
           cache: 'npm'
           cache-dependency-path: catálogo-pro/package.json
 
-      - name: Install dependencies
+      - name: Install dependencies with Puppeteer
         run: |
           cd catálogo-pro
-          npm install
+          npm install @supabase/supabase-js puppeteer
 
       - name: Run synchronization script
         env:
