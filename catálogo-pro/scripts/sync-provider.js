@@ -16,76 +16,61 @@ const supabase = createClient(SUPABASE_URL, SUPABASE_KEY);
 // 🎯 MOTOR HÍBRIDO: ESCROLLEA, HACE CLIC EN BOTONES Y EXTRAE AL MISMO TIEMPO
 // =========================================================================
 async function scrollAndExtract(page) {
-    console.log("⏳ Iniciando motor híbrido anti-colapso...");
+    console.log("🐢 Iniciando extracción blindada...");
+    let foundMap = new Map();
+    let lastCount = 0;
+    let attemptsWithoutNewProducts = 0;
 
-    return await page.evaluate(async () => {
-        let foundMap = new Map();
-        let lastHeight = document.documentElement.scrollHeight;
-        let distance = 600;
-        let noChangeCount = 0;
+    for (let i = 0; i < 60; i++) { // Intentamos 60 ciclos de scroll
+        // 1. Extraemos productos en el contexto actual
+        const newProducts = await page.evaluate(() => {
+            const results = [];
+            document.querySelectorAll('img').forEach(img => {
+                let card = img.closest('div[class*="product"], article, li, div'); // Buscamos el contenedor padre
+                if (!card) return;
 
-        for (let attempt = 0; attempt < 50; attempt++) {
-            // 1. Extraemos con Try-Catch interno para evitar el "Execution context was destroyed"
-            try {
-                const allImages = document.querySelectorAll('img');
-                allImages.forEach(img => {
-                    let cardContainer = img.parentElement;
-                    for (let i = 0; i < 6; i++) {
-                        if (!cardContainer) break;
+                const priceMatch = card.textContent.match(/\$[\s\u00a0]*([0-9.]+)/);
+                if (!priceMatch) return;
 
-                        const textContent = cardContainer.textContent || '';
-                        if (textContent.includes('$')) {
-                            const match = textContent.match(/\$[\s\u00a0]*([0-9.]+)/);
-                            if (match) {
-                                const price = parseFloat(match[1].replace(/\./g, ''));
-                                // Buscamos textos
-                                const textElements = Array.from(cardContainer.querySelectorAll('h1, h2, h3, h4, p, span, div'))
-                                    .map(el => el.textContent.trim())
-                                    .filter(t => t && !t.includes('$') && t.length > 2 && t.length < 140);
+                const price = parseFloat(priceMatch[1].replace(/\./g, ''));
+                const titleEl = card.querySelector('h1, h2, h3, h4, p');
+                const title = titleEl ? titleEl.textContent.trim().replace(/[\*\'\´\"]/g, '') : "Producto";
 
-                                if (textElements.length > 0) {
-                                    let titulo = textElements.find(t => t.length < 50) || textElements[0];
-                                    titulo = titulo.replace(/[\*\'\´\"]/g, '').trim();
-                                    const key = titulo.toLowerCase();
+                results.push({ titulo: title, precioCosto: price, imagen_url: img.src });
+            });
+            return results;
+        });
 
-                                    if (!foundMap.has(key)) {
-                                        foundMap.set(key, {
-                                            titulo,
-                                            precioCosto: price,
-                                            descripcion: textElements.find(t => t.length > titulo.length) || '',
-                                            imagen_url: img.src
-                                        });
-                                    }
-                                    break;
-                                }
-                            }
-                        }
-                        cardContainer = cardContainer.parentElement;
-                    }
-                });
-            } catch (e) {
-                console.log("Transición de DOM detectada, continuando...");
-            }
+        // 2. Acumulamos productos sin duplicados
+        newProducts.forEach(p => foundMap.set(p.titulo.toLowerCase(), p));
 
-            // 2. Intentar cargar más
-            const btns = Array.from(document.querySelectorAll('button, div[role="button"], a'));
-            const btn = btns.find(b => ['ver más', 'cargar más', 'mostrar más', 'load more'].some(kw => b.textContent.toLowerCase().includes(kw)));
-            if (btn) btn.click();
-
-            window.scrollBy(0, distance);
-            await new Promise(r => setTimeout(r, 1000)); // Pausa larga para estabilizar
-
-            let currentHeight = document.documentElement.scrollHeight;
-            if (currentHeight === lastHeight) {
-                noChangeCount++;
-                if (noChangeCount >= 3) break;
-            } else {
-                noChangeCount = 0;
-                lastHeight = currentHeight;
-            }
+        if (foundMap.size > lastCount) {
+            console.log(`📦 Productos acumulados hasta ahora: ${foundMap.size}`);
+            lastCount = foundMap.size;
+            attemptsWithoutNewProducts = 0;
+        } else {
+            attemptsWithoutNewProducts++;
         }
-        return Array.from(foundMap.values());
-    });
+
+        // 3. Si no encontramos nada nuevo en 5 ciclos, asumimos que terminamos
+        if (attemptsWithoutNewProducts >= 5) break;
+
+        // 4. Scroll y clic en botón (reintento seguro si el contexto se destruye)
+        try {
+            await page.evaluate(() => {
+                window.scrollBy(0, 800);
+                const btns = Array.from(document.querySelectorAll('button, a'));
+                const btn = btns.find(b => ['ver más', 'cargar más', 'mostrar más'].some(kw => b.textContent.toLowerCase().includes(kw)));
+                if (btn) btn.click();
+            });
+        } catch (e) {
+            console.log("⚠️ Contexto destruido durante scroll, reintentando...");
+        }
+
+        await new Promise(r => setTimeout(r, 2500)); // Pausa generosa para cargar DOM nuevo
+    }
+
+    return Array.from(foundMap.values());
 }
 
 async function syncCatalog() {
