@@ -3,7 +3,8 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Catálogo Pro - Tienda Interactiva</title>
+    <title>GINI</title>
+    <link rel="icon" type="image/svg+xml" href="data:image/svg+xml;base64,PHN2ZyB4bWxucz0iaHR0cDovL3d3dy53My5vcmcvMjAwMC9zdmciIHZpZXdCb3g9IjAgMCA2NCA2NCI+PGcgaWQ9Imdpb3JnaW8iPjxjaXJjbGUgY3g9IjIyIiBjeT0iMzYiIHI9IjE0IiBmaWxsPSJub25lIiBzdHJva2U9IiMyMTk2RjMiIHN0cm9rZS13aWR0aD0iNSIgc3Ryb2tlLWxpbmVjYXA9InJvdW5kIi8+PHBhdGggZD0iTTIyLDIyIEMyMSwxNSAxNSwxNiAxOCwyMSIgZmlsbD0ibm9uZSIgc3Ryb2tlPSIjMjE5NkYzIiBzdHJva2Utd2lkdGg9IjQiIHN0cm9rZS1saW5lY2FwPSJyb3VuZCIvPjwvZz48ZyBpZD0ibmluYSI+PGNpcmNsZSBjeD0iNDIiIGN5PSIzNiIgcj0iMTQiIGZpbGw9Im5vbmUiIHN0cm9rZS1fI0U5MUU2MyIgc3Ryb2tlLXdpZHRoPSI1IiBzdHJva2UtbGluZWNhcD0icm91bmQiLz48cGF0aCBkPSJNNDIsMjIgTDM2LDE2IEwzNoyMjQgWiIgZmlsbD0iI0U5MUU2MyIvPjxwYXRoIGQ9Ik00MiwyMiBMNDgsMTYgTDQ4LDI0IFoiIGZpbGw9IiNFOTFFNjMiLz48Y2lyY2xlIGN4PSI0MiIgY3k9IjIwIiByPSIzIiBmaWxsPSIjRTkxRTYzIi8+PC9nPjwvc3ZnPg==">
     <script src="https://unpkg.com/@tailwindcss/browser@4"></script>
     <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
     <script src="https://unpkg.com/lucide@latest"></script>
@@ -16,16 +17,11 @@
         .modal { transition: opacity 0.2s ease; }
         .modal.hidden { opacity: 0; pointer-events: none; }
         .modal.visible { opacity: 1; pointer-events: auto; }
-        
-        /* Tema Clean Minimalism */
         .btn-primary { background-color: #0F172A; color: white; transition: all 0.2s; }
         .btn-primary:hover { background-color: #1e293b; transform: translateY(-1px); }
-        
         .card-minimal { background: white; border: 1px solid #E2E8F0; border-radius: 8px; transition: all 0.3s; box-shadow: 0 1px 3px rgba(0,0,0,0.05); }
         .card-minimal:hover { border-color: #CBD5E1; box-shadow: 0 4px 12px rgba(0,0,0,0.05); }
-        
         .qty-minimal { background-color: #F1F5F9; border-radius: 6px; padding: 4px; }
-        
         @keyframes fadeIn { from { opacity: 0; transform: translateY(10px); } to { opacity: 1; transform: translateY(0); } }
         .fade-in { animation: fadeIn 0.4s ease-out forwards; }
     </style>
@@ -34,8 +30,22 @@
 
     <nav class="sticky top-0 z-50 bg-white border-b border-slate-200 h-16 flex items-center">
         <div class="max-w-7xl w-full mx-auto px-6 flex items-center justify-between">
-            <div class="flex items-center gap-2">
-                <span class="font-bold text-lg tracking-tight text-slate-900 border-l-4 border-slate-900 pl-3">PREMIUM STORE</span>
+            <div class="flex items-center gap-3">
+                <div class="w-9 h-9 flex items-center justify-center">
+                    <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 64 64" width="100%" height="100%">
+                        <g id="giorgio">
+                            <circle cx="22" cy="36" r="14" fill="none" stroke="#2196F3" stroke-width="5" stroke-linecap="round"/>
+                            <path d="M22,22 C21,15 15,16 18,21" fill="none" stroke="#2196F3" stroke-width="4" stroke-linecap="round"/>
+                        </g>
+                        <g id="nina">
+                            <circle cx="42" cy="36" r="14" fill="none" stroke="#E91E63" stroke-width="5" stroke-linecap="round"/>
+                            <path d="M42,22 L36,16 L36,24 Z" fill="#E91E63"/>
+                            <path d="M42,22 L48,16 L48,24 Z" fill="#E91E63"/>
+                            <circle cx="42" cy="20" r="3" fill="#E91E63"/>
+                        </g>
+                    </svg>
+                </div>
+                <span class="font-bold text-lg tracking-tight text-slate-900 border-l-2 border-slate-200 pl-3">GINI EXPRESS</span>
             </div>
             
             <div class="flex items-center gap-6">
@@ -49,6 +59,8 @@
         </div>
     </nav>
 
+    <nav class="sticky top-0 z-50 bg-white border-b border-slate-200 h-16 flex items-center">
+    </nav>
     <main id="catalog" class="max-w-7xl mx-auto px-6 py-10">
         <div class="flex flex-col lg:flex-row justify-between items-start lg:items-center mb-10 gap-6 w-full border-b border-slate-100 pb-6">
             <div>
@@ -97,14 +109,12 @@
                 <i data-lucide="x" class="w-5 h-5"></i>
             </button>
         </div>
-        
         <div id="cartItems" class="flex-1 overflow-y-auto p-6 space-y-8 bg-white">
             <div class="h-full flex flex-col items-center justify-center text-slate-300 text-center">
                 <i data-lucide="shopping-bag" class="w-12 h-12 mb-4 opacity-20"></i>
                 <p class="text-sm font-medium">Bolsa vacía</p>
             </div>
         </div>
-
         <div class="p-6 bg-slate-50 border-t border-slate-200 space-y-5">
             <div class="flex justify-between items-end">
                 <span class="text-xs font-bold text-slate-400 uppercase tracking-widest leading-none">Total Play.</span>
@@ -121,23 +131,19 @@
             <button id="closeModal" class="absolute top-4 right-4 z-10 bg-white p-2 rounded-lg shadow-sm border border-slate-100 text-slate-400 hover:text-slate-900 transition-colors">
                 <i data-lucide="x" class="w-4 h-4"></i>
             </button>
-            
             <div class="md:w-1/2 h-80 md:h-auto bg-slate-50">
                 <img id="modalImg" src="" alt="" class="w-full h-full object-cover">
             </div>
-            
             <div class="md:w-1/2 p-10 md:p-14 flex flex-col">
                 <div class="mb-2">
                     <span class="text-[10px] font-bold uppercase tracking-[0.2em] text-slate-400">Detalle del Producto</span>
                 </div>
                 <h2 id="modalTitle" class="text-3xl font-bold mb-4 text-slate-900"></h2>
                 <div id="modalPrice" class="text-2xl font-bold text-slate-900 mb-8">$0</div>
-                
                 <div class="flex-1">
                     <h3 class="text-xs font-bold uppercase tracking-widest text-slate-300 mb-3">Características</h3>
                     <p id="modalDescription" class="text-slate-500 text-sm leading-relaxed mb-8"></p>
                 </div>
-                
                 <div class="flex items-center gap-4 mt-auto pt-8 border-t border-slate-50">
                     <div class="qty-minimal flex items-center gap-3 px-3 py-2">
                         <button onclick="updateModalQty(-1)" class="w-6 h-6 flex items-center justify-center font-bold text-slate-400 hover:text-slate-900 transition-colors">-</button>
@@ -183,8 +189,6 @@
                 if (e.target === document.getElementById('productModal')) closeModal();
             };
             document.getElementById('checkoutBtn').onclick = finalizeOrder;
-            
-            // Listeners unificados para búsqueda y ordenamiento directo
             document.getElementById('searchInput').oninput = handleSearchAndSort;
             document.getElementById('sortSelect').onchange = handleSearchAndSort;
         }
@@ -209,17 +213,14 @@
             }
         }
 
-        // Motor combinado de búsqueda y ordenamiento en memoria (Ultra rápido)
         function handleSearchAndSort() {
             const query = document.getElementById('searchInput').value.toLowerCase().trim();
             const sortCriteria = document.getElementById('sortSelect').value;
             
-            // 1. Filtrar por la caja del buscador
             let processedList = products.filter(product => 
                 product.titulo.toLowerCase().includes(query)
             );
             
-            // 2. Aplicar ordenamiento sobre la lista filtrada
             if (sortCriteria === 'price-asc') {
                 processedList.sort((a, b) => (a.precio || 0) - (b.precio || 0));
             } else if (sortCriteria === 'price-desc') {
