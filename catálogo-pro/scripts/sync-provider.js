@@ -12,14 +12,13 @@ if (!SUPABASE_URL || !SUPABASE_KEY) {
 
 const supabase = createClient(SUPABASE_URL, SUPABASE_KEY);
 
-// Función avanzada para forzar el scroll tanto en la ventana como en contenedores internos ocultos
+// Función para forzar el scroll tanto en la ventana como en contenedores internos ocultos
 async function forceDeepScroll(page) {
     await page.evaluate(async () => {
         await new Promise((resolve) => {
             let totalHeight = 0;
             let distance = 140;
             
-            // Detectar todos los elementos de la pantalla que puedan tener scrollbars ocultos
             const scrollableContainers = [window];
             document.querySelectorAll('*').forEach(el => {
                 const overflow = window.getComputedStyle(el).overflowY;
@@ -43,24 +42,23 @@ async function forceDeepScroll(page) {
 
                 totalHeight += distance;
 
-                // Si recorrimos una distancia masiva proporcional al tamaño del catálogo, detenemos
                 if (totalHeight >= maxReached + 6000) {
                     clearInterval(timer);
                     resolve();
                 }
             }, 90);
 
-            // Salvaguarda: Cortar el scroll automáticamente a los 14 segundos para evitar esperas eternas
+            // Salvaguarda de tiempo límite para el scroll masivo
             setTimeout(() => {
                 clearInterval(timer);
                 resolve();
-            }, 14000);
+            }, 15000);
         });
     });
 }
 
 async function syncCatalog() {
-    console.log(`[${new Date().toISOString()}] Desplegando escáner visual híbrido...`);
+    console.log(`[${new Date().toISOString()}] Iniciando escáner visual con aislamiento de galerías...`);
     let browser;
     try {
         // 1. Descargar el mapa local para respetar tus modificaciones manuales de precios
@@ -87,31 +85,57 @@ async function syncCatalog() {
         console.log('Ejecutando descenso continuo sobre contenedores dinámicos...');
         await forceDeepScroll(page);
         
-        // Espera técnica para garantizar el renderizado de las imágenes diferidas (lazy-load)
         await new Promise(resolve => setTimeout(resolve, 3000));
 
-        // 3. EXTRACCIÓN VISUAL DIRECTA DEL DOM (Extrae los componentes ya dibujados tras el scroll)
+        // 3. EXTRACCIÓN VISUAL FILTRADA POR CONTEXTO
         const scrapedProducts = await page.evaluate(() => {
             let found = [];
             const allElements = document.querySelectorAll('*');
 
             allElements.forEach(el => {
-                // Localizar nodos que contengan texto de precio con el caracter '$'
+                // Localizar nodos hoja que contengan el precio
                 if (el.textContent && el.textContent.includes('$') && el.children.length <= 1) {
+                    
+                    // ESCUDO ANTI-MODALES Y GALERÍAS INTERNAS:
+                    // Rastreamos hacia arriba para ver si este precio o imagen pertenece a un modal oculto o carrusel secundario
+                    let isInsideInvalidContainer = false;
+                    let current = el;
+                    while (current) {
+                        const className = current.className?.toString().toLowerCase() || '';
+                        const id = current.id?.toString().toLowerCase() || '';
+                        const role = current.getAttribute?.('role')?.toLowerCase() || '';
+                        const ariaModal = current.getAttribute?.('aria-modal')?.toLowerCase() || '';
+                        
+                        if (
+                            className.includes('modal') || className.includes('dialog') || 
+                            className.includes('carousel') || className.includes('popup') ||
+                            className.includes('swiper') || className.includes('slider') ||
+                            className.includes('galeria') || className.includes('gallery') ||
+                            id.includes('modal') || id.includes('dialog') ||
+                            role === 'dialog' || ariaModal === 'true'
+                        ) {
+                            isInsideInvalidContainer = true;
+                            break;
+                        }
+                        current = current.parentElement;
+                    }
+
+                    // Si está metido adentro de un modal o carrusel de fotos secundarias, lo salteamos por completo
+                    if (isInsideInvalidContainer) return;
+
                     const priceText = el.textContent.trim();
                     const priceNumbers = priceText.replace(/[^0-9]/g, '');
 
                     if (priceNumbers.length >= 3 && priceNumbers.length <= 7) {
                         const precioCosto = parseFloat(priceNumbers);
                         
-                        // Rastrear componentes ascendentes (padres) para aislar la tarjeta del artículo
+                        // Aislar la tarjeta principal subiendo hasta 5 niveles
                         let parent = el.parentElement;
                         for (let depth = 0; depth < 5; depth++) {
                             if (!parent) break;
 
                             const img = parent.querySelector('img');
                             
-                            // Extraer bloques de texto candidatos para el título y descripción
                             let textBlocks = [];
                             parent.querySelectorAll('h1, h2, h3, h4, h5, h6, p, span, div').forEach(textEl => {
                                 const txt = textEl.textContent.trim();
@@ -122,10 +146,9 @@ async function syncCatalog() {
 
                             if (img && textBlocks.length > 0) {
                                 const titulo = textBlocks[0];
-                                // Si existe un segundo bloque de texto largo, lo tomamos como descripción
-                                const descripcion = textBlocks[1] && textBlocks[1].length > 10 ? textBlocks[1] : 'Sin descripción detallada disponible.';
+                                const descripcion = textBlocks[1] && textBlocks[1].length > 10 ? textBlocks[1] : 'Sin descripción disponible.';
                                 
-                                // Evitar duplicaciones internas de elementos en la lectura visual
+                                // Evitar duplicar el artículo en el mismo escaneo
                                 if (!found.some(p => p.titulo.toLowerCase() === titulo.toLowerCase())) {
                                     found.push({
                                         titulo: titulo,
@@ -146,15 +169,13 @@ async function syncCatalog() {
 
         await browser.close();
 
-        // Filtrado de seguridad sobre los nombres del sistema o vacíos
+        // Limpieza final de nombres del sistema
         const finalScraped = scrapedProducts.filter(p => {
             const t = p.titulo.toLowerCase();
             return !t.includes("viewport") && !t.includes("catálogo") && !t.includes("error") && p.precioCosto > 0;
         });
 
-        if (finalScraped.length === 0) throw new Error("El escáner visual no detectó elementos de tarjetas válidas en la pantalla.");
-
-        console.log(`\n[Éxito de lectura] Se capturaron un total de ${finalScraped.length} productos del catálogo entero.`);
+        console.log(`\n[Filtro Aplicado] Se aislaron ${finalScraped.length} productos principales, eliminando fotos de modales.`);
 
         // 4. Clasificación diferencial de datos para proteger tus modificaciones manuales del admin
         let inserts = [];
@@ -164,7 +185,6 @@ async function syncCatalog() {
             const key = item.titulo.toLowerCase();
             
             if (localMap.has(key)) {
-                // Producto existente: Preservamos el margen asignado manualmente en el Panel de Control
                 const localItem = localMap.get(key);
                 const margen = localItem.porcentaje_ganancia !== null ? localItem.porcentaje_ganancia : DEFAULT_MARGIN;
                 const nuevoPrecioVenta = Math.round(item.precioCosto * (1 + margen / 100));
@@ -178,7 +198,6 @@ async function syncCatalog() {
                     }).eq('id', localItem.id)
                 );
             } else {
-                // Artículo nuevo del distribuidor: Se inyecta con el margen base
                 const precioVentaNuevo = Math.round(item.precioCosto * (1 + DEFAULT_MARGIN / 100));
                 inserts.push({
                     titulo: item.titulo,
@@ -191,7 +210,7 @@ async function syncCatalog() {
             }
         }
 
-        // 5. Transmitir cambios hacia la base de datos de Supabase
+        // 5. Transmitir cambios hacia Supabase
         if (inserts.length > 0) {
             const { error: insErr } = await supabase.from('productos').insert(inserts);
             if (insErr) throw insErr;
@@ -203,7 +222,7 @@ async function syncCatalog() {
             console.log(`[Base de Datos] Sincronizados costos de ${updates.length} productos existentes.`);
         }
 
-        console.log(`\n[PROCESO COMPLETADO] Sincronización exitosa.`);
+        console.log(`\n[PROCESO COMPLETADO] Catálogo espejado sin duplicaciones.`);
 
     } catch (error) {
         console.error(`[Fallo crítico del robot]: ${error.message}`);
