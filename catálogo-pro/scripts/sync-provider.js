@@ -104,12 +104,34 @@ async function syncCatalog() {
     console.log(`[${new Date().toISOString()}] Arrancando escáner...`);
     let browser;
     try {
-        const { data: dbProducts, error: dbError } = await supabase
-            .from('productos')
-            .select('id, titulo, precio, porcentaje_ganancia, precio_costo, precio_fijo');
+        // --- 🎯 SOLUCIÓN: PAGINACIÓN DE LECTURA SUPABASE ---
+        let dbProducts = [];
+        let rangeStart = 0;
+        let rangeEnd = 999;
+        let hasMore = true;
 
-        if (dbError) throw dbError;
-        const localMap = new Map(dbProducts?.map(p => [p.titulo.toLowerCase(), p]) || []);
+        console.log("📥 Descargando catálogo completo desde Supabase...");
+        while (hasMore) {
+            const { data, error } = await supabase
+                .from('productos')
+                .select('id, titulo, precio, porcentaje_ganancia, precio_costo, precio_fijo')
+                .range(rangeStart, rangeEnd);
+
+            if (error) throw error;
+
+            if (data && data.length > 0) {
+                dbProducts = dbProducts.concat(data);
+                console.log(`📦 Productos cargados hasta ahora: ${dbProducts.length}`);
+                rangeStart += 1000;
+                rangeEnd += 1000;
+            } else {
+                hasMore = false; // Ya no hay más páginas
+            }
+        }
+
+        console.log(`✅ Catálogo cargado totalmente. Total: ${dbProducts.length} productos.`);
+        const localMap = new Map(dbProducts.map(p => [p.titulo.toLowerCase(), p]));
+        // --- FIN DE PAGINACIÓN ---
 
         browser = await puppeteer.launch({
             headless: true,
