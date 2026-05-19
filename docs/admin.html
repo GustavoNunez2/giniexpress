@@ -4,7 +4,7 @@
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>GINI</title>
-    <link rel="icon" type="image/svg+xml" href="data:image/svg+xml;base64,PHN2ZyB4bWxucz0iaHR0cDovL3d3dy53My5vcmcvMjAwMC9zdmciIHZpZXdCb3g9IjAgMCA2NCA2NCIgd2lkdGg9IjEwMCUiIGhlaWdodD0iMTAwJSI+PGcgaWQ9Imdpb3JnaW8iPjxjaXJjbGUgY3g9IjIyIiBjeT0iMzYiIHI9IjE0IiBmaWxsPSJub25lIiBzdHJva2U9IiMyMTk2RjMiIHN0cm9rZS13aWR0aD0iNSIgc3Ryb2tlLWxpbmVjYXA9InJvdW5kIi8+PHBhdGggZD0iTTIyLDIyIEMyMSwxNSAxNSwxNiAxOCwyMSIgZmlsbD0ibm9uZSIgc3Ryb2tlPSIjMjE5NkYzIiBzdHJva2Utd2lkdGg9IjQiIHN0cm9rZS1saW5lY2FwPSJyb3VuZCIvPjwvZz48ZyBpZD0ibmluYSI+PGNpcmNsZSBjeD0iNDIiIGN5PSIzNiIgcj0iMTQiIGZpbGw9Im5vbmUiIHN0cm9rZT0iI0U5MUU2MyIgc3Ryb2tlLXdpZHRoPSI1IiBzdHJva2UtbGluZWNhcD0icm91bmQiLz48cGF0aCBkPSJNNDIsMjIgTDM2LDE2IEwzNiwyNCBaIiBmaWxsPSIjRTkxRTYzIi8+PHBhdGggZD0iTTQyLDIyIEw0OCwxNiBMNDgsMjQgWiIgZmlsbD0iI0U5MUU2MyIvPjxjaXJjbGUgY3g9IjQyIiBjeT0iMjAiIHI9IjMiIGZpbGw9IiNFOTFFNjMiLz48/nPjwvc3ZnPg==">
+    <link rel="icon" type="image/svg+xml" href="data:image/svg+xml;base64,PHN2ZyB4bWxucz0iaHR0cDovL3d3dy53My5vcmcvMjAwMC9zdmciIHZpZXdCb3g9IjAgMCA2NCA2NCIgd2lkdGg9IjEwMCUiIGhlaWdodD0iMTAwJSI+PGcgaWQ9Imdpb3JnaW8iPjxjaXJjbGUgY3g9IjIyIiBjeT0iMzYiIHI9IjE0IiBmaWxsPSJub25lIiBzdHJva2U9IiMyMTk2RjMiIHN0cm9rZS13aWR0aD0iNSIgc3Ryb2tlLWxpbmVjYXA9InJvdW5kIi8+PHBhdGggZD0iTTIyLDIyIEMyMSwxNSAxNSwxNiAxOCwyMSIgZmlsbD0ibm9uZSIgc3Ryb2tlPSIjMjE5NkYzIiBzdHJva2Utd2lkdGg9IjQiIHN0cm9rZS1saW5lY2FwPSJyb3VuZCIvPjwvZz48ZyBpZD0ibmluYSI+PGNpcmNsZSBjeD0iNDIiIGN5PSIzNiIgcj0iMTQiIGZpbGw9Im5vbmUiIHN0cm9rZT0iI0U5MUU2MyIgc3Ryb2tlLXdpZHRoPSI1IiBzdHJva2UtbGluZWNhcD0icm91bmQiLz48pGF0aCBkPSJNNDIsMjIgTDM2LDE2IEwzNiwyNCBaIiBmaWxsPSIjRTkxRTYzIi8+PHBhdGggZD0iTTQyLDIyIEw0OCwxNiBMNDgsMjQgWiIgZmlsbD0iI0U5MUU2MyIvPjxjaXJjbGUgY3g9IjQyIiBjeT0iMjAiIHI9IjMiIGZpbGw9IiNFOTFFNjMiLz48L2c+PC9zdmc+">
     <script src="https://unpkg.com/@tailwindcss/browser@4"></script>
     <script src="https://unpkg.com/lucide@latest"></script>
     <link href="https://fonts.googleapis.com/css2?family=IBM+Plex+Mono:wght@400;500;600&family=Inter:wght@300;400;500;600;700&display=swap" rel="stylesheet">
@@ -21,6 +21,7 @@
         @keyframes slideIn { from { transform: translateY(10px); opacity: 0; } to { transform: translateY(0); opacity: 1; } }
         .slide-in { animation: slideIn 0.3s ease-out forwards; }
 
+        /* Estilos Dinámicos Dark Mode */
         body.dark-mode { background-color: #020617; color: #F8FAFC; }
         body.dark-mode header { background-color: #0F172A !important; border-color: #1E293B !important; }
         body.dark-mode header span { color: #FFFFFF !important; }
@@ -42,7 +43,7 @@
         body.dark-mode #loginSection { background-color: #020617 !important; }
         body.dark-mode #loginCard button[type="submit"] { background-color: #FFFFFF !important; color: #020617 !important; }
     </style>
-  <script type="module" crossorigin src="/giniexpress/assets/admin-CUCvbWe_.js"></script>
+  <script type="module" crossorigin src="/giniexpress/assets/admin-BnqenRbc.js"></script>
   <link rel="modulepreload" crossorigin href="/giniexpress/assets/index-CMzVDswU.js">
 </head>
 <body class="min-h-screen">
@@ -121,7 +122,7 @@
                     </div>
                     <div class="flex flex-col sm:flex-row items-center gap-3 w-full sm:w-auto">
                         
-                        <button id="exportStoriesBtn" onclick="openExportModal()" class="hidden bg-orange-500 hover:bg-orange-600 text-white px-4 py-2 rounded-lg text-xs font-bold gap-2 items-center cursor-pointer transition-all shadow-md shadow-orange-500/10 slide-in">
+                        <button id="exportStoriesBtn" onclick="openExportModal()" class="hidden bg-orange-500 hover:bg-orange-600 text-white px-4 py-2 rounded-lg text-xs font-bold gap-2 items-center cursor-pointer transition-all shadow-md slide-in">
                             <i data-lucide="image-down" class="w-3.5 h-3.5"></i> Exportar Stories (<span id="selectedCount">0</span>)
                         </button>
 
@@ -210,22 +211,24 @@
         <div id="exportModalCard" class="bg-white border rounded-2xl max-w-lg w-full flex flex-col overflow-hidden shadow-2xl max-h-[85vh]">
             <div class="p-6 border-b border-slate-100 flex items-center justify-between">
                 <h3 class="font-bold text-base text-slate-900 flex items-center gap-2">
-                    <i data-lucide="layers" class="w-4 h-4 text-orange-500"></i> Confirmar Exportación Masiva
+                    <i data-lucide="layers" class="w-4 h-4 text-orange-500"></i> Confirmar Renderizado de Stories
                 </h3>
                 <button onclick="closeExportModal()" class="text-slate-400 hover:text-slate-600"><i data-lucide="x" class="w-4 h-4"></i></button>
             </div>
-            <div id="exportModalList" class="p-6 overflow-y-auto space-y-4 bg-slate-50/50 dark:bg-slate-950/20 flex-1 divide-y divide-slate-100">
+            <div id="exportModalList" class="p-6 overflow-y-auto space-y-4 bg-slate-50/50 flex-1 divide-y divide-slate-100">
                 </div>
             <div class="p-6 bg-slate-50 border-t border-slate-100 flex items-center gap-3 justify-end">
-                <button onclick="closeExportModal()" class="px-4 py-2.5 border rounded-xl text-xs font-semibold hover:bg-slate-100 cursor-pointer transition-colors text-slate-500">Cancelar</button>
-                <button id="confirmExportBtn" onclick="processBatchExport()" class="px-5 py-2.5 bg-orange-500 hover:bg-orange-600 text-white rounded-xl text-xs font-bold flex items-center gap-2 cursor-pointer transition-colors shadow-md shadow-orange-500/10">
-                    <i data-lucide="send-to-back" class="w-3.5 h-3.5"></i> Iniciar Renderizado
+                <button onclick="closeExportModal()" class="px-4 py-2.5 border rounded-xl text-xs font-semibold hover:bg-slate-100 cursor-pointer text-slate-500">Cancelar</button>
+                <button id="confirmExportBtn" onclick="processBatchExport()" class="px-5 py-2.5 bg-orange-500 hover:bg-orange-600 text-white rounded-xl text-xs font-bold flex items-center gap-2 cursor-pointer shadow-md">
+                    <i data-lucide="download-cloud" class="w-3.5 h-3.5"></i> Descargar Imagenes
                 </button>
             </div>
         </div>
     </div>
 
     <div id="toast" class="fixed bottom-8 left-1/2 -translate-x-1/2 z-[100] px-6 py-3 bg-black text-white text-sm font-medium rounded-full shadow-2xl transition-all duration-300 translate-y-20 opacity-0 pointer-events-none"></div>
+
+    <canvas id="renderCanvas" width="1080" height="1920" class="hidden"></canvas>
 
 </body>
 </html>

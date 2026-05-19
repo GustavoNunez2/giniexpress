@@ -4,7 +4,7 @@
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>GINI</title>
-    <link rel="icon" type="image/svg+xml" href="data:image/svg+xml;base64,PHN2ZyB4bWxucz0iaHR0cDovL3d3dy53My5vcmcvMjAwMC9zdmciIHZpZXdCb3g9IjAgMCA2NCA2NCIgd2lkdGg9IjEwMCUiIGhlaWdodD0iMTAwJSI+PGcgaWQ9Imdpb3JnaW8iPjxjaXJjbGUgY3g9IjIyIiBjeT0iMzYiIHI9IjE0IiBmaWxsPSJub25lIiBzdHJva2U9IiMyMTk2RjMiIHN0cm9rZS13aWR0aD0iNSIgc3Ryb2tlLWxpbmVjYXA9InJvdW5kIi8+PHBhdGggZD0iTTIyLDIyIEMyMSwxNSAxNSwxNiAxOCwyMSIgZmlsbD0ibm9uZSIgc3Ryb2tlPSIjMjE5NkYzIiBzdHJva2Utd2lkdGg9IjQiIHN0cm9rZS1saW5lY2FwPSJyb3VuZCIvPjwvZz48ZyBpZD0ibmluYSI+PGNpcmNsZSBjeD0iNDIiIGN5PSIzNiIgcj0iMTQiIGZpbGw9Im5vbmUiIHN0cm9rZT0iI0U5MUU2MyIgc3Ryb2tlLXdpZHRoPSI1IiBzdHJva2UtbGluZWNhcD0icm91bmQiLz48cGF0aCBkPSJNNDIsMjIgTDM2LDE2IEwzNiwyNCBaIiBmaWxsPSIjRTkxRTYzIi8+PHBhdGggZD0iTTQyLDIyIEw0OCwxNiBMNDgsMjQgWiIgZmlsbD0iI0U5MUU2MyIvPjxjaXJjbGUgY3g9IjQyIiBjeT0iMjAiIHI9IjMiIGZpbGw9IiNFOTFFNjMiLz48/nPjwvc3ZnPg==">
+    <link rel="icon" type="image/svg+xml" href="data:image/svg+xml;base64,PHN2ZyB4bWxucz0iaHR0cDovL3d3dy53My5vcmcvMjAwMC9zdmciIHZpZXdCb3g9IjAgMCA2NCA2NCIgd2lkdGg9IjEwMCUiIGhlaWdodD0iMTAwJSI+PGcgaWQ9Imdpb3JnaW8iPjxjaXJjbGUgY3g9IjIyIiBjeT0iMzYiIHI9IjE0IiBmaWxsPSJub25lIiBzdHJva2U9IiMyMTk2RjMiIHN0cm9rZS13aWR0aD0iNSIgc3Ryb2tlLWxpbmVjYXA9InJvdW5kIi8+PHBhdGggZD0iTTIyLDIyIEMyMSwxNSAxNSwxNiAxOCwyMSIgZmlsbD0ibm9uZSIgc3Ryb2tlPSIjMjE5NkYzIiBzdHJva2Utd2lkdGg9IjQiIHN0cm9rZS1saW5lY2FwPSJyb3VuZCIvPjwvZz48ZyBpZD0ibmluYSI+PGNpcmNsZSBjeD0iNDIiIGN5PSIzNiIgcj0iMTQiIGZpbGw9Im5vbmUiIHN0cm9rZT0iI0U5MUU2MyIgc3Ryb2tlLXdpZHRoPSI1IiBzdHJva2UtbGluZWNhcD0icm91bmQiLz48pGF0aCBkPSJNNDIsMjIgTDM2LDE2IEwzNiwyNCBaIiBmaWxsPSIjRTkxRTYzIi8+PHBhdGggZD0iTTQyLDIyIEw0OCwxNiBMNDgsMjQgWiIgZmlsbD0iI0U5MUU2MyIvPjxjaXJjbGUgY3g9IjQyIiBjeT0iMjAiIHI9IjMiIGZpbGw9IiNFOTFFNjMiLz48L2c+PC9zdmc+">
     <script src="https://unpkg.com/@tailwindcss/browser@4"></script>
     <script src="https://unpkg.com/lucide@latest"></script>
     <link href="https://fonts.googleapis.com/css2?family=IBM+Plex+Mono:wght@400;500;600&family=Inter:wght@300;400;500;600;700&display=swap" rel="stylesheet">
@@ -21,6 +21,7 @@
         @keyframes slideIn { from { transform: translateY(10px); opacity: 0; } to { transform: translateY(0); opacity: 1; } }
         .slide-in { animation: slideIn 0.3s ease-out forwards; }
 
+        /* Estilos Dinámicos Dark Mode */
         body.dark-mode { background-color: #020617; color: #F8FAFC; }
         body.dark-mode header { background-color: #0F172A !important; border-color: #1E293B !important; }
         body.dark-mode header span { color: #FFFFFF !important; }
@@ -119,7 +120,7 @@
                     </div>
                     <div class="flex flex-col sm:flex-row items-center gap-3 w-full sm:w-auto">
                         
-                        <button id="exportStoriesBtn" onclick="openExportModal()" class="hidden bg-orange-500 hover:bg-orange-600 text-white px-4 py-2 rounded-lg text-xs font-bold gap-2 items-center cursor-pointer transition-all shadow-md shadow-orange-500/10 slide-in">
+                        <button id="exportStoriesBtn" onclick="openExportModal()" class="hidden bg-orange-500 hover:bg-orange-600 text-white px-4 py-2 rounded-lg text-xs font-bold gap-2 items-center cursor-pointer transition-all shadow-md slide-in">
                             <i data-lucide="image-down" class="w-3.5 h-3.5"></i> Exportar Stories (<span id="selectedCount">0</span>)
                         </button>
 
@@ -208,22 +209,24 @@
         <div id="exportModalCard" class="bg-white border rounded-2xl max-w-lg w-full flex flex-col overflow-hidden shadow-2xl max-h-[85vh]">
             <div class="p-6 border-b border-slate-100 flex items-center justify-between">
                 <h3 class="font-bold text-base text-slate-900 flex items-center gap-2">
-                    <i data-lucide="layers" class="w-4 h-4 text-orange-500"></i> Confirmar Exportación Masiva
+                    <i data-lucide="layers" class="w-4 h-4 text-orange-500"></i> Confirmar Renderizado de Stories
                 </h3>
                 <button onclick="closeExportModal()" class="text-slate-400 hover:text-slate-600"><i data-lucide="x" class="w-4 h-4"></i></button>
             </div>
-            <div id="exportModalList" class="p-6 overflow-y-auto space-y-4 bg-slate-50/50 dark:bg-slate-950/20 flex-1 divide-y divide-slate-100">
+            <div id="exportModalList" class="p-6 overflow-y-auto space-y-4 bg-slate-50/50 flex-1 divide-y divide-slate-100">
                 </div>
             <div class="p-6 bg-slate-50 border-t border-slate-100 flex items-center gap-3 justify-end">
-                <button onclick="closeExportModal()" class="px-4 py-2.5 border rounded-xl text-xs font-semibold hover:bg-slate-100 cursor-pointer transition-colors text-slate-500">Cancelar</button>
-                <button id="confirmExportBtn" onclick="processBatchExport()" class="px-5 py-2.5 bg-orange-500 hover:bg-orange-600 text-white rounded-xl text-xs font-bold flex items-center gap-2 cursor-pointer transition-colors shadow-md shadow-orange-500/10">
-                    <i data-lucide="send-to-back" class="w-3.5 h-3.5"></i> Iniciar Renderizado
+                <button onclick="closeExportModal()" class="px-4 py-2.5 border rounded-xl text-xs font-semibold hover:bg-slate-100 cursor-pointer text-slate-500">Cancelar</button>
+                <button id="confirmExportBtn" onclick="processBatchExport()" class="px-5 py-2.5 bg-orange-500 hover:bg-orange-600 text-white rounded-xl text-xs font-bold flex items-center gap-2 cursor-pointer shadow-md">
+                    <i data-lucide="download-cloud" class="w-3.5 h-3.5"></i> Descargar Imagenes
                 </button>
             </div>
         </div>
     </div>
 
     <div id="toast" class="fixed bottom-8 left-1/2 -translate-x-1/2 z-[100] px-6 py-3 bg-black text-white text-sm font-medium rounded-full shadow-2xl transition-all duration-300 translate-y-20 opacity-0 pointer-events-none"></div>
+
+    <canvas id="renderCanvas" width="1080" height="1920" class="hidden"></canvas>
 
     <script type="module">
         import { createClient } from '@supabase/supabase-js';
@@ -390,18 +393,15 @@
             });
         }
 
-        // CONTROL DE SELECCIÓN INDIVIDUAL
         function handleRowSelect(id, checkbox) {
             if (checkbox.checked) selectedProductIds.add(id);
             else selectedProductIds.delete(id);
             updateExportButtonState();
         }
 
-        // CONTROL DE SELECCIÓN MAESTRA
         function toggleSelectAll() {
             const masterCheckbox = document.getElementById('selectAllCheckbox');
             const checkboxes = document.querySelectorAll('.row-checkbox');
-            
             checkboxes.forEach(cb => {
                 const id = parseInt(cb.dataset.id);
                 cb.checked = masterCheckbox.checked;
@@ -411,11 +411,9 @@
             updateExportButtonState();
         }
 
-        // ACTUALIZA EL ESTADO DEL BOTÓN FLOTANTE DE EXPORTACIÓN
         function updateExportButtonState() {
             const btn = document.getElementById('exportStoriesBtn');
             const countEl = document.getElementById('selectedCount');
-            
             if (selectedProductIds.size > 0) {
                 countEl.textContent = selectedProductIds.size;
                 btn.classList.replace('hidden', 'flex');
@@ -426,18 +424,14 @@
             }
         }
 
-        // ABRE EL MODAL INTERMEDIO CALCULANDO LOS VALORES DE VENTA PREVIOS
         function openExportModal() {
             const modal = document.getElementById('exportModal');
             const listContainer = document.getElementById('exportModalList');
-            
-            // Filtramos los objetos completos de los productos seleccionados
             const selectedProducts = products.filter(p => selectedProductIds.has(p.id));
 
             listContainer.innerHTML = selectedProducts.map(p => {
-                // Obtenemos los valores en vivo modificados en la tabla por el usuario
                 const mode = document.getElementById(`mode-${p.id}`).value;
-                const descValue = document.getElementById(`desc-${p.id}`).value;
+                const descValue = document.getElementById(`desc-${p.id}`).value.trim();
                 let finalCalculatedPrice = 0;
 
                 if (mode === 'porcentaje') {
@@ -453,9 +447,9 @@
                     <div class="flex-1 min-w-0">
                         <div class="flex justify-between items-baseline">
                             <h4 class="text-xs font-bold text-slate-800 truncate uppercase">${p.titulo}</h4>
-                            <span class="text-xs font-bold text-orange-500 mono">$${finalCalculatedPrice.toFixed(2)}</span>
+                            <span class="text-xs font-bold text-orange-500 mono">$${Math.round(finalCalculatedPrice).toLocaleString()}</span>
                         </div>
-                        <p class="text-[11px] text-slate-400 line-clamp-2 mt-0.5">${descValue || 'Sin descripción descriptiva'}</p>
+                        <p class="text-[11px] text-slate-400 line-clamp-2 mt-0.5">${descValue || '<span class="italic text-slate-300">Sin descripción para la Story</span>'}</p>
                     </div>
                 </div>
                 `;
@@ -466,58 +460,138 @@
             lucide.createIcons();
         }
 
-        function closeModal() {
+        function closeExportModal() {
             document.getElementById('exportModal').classList.replace('flex', 'hidden');
             document.body.style.overflow = 'auto';
         }
 
-        // ENVIAR EL LOTE DE PRODUCTOS AL ENDPOINT DE NODE.JS CON SHARP
+        // MOTOR DE RENDERIZADO ASÍNCRONO DE CANVAS (Reemplaza a Sharp)
         async function processBatchExport() {
             const confirmBtn = document.getElementById('confirmExportBtn');
             confirmBtn.classList.add('btn-loading');
-            confirmBtn.innerHTML = '<span class="animate-spin rounded-full h-3.5 w-3.5 border-2 border-white/30 border-t-white mr-2"></span> Generando...';
+            confirmBtn.innerHTML = '<span class="animate-spin rounded-full h-3.5 w-3.5 border-2 border-white/30 border-t-white mr-2"></span> Dibujando...';
 
+            const canvas = document.getElementById('renderCanvas');
+            const ctx = canvas.getContext('2d');
             const selectedProducts = products.filter(p => selectedProductIds.has(p.id));
-            let successCount = 0;
+            
+            let downloadedCount = 0;
 
-            // Procesamos secuencialmente los fetch hacia tu backend local/producción
             for (const p of selectedProducts) {
                 const mode = document.getElementById(`mode-${p.id}`).value;
-                const descValue = document.getElementById(`desc-${p.id}`).value;
+                const descValue = document.getElementById(`desc-${p.id}`).value.trim();
                 let finalPrice = 0;
 
                 if (mode === 'porcentaje') {
                     const margin = parseFloat(document.getElementById(`margin-${p.id}`).value) || 0;
-                    finalPrice = ((p.precio_costo || 0) * (1 + margin / 100)).toFixed(2);
+                    finalPrice = Math.round((p.precio_costo || 0) * (1 + margin / 100));
                 } else {
-                    finalPrice = parseFloat(document.getElementById(`fijo-${p.id}`).value).toFixed(2);
+                    finalPrice = Math.round(parseFloat(document.getElementById(`fijo-${p.id}`).value) || 0);
                 }
 
                 try {
-                    // LLAMADA AL ENDPOINT NATIVO CON SHARP
-                    const response = await fetch('/api/export-story', {
-                        method: 'POST',
-                        headers: { 'Content-Type': 'application/json' },
-                        body: JSON.stringify({
-                            productImagePath: p.imagen_url, // Pasamos la URL/ruta de la imagen
-                            customText: `${p.titulo}\n${descValue}`, // Enviamos título + descripción para que Sharp lo procese
-                            finalPrice: finalPrice
-                        })
+                    // Cargar imagen de forma asíncrona controlando CORS cruzado
+                    const img = await new Promise((resolve, reject) => {
+                        const i = new Image();
+                        i.crossOrigin = "anonymous"; 
+                        i.src = p.imagen_url;
+                        i.onload = () => resolve(i);
+                        i.onerror = (e) => reject(e);
                     });
 
-                    if (response.ok) successCount++;
+                    // Limpiar lienzo
+                    ctx.clearRect(0, 0, 1080, 1920);
+
+                    // 1. CAPA BASE: Dibujar el fondo escalado en modo cover
+                    const scaleBase = Math.max(1080 / img.width, 1920 / img.height);
+                    const wBase = img.width * scaleBase;
+                    const hBase = img.height * scaleBase;
+                    const xBase = (1080 - wBase) / 2;
+                    const yBase = (1920 - hBase) / 2;
+                    ctx.drawImage(img, xBase, yBase, wBase, hBase);
+
+                    // Filtro de desenfoque y oscurecimiento cinemático
+                    ctx.filter = "blur(50px) brightness(0.4)";
+                    ctx.drawImage(canvas, 0, 0); 
+                    ctx.filter = "none"; // Restaurar contexto gráfico
+
+                    // 2. CAPA MEDIA: Centrar la imagen en la sección superior (1080x1400 fit inside)
+                    const scaleMedia = Math.min(1010 / img.width, 1250 / img.height);
+                    const wMedia = img.width * scaleMedia;
+                    const hMedia = img.height * scaleMedia;
+                    const xMedia = (1080 - wMedia) / 2;
+                    const yMedia = 100 + (1250 - hMedia) / 2; // Margen superior integrado
+                    ctx.drawImage(img, xMedia, yMedia, wMedia, hMedia);
+
+                    // 3. CAPA SUPERIOR: Sticker Naranja del precio (esquina superior derecha)
+                    ctx.fillStyle = "rgba(0,0,0,0.4)";
+                    ctx.beginPath(); ctx.roundRect(685, 85, 350, 150, 25); ctx.fill(); // Sombra suave
+                    ctx.fillStyle = "#f97316"; // Naranja vibrante
+                    ctx.beginPath(); ctx.roundRect(680, 80, 350, 150, 25); ctx.fill();
+
+                    ctx.fillStyle = "#FFFFFF";
+                    ctx.textAlign = "center";
+                    ctx.font = "bold 26px Arial, Helvetica, sans-serif";
+                    ctx.fillText("PRECIO FINAL", 680 + 175, 80 + 50);
+                    ctx.font = "bold 58px Arial, Helvetica, sans-serif";
+                    ctx.fillText(`$${finalPrice.toLocaleString()}`, 680 + 175, 80 + 122);
+
+                    // Zócalo inferior informativo (Fondo negro opaco al 88%)
+                    ctx.fillStyle = "rgba(15, 23, 42, 0.92)";
+                    ctx.fillRect(0, 1420, 1080, 500);
+
+                    // Título Sanitizado
+                    ctx.fillStyle = "#FFFFFF";
+                    ctx.textAlign = "left";
+                    ctx.font = "bold 40px Arial, Helvetica, sans-serif";
+                    let titleText = p.titulo.toUpperCase();
+                    if(titleText.length > 45) titleText = titleText.substring(0, 42) + "...";
+                    ctx.fillText(titleText, 50, 1495);
+
+                    // Líneas de Descripción (Sanitización y elipsis de seguridad)
+                    if (descValue) {
+                        ctx.fillStyle = "#94a3b8";
+                        ctx.font = "30px Arial, Helvetica, sans-serif";
+                        
+                        // Parseo de renglones limpios saltando símbolos mayoristas
+                        const rawLines = descValue.replace(/\*/g, '').split('\n').map(l => l.trim()).filter(l => l.length > 0);
+                        const cleanLines = rawLines.filter(line => {
+                            const l = line.toLowerCase();
+                            return !(l.includes('precio') || l.includes('$') || l.includes('valor') || l.includes('💸') || l.includes('🔥') || l.includes('pídelo') || l.includes('costo'));
+                        }).slice(0, 7); // Máximo 7 renglones de descripción
+
+                        cleanLines.forEach((line, index) => {
+                            let textLine = line;
+                            if (textLine.length > 55) textLine = textLine.substring(0, 52) + "...";
+                            ctx.fillText(textLine, 50, 1560 + (index * 45));
+                        });
+                    }
+
+                    // Forzar la descarga del archivo binario .jpg directamente desde el cliente
+                    const dataUrl = canvas.toDataURL("image/jpeg", 0.92);
+                    const downloadLink = document.createElement("a");
+                    downloadLink.download = `story-${p.titulo.toLowerCase().replace(/[^a-z0-9]/g, "-")}.jpg`;
+                    downloadLink.href = dataUrl;
+                    document.body.appendChild(downloadLink);
+                    downloadLink.click();
+                    document.body.removeChild(downloadLink);
+                    
+                    downloadedCount++;
+                    // Pequeño delay de 250ms por ráfaga para evitar que el navegador bloquee descargas múltiples
+                    await new Promise(r => setTimeout(r, 250));
+
                 } catch (err) {
-                    console.error(`Error exportando ID ${p.id}:`, err);
+                    console.error(`Error procesando la Story del ID ${p.id}:`, err);
                 }
             }
 
             confirmBtn.classList.remove('btn-loading');
-            confirmBtn.innerHTML = '<i data-lucide="send-to-back" class="w-3.5 h-3.5"></i> Iniciar Renderizado';
+            confirmBtn.innerHTML = '<i data-lucide="download-cloud" class="w-3.5 h-3.5"></i> Descargar Imagenes';
             lucide.createIcons();
             closeModal();
 
-            showToast(`¡Renderizado finalizado! ${successCount} Stories generadas.`);
-            fetchProducts(); // Limpia los checkboxes e inventario
+            showToast(`¡Renderizado local completado! ${downloadedCount} Stories descargadas.`);
+            fetchProducts();
         }
 
         function toggleRowMode(id) {
@@ -657,7 +731,7 @@
         window.handleRowSelect = handleRowSelect;
         window.toggleSelectAll = toggleSelectAll;
         window.openExportModal = openExportModal;
-        window.closeExportModal = closeModal;
+        window.closeExportModal = closeExportModal;
         window.processBatchExport = processBatchExport;
     </script>
 </body>
