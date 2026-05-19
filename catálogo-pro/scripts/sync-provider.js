@@ -18,7 +18,7 @@ async function syncCatalog() {
         const { data: dbProducts, error: dbError } = await supabase
             .from('productos')
             .select('id, titulo, precio, porcentaje_ganancia, precio_costo');
-        
+
         if (dbError) throw dbError;
         const localMap = new Map(dbProducts?.map(p => [p.titulo, p]) || []);
 
@@ -36,10 +36,16 @@ async function syncCatalog() {
         while ((match = productRegex.exec(cleanText)) !== null) {
             const titulo = match[2].trim();
 
-            if (titulo.toLowerCase().includes("braja express") || 
-                titulo.toLowerCase().includes("catálogo") || 
-                titulo.toLowerCase() === "dashboard" ||
-                titulo.length < 2 || titulo.length > 85) {
+            // FILTRO ANTI-BASURA MEJORADO
+            const blacklist = [
+                "braja express", "catálogo", "dashboard", "viewport",
+                "no es posible acceder", "error", "icon", "manifest",
+                "robots", "width", "initial-scale", "device-width", "og:", "twitter:"
+            ];
+
+            if (blacklist.some(word => titulo.toLowerCase().includes(word)) ||
+                titulo.length < 3 ||
+                titulo.length > 85) {
                 continue;
             }
 
@@ -47,15 +53,15 @@ async function syncCatalog() {
             const endIdx = Math.min(cleanText.length, match.index + 1800);
             const chunk = cleanText.substring(startIdx, endIdx);
 
-            const priceMatch = chunk.match(/"price"\s*:\s*"?([0-9]+)"?/i) || 
-                               chunk.match(/"price_amount"\s*:\s*"?([0-9]+)"?/i);
+            const priceMatch = chunk.match(/"price"\s*:\s*"?([0-9]+)"?/i) ||
+                chunk.match(/"price_amount"\s*:\s*"?([0-9]+)"?/i);
 
-            const descMatch = chunk.match(/"description"\s*:\s*"([^"]*?)"/i) || 
-                              chunk.match(/"desc"\s*:\s*"([^"]*?)"/i);
+            const descMatch = chunk.match(/"description"\s*:\s*"([^"]*?)"/i) ||
+                chunk.match(/"desc"\s*:\s*"([^"]*?)"/i);
 
-            const imgMatch = chunk.match(/"image"\s*:\s*"([^"]+?)"/i) || 
-                             chunk.match(/"imageUrl"\s*:\s*"([^"]+?)"/i) || 
-                             chunk.match(/"url"\s*:\s*"([^"]+?)"/i);
+            const imgMatch = chunk.match(/"image"\s*:\s*"([^"]+?)"/i) ||
+                chunk.match(/"imageUrl"\s*:\s*"([^"]+?)"/i) ||
+                chunk.match(/"url"\s*:\s*"([^"]+?)"/i);
 
             if (priceMatch) {
                 const precioCosto = parseFloat(priceMatch[1]);
