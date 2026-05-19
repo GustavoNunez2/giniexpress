@@ -13,104 +13,92 @@ if (!SUPABASE_URL || !SUPABASE_KEY) {
 const supabase = createClient(SUPABASE_URL, SUPABASE_KEY);
 
 async function scrollAndExtract(page) {
-    console.log(" Iniciando extracción por Intercepción de Red y DOM Progresivo...");
+    console.log("👀 Iniciando extracción visual (Cazador de Botones Activado 🎯)...");
     let foundMap = new Map();
-
-    // 1. INTERCEPTOR DE API (Estrategia Maestra)
-    // Treinta carga sus datos vía JSON. Capturamos el objeto directamente de la red.
-    page.on('response', async (response) => {
-        const url = response.url();
-        // Patrones comunes en Treinta: Next.js data o llamadas a su API de catálogo
-        if (url.includes('_next/data') || url.includes('/api/catalog') || url.includes('/api/products')) {
-            try {
-                const data = await response.json();
-                // Navegamos por la estructura del JSON de Treinta (usualmente bajo pageProps)
-                const products = data?.pageProps?.products || data?.products || data?.data || [];
-                
-                if (Array.isArray(products) && products.length > 0) {
-                    products.forEach(p => {
-                        // Mapeamos al formato que espera tu base de datos
-                        const titulo = (p.name || p.title || "").trim();
-                        if (titulo) {
-                            foundMap.set(titulo.toLowerCase(), {
-                                titulo: titulo.replace(/[\*\'\´\"]/g, ''),
-                                precioCosto: parseFloat(p.price || p.price_amount || 0),
-                                imagen_url: p.image || p.imageUrl || (p.images && p.images[0]) || "",
-                                descripcion: p.description || ""
-                            });
-                        }
-                    });
-                    console.log(`📡 API capturada: +${products.length} productos detectados en red.`);
-                }
-            } catch (e) {
-                // Silencioso: algunas respuestas no son JSON
-            }
-        }
-    });
-
-    let lastSize = 0;
     let idleCycles = 0;
 
-    // 2. CICLO DE SCROLL RESILIENTE
-    for (let i = 0; i < 100; i++) {
-        try {
-            // Extracción de seguridad desde el DOM (Fallback si la API cambia)
-            const domItems = await page.evaluate(() => {
-                const results = [];
-                document.querySelectorAll('img').forEach(img => {
-                    let card = img.closest('div[class*="product"], article, li, div');
-                    if (!card || card.textContent.length > 500) return; // Evitar contenedores gigantes
-                    
-                    const priceMatch = card.textContent.match(/\$[\s\u00a0]*([0-9.]+)/);
-                    if (priceMatch) {
-                        const price = parseFloat(priceMatch[1].replace(/\./g, ''));
-                    const titleEl = card.querySelector('h1, h2, h3, h4, p');
-                        const title = titleEl ? titleEl.textContent.trim() : "";
-                        if (title.length > 2) {
-                            results.push({ titulo: title, precioCosto: price, imagen_url: img.src });
+    console.log("🖱️ Dando foco a la página en el margen...");
+    await page.mouse.click(5, 300);
+    await page.focus('body');
+    await new Promise(r => setTimeout(r, 1000));
+
+    // Aumentamos a 150 intentos por si son muchos productos
+    for (let attempt = 0; attempt < 150; attempt++) {
+        // 1. EXTRACTOR
+        const newProducts = await page.evaluate(() => {
+            let results = [];
+            const allImages = document.querySelectorAll('img');
+
+            allImages.forEach(img => {
+                let cardContainer = img.parentElement;
+                for (let i = 0; i < 6; i++) {
+                    if (!cardContainer) break;
+
+                    const textContent = cardContainer.textContent || '';
+                    if (textContent.includes('$')) {
+                        const match = textContent.match(/\$[\s\u00a0]*([0-9.]+)/);
+                        if (match) {
+                            const price = parseFloat(match[1].replace(/\./g, ''));
+                            const textElements = Array.from(cardContainer.querySelectorAll('h1, h2, h3, h4, p, span, div'))
+                                .map(el => el.textContent.trim())
+                                .filter(t => t && !t.includes('$') && t.length > 2 && t.length < 140);
+
+                            if (textElements.length > 0) {
+                                let titulo = textElements.find(t => t.length < 50) || textElements[0];
+                                titulo = titulo.replace(/[\*\'\´\"]/g, '').trim();
+                                results.push({ titulo, precioCosto: price, imagen_url: img.src });
+                                break;
+                            }
                         }
                     }
-                });
-                return results;
+                    cardContainer = cardContainer.parentElement;
+                }
             });
+            return results;
+        });
 
-            domItems.forEach(p => {
-                const key = p.titulo.toLowerCase();
-                if (!foundMap.has(key)) foundMap.set(key, p);
-            });
+        // 2. Acumulamos y chequeamos
+        let lastSize = foundMap.size;
+        newProducts.forEach(p => foundMap.set(p.titulo.toLowerCase(), p));
 
-            if (foundMap.size > lastSize) {
-                console.log(`📦 Productos acumulados hasta ahora: ${foundMap.size}`);
-                lastSize = foundMap.size;
-                idleCycles = 0;
-            } else {
-                idleCycles++;
-            }
-
-            // Si llevamos 8 ciclos sin nada nuevo, probablemente terminamos
-            if (idleCycles >= 8) break;
-
-            // Scroll y click en "Ver más"
-            await page.evaluate(() => {
-                window.scrollBy(0, 1200);
-                // Buscar botón de carga por texto, clases o proximidad
-                const btns = Array.from(document.querySelectorAll('button, a, div[role="button"]'));
-                const btn = btns.find(b => {
-                    const txt = b.textContent.toLowerCase();
-                    return txt.includes('ver más') || txt.includes('cargar más') || txt.includes('mostrar más');
-                });
-                if (btn) btn.click();
-            });
-
-            // Espera dinámica para permitir que la API responda y el DOM se estabilice
-            await new Promise(r => setTimeout(r, 1500));
-
-        } catch (e) {
-            console.log("⚠️ Interrupción de contexto detectada. Recuperando flujo...");
-            // No salimos del bucle, simplemente esperamos y reintentamos en la siguiente iteración
-            await new Promise(r => setTimeout(r, 3000));
+        if (foundMap.size > lastSize) {
+            console.log(`📦 Productos a la vista: ${foundMap.size}`);
+            idleCycles = 0; // Si encontró nuevos, reseteamos la paciencia
+        } else {
+            idleCycles++;
+            console.log(`⏳ Buscando más productos... (Intento vacío ${idleCycles}/12)`);
         }
+
+        // Le damos 12 intentos de paciencia antes de rendirse
+        if (idleCycles >= 12) {
+            console.log("🛑 Se llegó al fondo real del catálogo.");
+            break;
+        }
+
+        // 3. EL SCROLL CON ESPACIO Y CAZA DE BOTONES
+        for (let j = 0; j < 6; j++) {
+            await page.keyboard.press('Space');
+            await new Promise(r => setTimeout(r, 400));
+        }
+
+        // BÚSQUEDA AGRESIVA DE BOTÓN DE CARGA
+        await page.evaluate(() => {
+            // Buscamos en TODOS los elementos, no solo botones
+            const elements = document.querySelectorAll('button, a, div, span');
+            for (let el of elements) {
+                const txt = el.textContent.toLowerCase().trim();
+                // Comprobamos si tiene el texto clave y si está visible (clientHeight > 0)
+                if ((txt === 'ver más' || txt === 'cargar más' || txt === 'mostrar más' || txt === 'ver mas') && el.clientHeight > 0) {
+                    el.click();
+                    break; // Si encontramos uno y le damos clic, dejamos de buscar
+                }
+            }
+        });
+
+        // Espera de 2.5s para que la red traiga las fotos nuevas
+        await new Promise(r => setTimeout(r, 2500));
     }
+
     return Array.from(foundMap.values());
 }
 
@@ -123,7 +111,6 @@ async function syncCatalog() {
         let rangeEnd = 999;
         let hasMore = true;
 
-        console.log("📥 Descargando catálogo completo desde Supabase...");
         while (hasMore) {
             const { data, error } = await supabase
                 .from('productos')
@@ -133,7 +120,6 @@ async function syncCatalog() {
             if (error) throw error;
             if (data && data.length > 0) {
                 dbProducts = dbProducts.concat(data);
-                console.log(`📦 Productos cargados hasta ahora: ${dbProducts.length}`);
                 rangeStart += 1000;
                 rangeEnd += 1000;
             } else {
@@ -141,56 +127,34 @@ async function syncCatalog() {
             }
         }
 
-        console.log(`✅ Catálogo cargado totalmente. Total: ${dbProducts.length} productos.`);
         const localMap = new Map(dbProducts.map(p => [p.titulo.toLowerCase(), p]));
 
         browser = await puppeteer.launch({
-            headless: true,
-            args: ['--no-sandbox', '--disable-setuid-sandbox', '--disable-dev-shm-usage', '--window-size=1920,1080']
+            headless: true, // Volvemos a ocultarlo para GitHub
+            args: [
+                '--no-sandbox',
+                '--disable-setuid-sandbox',
+                '--window-size=1920,1080' // Forzamos un monitor Full HD virtual
+            ]
         });
 
         const page = await browser.newPage();
-        await page.setViewport({ width: 1920, height: 1080 });
+        await page.setViewport({ width: 1920, height: 1080 }); // Clave para que el clic (5, 300) funcione
         await page.setUserAgent('Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/148.0.0.0 Safari/537.36');
-
-        const cookies = [{
-            'name': 'session',
-            'value': 'TU_VALOR_AQUI',
-            'domain': 'catalogo.treinta.co'
-        }];
-        await page.setCookie(...cookies);
-
-        await page.setRequestInterception(true);
-        page.on('request', (request) => request.continue());
-
-        page.on('response', async (response) => {
-            const url = response.url();
-            if (url.includes('products') || url.includes('catalog')) {
-                try {
-                    const data = await response.json();
-                    console.log(`📡 API detectada: ${url}`);
-                } catch (e) {}
-            }
-        });
-
+        console.log("🌐 Navegando a la tienda...");
         await page.goto(PROVIDER_URL, { waitUntil: 'networkidle2', timeout: 60000 });
 
-        console.log("🖱️ Simulando interacción humana inicial...");
-        await page.mouse.move(500, 500);
-        await page.evaluate(() => window.scrollTo(0, 500));
-        await new Promise(r => setTimeout(r, 2000));
+        console.log("⏳ Esperando la carga inicial...");
+        await new Promise(r => setTimeout(r, 4000));
 
         const scrapedProducts = await scrollAndExtract(page);
-        await browser.close();
-
-        const totalPotencial = scrapedProducts.length;
-        console.log(`🔍 DEBUG: El total de productos únicos encontrados es: ${totalPotencial}`);
-
-        const finalScraped = scrapedProducts.filter(p => p.titulo && p.precioCosto > 0);
 
         console.log(`\n=== 📊 AUDITORÍA DE CONTRASTE GINI ===`);
-        console.log(`• Total de productos capturados: ${finalScraped.length}`);
+        console.log(`• Total de productos capturados visualmente: ${scrapedProducts.length}`);
 
+        await browser.close();
+
+        const finalScraped = scrapedProducts.filter(p => p.titulo && p.precioCosto > 0);
         let inserts = [];
         let updates = [];
 
@@ -201,7 +165,6 @@ async function syncCatalog() {
                 updates.push(supabase.from('productos').update({
                     precio_costo: item.precioCosto,
                     precio: localItem.precio_fijo || Math.round(item.precioCosto * (1 + (localItem.porcentaje_ganancia || DEFAULT_MARGIN) / 100)),
-                    descripcion: item.descripcion,
                     imagen_url: item.imagen_url
                 }).eq('id', localItem.id));
             } else {
@@ -211,7 +174,6 @@ async function syncCatalog() {
                     porcentaje_ganancia: DEFAULT_MARGIN,
                     precio_fijo: null,
                     precio: Math.round(item.precioCosto * (1 + DEFAULT_MARGIN / 100)),
-                    descripcion: item.descripcion,
                     imagen_url: item.imagen_url
                 });
             }
