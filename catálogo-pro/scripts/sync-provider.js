@@ -140,7 +140,14 @@ async function syncCatalog() {
 
         const page = await browser.newPage();
         await page.setViewport({ width: 1920, height: 1080 });
-        await page.setUserAgent('Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/122.0.0.0 Safari/537.36');
+        await page.setUserAgent('Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/148.0.0.0 Safari/537.36');
+
+        const cookies = [{
+            'name': 'session', // El nombre de la cookie de sesión
+            'value': 'TU_VALOR_AQUI',
+            'domain': 'catalogo.treinta.co'
+        }];
+        await page.setCookie(...cookies);
 
         // 1. Antes del page.goto, configuramos la interceptación
         await page.setRequestInterception(true);
@@ -172,10 +179,23 @@ async function syncCatalog() {
 
         await page.goto(PROVIDER_URL, { waitUntil: 'networkidle2', timeout: 60000 });
 
+        console.log("🖱️ Simulando interacción humana inicial...");
+        await page.mouse.move(500, 500);
+        await page.evaluate(() => window.scrollTo(0, 500));
+        await new Promise(r => setTimeout(r, 2000));
+
         // Ejecutamos la función híbrida
         const scrapedProducts = await scrollAndExtract(page);
 
         await browser.close();
+
+        // DEBUG: Ver cuántos contenedores de producto estamos tocando realmente
+        const totalPotencial = await page.evaluate(() => {
+            // Buscamos los contenedores que Treinta usa para sus cards
+            const cards = document.querySelectorAll('[class*="product"], [class*="item"], article');
+            return cards.length;
+        });
+        console.log(`🔍 DEBUG: El DOM de la web tiene ${totalPotencial} elementos que parecen productos.`);
 
         const finalScraped = scrapedProducts.filter(p => p.titulo && p.precioCosto > 0);
 
