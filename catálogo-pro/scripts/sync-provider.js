@@ -12,47 +12,96 @@ if (!SUPABASE_URL || !SUPABASE_KEY) {
 
 const supabase = createClient(SUPABASE_URL, SUPABASE_KEY);
 
-async function forceDeepScroll(page) {
-    console.log("⏳ Iniciando scroll de persistencia dinámica profunda...");
-
-    await page.evaluate(async () => {
-        await new Promise((resolve) => {
+// =========================================================================
+// 🎯 MOTOR HÍBRIDO: ESCROLLEA, HACE CLIC EN BOTONES Y EXTRAE AL MISMO TIEMPO
+// =========================================================================
+async function scrollAndExtract(page) {
+    console.log("⏳ Iniciando motor híbrido anti-virtualización...");
+    
+    return await page.evaluate(async () => {
+        return await new Promise((resolve) => {
+            let foundMap = new Map(); // Memoria acumulativa para que no se dupliquen al hacer scroll
             let lastHeight = document.documentElement.scrollHeight;
-            let distance = 600; // Bajamos tramos más grandes de pixelado
+            let distance = 600; 
             let noChangeCount = 0;
 
             let timer = setInterval(() => {
+                // 1. EXTRAEMOS TODO LO QUE ESTÉ VIVO EN PANTALLA EN ESTE MOMENTO EXACTO
+                const allImages = document.querySelectorAll('img');
+                allImages.forEach(img => {
+                    let cardContainer = img.parentElement;
+                    let priceFound = null;
+                    let textBlocks = [];
+
+                    for (let i = 0; i < 6; i++) {
+                        if (!cardContainer) break;
+
+                        if (cardContainer.textContent && cardContainer.textContent.includes('$')) {
+                            const match = cardContainer.textContent.match(/\$[\s\u00a0]*([0-9.]+)/);
+                            if (match) priceFound = parseFloat(match[1].replace(/\./g, ''));
+                        }
+
+                        cardContainer.querySelectorAll('h1, h2, h3, h4, h5, h6, p, span, div').forEach(textEl => {
+                            const txt = textEl.textContent.trim();
+                            if (txt && !txt.includes('$') && txt.length > 2 && txt.length < 140) {
+                                if (!textBlocks.includes(txt)) textBlocks.push(txt);
+                            }
+                        });
+
+                        if (priceFound && priceFound > 0 && textBlocks.length > 0) {
+                            let titulo = textBlocks.find(t => t.toLowerCase().includes('ventilador') || t.length < 50);
+                            if (!titulo) titulo = textBlocks[0]; 
+                            titulo = titulo.replace(/[\*\'\´\"]/g, '').trim();
+                            
+                            let descripcion = textBlocks.find(t => t.length > titulo.length && t !== titulo) || '';
+                            if (descripcion.toLowerCase().includes('sin descripción') || descripcion.toLowerCase().includes('no descripción')) {
+                                descripcion = '';
+                            }
+
+                            // Guardamos en el Map usando el título como llave única
+                            const key = titulo.toLowerCase();
+                            if (!foundMap.has(key)) {
+                                foundMap.set(key, { titulo, precioCosto: priceFound, descripcion, imagen_url: img.src });
+                            }
+                            break; 
+                        }
+                        cardContainer = cardContainer.parentElement;
+                    }
+                });
+
+                // 2. BUSCAMOS Y PULSAMOS EL BOTÓN DE "CARGAR MÁS" SI EXISTE (Sugerencia IA)
+                const keywords = ['ver más', 'cargar más', 'mostrar más', 'load more', 'ver mas', 'más productos'];
+                const buttons = Array.from(document.querySelectorAll('button, div[role="button"], a'));
+                const targetBtn = buttons.find(btn => keywords.some(kw => btn.textContent.toLowerCase().includes(kw)) && btn.offsetWidth > 0);
+                if (targetBtn) {
+                    targetBtn.scrollIntoView();
+                    targetBtn.click();
+                }
+
+                // 3. BAJAMOS UN TRAMO MÁS
                 window.scrollBy(0, distance);
-
+                
+                // 4. VERIFICAMOS SI LLEGAMOS AL FONDO REAL
                 let currentHeight = document.documentElement.scrollHeight;
-
-                // Si la altura actual es igual a la anterior, es porque puede estar cargando datos
                 if (currentHeight === lastHeight) {
                     noChangeCount++;
-                    // Si pasa 4 veces seguidas sin crecer (más de 3 segundos de espera total), llegamos al fondo real
-                    if (noChangeCount >= 4) {
+                    if (noChangeCount >= 5) { // Esperamos ~4 segundos sin cambios antes de rendirnos
                         clearInterval(timer);
-                        resolve();
+                        resolve(Array.from(foundMap.values())); // Retornamos toda la memoria acumulada
                     }
                 } else {
-                    // Si la altura cambió, reiniciamos el contador y actualizamos la marca
                     noChangeCount = 0;
                     lastHeight = currentHeight;
                 }
-            }, 800); // 800ms: pausa clave para que la API de Treinta inyecte la siguiente tanda en el HTML
+            }, 800); // Ritmo de 800ms para dejar renderizar a la SPA
 
-            // Salvavidas absoluto: a los 90 segundos corta pase lo que pase para no dejar colgado el servidor
-            setTimeout(() => { clearInterval(timer); resolve(); }, 90000);
+            setTimeout(() => { clearInterval(timer); resolve(Array.from(foundMap.values())); }, 120000); // Max 2 min
         });
     });
-
-    // Pausa de estabilización final fuera de la evaluación
-    await new Promise(r => setTimeout(r, 3000));
-    console.log("✅ Scroll profundo finalizado. Catálogo completamente expandido.");
 }
 
 async function syncCatalog() {
-    console.log(`[${new Date().toISOString()}] Iniciando escáner visual con sanitización de precios...`);
+    console.log(`[${new Date().toISOString()}] Arrancando escáner...`);
     let browser;
     try {
         const { data: dbProducts, error: dbError } = await supabase
@@ -64,112 +113,42 @@ async function syncCatalog() {
 
         browser = await puppeteer.launch({
             headless: true,
-            args: [
-                '--no-sandbox',
-                '--disable-setuid-sandbox',
-                '--disable-dev-shm-usage',
-                '--window-size=1920,1080' // Forzamos tamaño de monitor de escritorio
-            ]
+            args: ['--no-sandbox', '--disable-setuid-sandbox', '--disable-dev-shm-usage', '--window-size=1920,1080']
         });
 
         const page = await browser.newPage();
-        await page.setViewport({ width: 1920, height: 1080 }); // Viewport expandido anti-bloqueos
+        await page.setViewport({ width: 1920, height: 1080 });
         await page.setUserAgent('Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/122.0.0.0 Safari/537.36');
 
         await page.goto(PROVIDER_URL, { waitUntil: 'networkidle2', timeout: 60000 });
-        await forceDeepScroll(page);
-        await new Promise(resolve => setTimeout(resolve, 3000));
-
-        const scrapedProducts = await page.evaluate(() => {
-            let found = [];
-
-            // 🎯 CAPTURA DIRECTA DE TARJETAS: Buscamos cualquier elemento que actúe como bloque de producto
-            // En Treinta, los productos suelen estar contenidos en etiquetas de listas, artículos o divs con bordes.
-            // Para ser universales, buscamos todas las imágenes primero y rastreamos sus contenedores.
-            const allImages = document.querySelectorAll('img');
-
-            allImages.forEach(img => {
-                // Buscamos el contenedor padre más cercano que encierre a la imagen y a su texto (subimos hasta 6 niveles)
-                let cardContainer = img.parentElement;
-                let priceFound = null;
-                let textBlocks = [];
-
-                for (let i = 0; i < 6; i++) {
-                    if (!cardContainer) break;
-
-                    // Si este contenedor ya lo procesamos mediante otra imagen, saltamos
-                    if (cardContainer.textContent && cardContainer.textContent.includes('$')) {
-                        // Buscamos el precio dentro de este bloque
-                        const match = cardContainer.textContent.match(/\$[\s\u00a0]*([0-9.]+)/);
-                        if (match) {
-                            priceFound = parseFloat(match[1].replace(/\./g, ''));
-                        }
-                    }
-
-                    // Extraemos todos los textos limpios de los alrededores de la imagen
-                    cardContainer.querySelectorAll('h1, h2, h3, h4, h5, h6, p, span, div').forEach(textEl => {
-                        const txt = textEl.textContent.trim();
-                        if (txt && !txt.includes('$') && txt.length > 2 && txt.length < 140) {
-                            if (!textBlocks.includes(txt)) {
-                                textBlocks.push(txt);
-                            }
-                        }
-                    });
-
-                    // Si encontramos un precio válido y texto en este bloque, es un producto legítimo
-                    if (priceFound && priceFound > 0 && textBlocks.length > 0) {
-                        // Limpieza de títulos (remover asteriscos y comillas raras de pulgadas)
-                        let titulo = textBlocks.find(t => t.toLowerCase().includes('ventilador') || t.length < 50);
-                        if (!titulo) titulo = textBlocks[0]; // Fallback al primer texto
-
-                        titulo = titulo.replace(/[\*\'\´\"]/g, '').trim();
-
-                        let descripcion = textBlocks.find(t => t.length > titulo.length && t !== titulo) || '';
-                        if (descripcion.toLowerCase().includes('sin descripción') || descripcion.toLowerCase().includes('no descripción')) {
-                            descripcion = '';
-                        }
-
-                        if (!found.some(p => p.titulo.toLowerCase() === titulo.toLowerCase())) {
-                            found.push({
-                                titulo: titulo,
-                                precioCosto: priceFound,
-                                descripcion: descripcion,
-                                imagen_url: img.src
-                            });
-                        }
-                        break; // Salimos del bucle de niveles para esta imagen
-                    }
-
-                    cardContainer = cardContainer.parentElement;
-                }
-            });
-
-            return found;
-        });
-
+        
+        // Ejecutamos la función híbrida
+        const scrapedProducts = await scrollAndExtract(page);
+        
         await browser.close();
 
-        // FILTRO DE CONTROL REPARADO: Removimos la condición agresiva de exclusión de texto
         const finalScraped = scrapedProducts.filter(p => p.titulo && p.precioCosto > 0);
 
         // =========================================================================
-        // 🎯 BLOQUE DE AUDITORÍA DE CONTRASTE INTEGRADO
+        // 🎯 AUDITORÍA DE CONTRASTE GINI
         // =========================================================================
         console.log(`\n=== 📊 AUDITORÍA DE CONTRASTE GINI ===`);
-        console.log(`• Productos detectados vivos en la web hoy: ${finalScraped.length}`);
-
+        console.log(`• Total de productos capturados por el acumulador en la web: ${finalScraped.length}`);
+        
         if (dbProducts) {
-            const faltantes = finalScraped.filter(pWeb =>
+            const faltantes = finalScraped.filter(pWeb => 
                 !localMap.has(pWeb.titulo.toLowerCase())
             );
 
             if (faltantes.length > 0) {
-                console.log(`⚠️ ALERTA: Hay ${faltantes.length} productos omitidos en Supabase que se van a impactar ahora:`);
-                faltantes.forEach((p, idx) => {
-                    console.log(`   [${idx + 1}] -> "${p.titulo}" | Costo Base: $${p.precioCosto}`);
+                console.log(`⚠️ ALERTA: Ingresando ${faltantes.length} productos nuevos a Supabase:`);
+                // Solo imprimimos los primeros 10 para no saturar la consola si son cientos
+                faltantes.slice(0, 10).forEach((p, idx) => {
+                    console.log(`   [${idx + 1}] -> "${p.titulo}" | Costo: $${p.precioCosto}`);
                 });
+                if(faltantes.length > 10) console.log(`   ...y ${faltantes.length - 10} más.`);
             } else {
-                console.log(`✅ ¡Sincronización perfecta! No quedan productos colgados en el puente.`);
+                console.log(`✅ ¡Sincronización perfecta! No quedan productos omitidos.`);
             }
         }
         console.log(`=======================================\n`);
@@ -226,10 +205,13 @@ async function syncCatalog() {
             if (insErr) throw insErr;
         }
         if (updates.length > 0) {
-            await Promise.all(updates);
+            // Partimos los updates en lotes para no saturar Supabase si son cientos
+            for (let i = 0; i < updates.length; i += 50) {
+                await Promise.all(updates.slice(i, i + 50));
+            }
         }
 
-        console.log(`[SINCRO COMPLETADA] Base de datos actualizada correctamente.`);
+        console.log(`[SINCRO COMPLETADA] Base de datos actualizada con éxito.`);
     } catch (error) {
         console.error(`[Error]: ${error.message}`);
         if (browser) await browser.close();
