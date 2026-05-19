@@ -10,50 +10,46 @@
     <style>
         body { font-family: 'Inter', system-ui, sans-serif; background-color: #F8FAFC; color: #1E293B; }
         .mono { font-family: 'IBM Plex Mono', monospace; }
-        [v-cloak] { display: none; }
         .tab-content { display: none; }
         .tab-content.active { display: block; }
         .btn-loading { pointer-events: none; opacity: 0.7; }
-        
-        /* Minimalism Elements */
         .btn-primary { background-color: #0F172A; color: white; transition: all 0.2s; }
         .btn-primary:hover { background-color: #1e293b; }
         .input-minimal { background-color: #F1F5F9; border: 1px solid #E2E8F0; border-radius: 8px; transition: all 0.2s; }
         .input-minimal:focus { border-color: #0F172A; outline: none; background-color: white; }
-        
         @keyframes slideIn { from { transform: translateY(10px); opacity: 0; } to { transform: translateY(0); opacity: 1; } }
         .slide-in { animation: slideIn 0.3s ease-out forwards; }
     </style>
-  <script type="module" crossorigin src="/giniexpress/assets/admin-DUeiWFRf.js"></script>
+  <script type="module" crossorigin src="/giniexpress/assets/admin-C6BiqVIk.js"></script>
   <link rel="modulepreload" crossorigin href="/giniexpress/assets/index-CMzVDswU.js">
 </head>
 <body class="min-h-screen">
 
-    <div id="loginSection" class="hidden min-h-screen flex items-center justify-center p-6">
-        <div class="bg-white rounded-2xl p-10 md:p-14 shadow-2xl w-full max-w-md border border-slate-100 flex flex-col items-center">
-            <div class="text-center mb-10">
-                <div class="w-16 h-16 bg-slate-900 rounded-2xl flex items-center justify-center text-white mx-auto mb-6 shadow-xl shadow-slate-200">
-                    <i data-lucide="shield-check" class="w-8 h-8"></i>
+    <div id="loginSection" class="hidden min-h-screen bg-slate-950 flex items-center justify-center p-6 select-none">
+        <div class="bg-slate-900 rounded-2xl p-10 shadow-2xl w-full max-w-md border border-slate-800 flex flex-col items-center slide-in">
+            <div class="text-center mb-8">
+                <div class="w-14 h-14 bg-white rounded-2xl flex items-center justify-center text-slate-950 mx-auto mb-4 shadow-xl">
+                    <i data-lucide="shield-check" class="w-7 h-7"></i>
                 </div>
-                <h1 class="text-2xl font-bold text-slate-900">Admin Portal</h1>
-                <p class="text-slate-400 text-sm mt-2">Identifícate para gestionar tu tienda</p>
+                <h1 class="text-xl font-bold text-white tracking-tight">Admin Portal</h1>
+                <p class="text-slate-400 text-xs mt-1.5">Identifícate para gestionar tu tienda</p>
             </div>
             
-            <form id="loginForm" class="w-full space-y-6">
+            <form id="loginForm" class="w-full space-y-5">
                 <div class="space-y-1.5">
                     <label class="text-[10px] font-bold uppercase tracking-widest text-slate-400 ml-1">E-mail Address</label>
-                    <input type="email" id="email" required class="w-full input-minimal px-4 py-3.5 text-sm">
+                    <input type="email" id="email" required class="w-full bg-slate-950 border border-slate-800 rounded-xl px-4 py-3 text-sm text-white focus:border-white focus:outline-none transition-colors">
                 </div>
                 <div class="space-y-1.5">
                     <label class="text-[10px] font-bold uppercase tracking-widest text-slate-400 ml-1">Password</label>
-                    <input type="password" id="password" required class="w-full input-minimal px-4 py-3.5 text-sm">
+                    <input type="password" id="password" required class="w-full bg-slate-950 border border-slate-800 rounded-xl px-4 py-3 text-sm text-white focus:border-white focus:outline-none transition-colors">
                 </div>
-                <button type="submit" id="loginBtn" class="w-full btn-primary py-4 rounded-xl font-bold flex items-center justify-center gap-2 shadow-xl shadow-slate-200 mt-4">
-                    Comenzar sesión <i data-lucide="chevron-right" class="w-4 h-4 text-white/50"></i>
+                <button type="submit" id="loginBtn" class="w-full bg-white text-slate-950 hover:bg-slate-200 py-3.5 rounded-xl font-bold flex items-center justify-center gap-2 transition-all shadow-xl text-sm mt-2">
+                    Comenzar sesión <i data-lucide="chevron-right" class="w-4 h-4 text-slate-950/60"></i>
                 </button>
             </form>
-            <div class="mt-10">
-                <a href="index.html" class="text-xs font-bold text-slate-300 hover:text-slate-900 transition-all tracking-widest uppercase">← Back to Store</a>
+            <div class="mt-8">
+                <a href="index.html" class="text-[11px] font-semibold text-slate-500 hover:text-slate-300 transition-colors tracking-wider uppercase">← Volver a la Tienda</a>
             </div>
         </div>
     </div>
@@ -71,13 +67,12 @@
                     <nav class="hidden md:flex gap-1">
                         <button onclick="showTab('inventory')" class="nav-tab text-xs font-bold uppercase tracking-wider px-4 py-2 rounded-lg bg-slate-900 text-white" data-tab="inventory">Inventory</button>
                         <button onclick="showTab('add')" class="nav-tab text-xs font-bold uppercase tracking-wider px-4 py-2 rounded-lg text-slate-400 hover:text-slate-900 transition-colors" data-tab="add">Add NEW</button>
-                        <button onclick="showTab('bulk')" class="nav-tab text-xs font-bold uppercase tracking-wider px-4 py-2 rounded-lg text-slate-400 hover:text-slate-900 transition-colors" data-tab="bulk">Bulk Update</button>
-                        <button onclick="showTab('import')" class="nav-tab text-xs font-bold uppercase tracking-wider px-4 py-2 rounded-lg text-slate-400 hover:text-slate-900 transition-colors" data-tab="import">Import</button>
+                        <button onclick="showTab('bulk')" class="nav-tab text-xs font-bold uppercase tracking-wider px-4 py-2 rounded-lg text-slate-400 hover:text-slate-900 transition-colors" data-tab="bulk">Bulk Reset</button>
                     </nav>
                 </div>
                 <div class="flex items-center gap-5">
                     <div id="userEmail" class="text-[10px] font-bold text-slate-300 hidden sm:block bg-slate-50 px-3 py-1.5 rounded-md border border-slate-100">...</div>
-                    <button id="logoutBtn" class="text-slate-300 hover:text-red-500 transition-colors bg-white hover:bg-red-50 p-2 rounded-lg border border-slate-100">
+                    <button id="logoutBtn" class="text-slate-300 hover:text-red-500 transition-colors bg-white p-2 rounded-lg border border-slate-100">
                         <i data-lucide="log-out" class="w-4 h-4"></i>
                     </button>
                 </div>
@@ -89,9 +84,8 @@
                 <div class="flex flex-col sm:flex-row justify-between items-start sm:items-center mb-10 gap-4">
                     <div>
                         <h2 class="text-2xl font-bold text-slate-900">Inventario</h2>
-                        <p class="text-sm text-slate-400 mt-1">Gestión de márgenes y sincronización</p>
+                        <p class="text-sm text-slate-400 mt-1">Gestión avanzada de reglas de precios e importaciones</p>
                     </div>
-                    
                     <div class="flex flex-col sm:flex-row items-center gap-4 w-full sm:w-auto">
                         <div class="relative w-full sm:w-64">
                             <input type="text" id="adminSearchInput" placeholder="Buscar producto a editar..." class="w-full bg-white border border-slate-200 rounded-lg pl-9 pr-4 py-2 text-xs focus:border-slate-950 focus:outline-none transition-colors shadow-sm">
@@ -99,7 +93,6 @@
                                 <i data-lucide="search" class="w-3.5 h-3.5"></i>
                             </div>
                         </div>
-                        
                         <div class="flex items-center gap-4 flex-shrink-0">
                             <span id="productCount" class="text-[10px] font-bold uppercase tracking-widest text-slate-400 bg-slate-100 px-3 py-1 rounded-full">0 ITEMS</span>
                             <button onclick="fetchProducts()" class="p-2 border border-slate-200 rounded-lg text-slate-400 hover:text-slate-900 hover:bg-white transition-all">
@@ -114,12 +107,12 @@
                         <table class="w-full text-left">
                             <thead class="bg-slate-50 border-b border-slate-100">
                                 <tr>
-                                    <th class="px-8 py-5 text-[10px] font-bold uppercase tracking-widest text-slate-400">Producto</th>
-                                    <th class="px-8 py-5 text-[10px] font-bold uppercase tracking-widest text-slate-400">Costo Base</th>
-                                    <th class="px-8 py-5 text-[10px] font-bold uppercase tracking-widest text-slate-400">Margen (%)</th>
-                                    <th class="px-8 py-5 text-[10px] font-bold uppercase tracking-widest text-slate-400">Precio Venta</th>
-                                    <th class="px-8 py-5 text-[10px] font-bold uppercase tracking-widest text-slate-400">Descripción</th>
-                                    <th class="px-8 py-5 text-[10px] font-bold uppercase tracking-widest text-slate-400 text-right">Acciones</th>
+                                    <th class="px-6 py-4 text-[10px] font-bold uppercase tracking-widest text-slate-400">Producto</th>
+                                    <th class="px-6 py-4 text-[10px] font-bold uppercase tracking-widest text-slate-400">Costo Base</th>
+                                    <th class="px-6 py-4 text-[10px] font-bold uppercase tracking-widest text-slate-400">Estrategia / Parámetro</th>
+                                    <th class="px-6 py-4 text-[10px] font-bold uppercase tracking-widest text-slate-400">Precio Venta</th>
+                                    <th class="px-6 py-4 text-[10px] font-bold uppercase tracking-widest text-slate-400">Descripción</th>
+                                    <th class="px-6 py-4 text-[10px] font-bold uppercase tracking-widest text-slate-400 text-right">Acciones</th>
                                 </tr>
                             </thead>
                             <tbody id="inventoryTable" class="divide-y divide-slate-50"></tbody>
@@ -131,8 +124,7 @@
             <section id="add" class="tab-content slide-in">
                 <div class="max-w-2xl mx-auto">
                     <div class="mb-10 text-center">
-                        <h2 class="text-2xl font-bold text-slate-900">Nuevo Producto</h2>
-                        <p class="text-sm text-slate-400 mt-1">Añade ítems manualmente al catálogo</p>
+                        <h2 class="text-2xl font-bold text-slate-900">Nuevo Producto Manual</h2>
                     </div>
                     <form id="addProductForm" class="bg-white p-10 border border-slate-100 rounded-2xl shadow-sm space-y-8">
                         <div class="grid grid-cols-1 md:grid-cols-2 gap-8">
@@ -153,9 +145,7 @@
                             <label class="text-[10px] font-bold uppercase tracking-widest text-slate-400 ml-1">Descripción</label>
                             <textarea id="addDescription" required rows="3" class="w-full input-minimal px-4 py-3.5 text-sm resize-none"></textarea>
                         </div>
-                        <button type="submit" id="submitProductBtn" class="w-full btn-primary py-4 rounded-xl font-bold flex items-center justify-center gap-2">
-                            <i data-lucide="plus" class="w-4 h-4"></i> Crear Ítem
-                        </button>
+                        <button type="submit" id="submitProductBtn" class="w-full btn-primary py-4 rounded-xl font-bold">Crear Ítem</button>
                     </form>
                 </div>
             </section>
@@ -163,51 +153,15 @@
             <section id="bulk" class="tab-content slide-in">
                 <div class="max-w-2xl mx-auto">
                     <div class="mb-10 text-center">
-                        <h2 class="text-2xl font-bold text-slate-900">Ajuste de Margen</h2>
-                        <p class="text-sm text-slate-400 mt-1">Define un nuevo porcentaje de ganancia para todo el catálogo</p>
+                        <h2 class="text-2xl font-bold text-slate-900">Reestablecer Catálogo Completo</h2>
+                        <p class="text-sm text-slate-400 mt-1">Fuerza a todos los productos a usar porcentaje, eliminando precios manuales fijos</p>
                     </div>
                     <div class="bg-white p-10 border border-slate-100 rounded-2xl shadow-sm">
                         <div class="space-y-8 text-center">
-                            <p class="text-xs text-slate-400">Ingresa el nuevo porcentaje de ganancia basado en el costo del proveedor.</p>
                             <input type="number" id="bulkPercent" placeholder="Ej: 15" class="w-32 mx-auto input-minimal px-4 py-4 text-center text-2xl font-bold">
-                            <button id="applyBulkBtn" class="w-full btn-primary py-4 rounded-xl font-bold flex items-center justify-center gap-2 shadow-lg shadow-slate-100">
-                                <i data-lucide="zap" class="w-4 h-4"></i> Aplicar a Todo
+                            <button id="applyBulkBtn" class="w-full btn-primary py-4 rounded-xl font-bold flex items-center justify-center gap-2">
+                                <i data-lucide="zap" class="w-4 h-4"></i> Aplicar Porcentaje Global
                             </button>
-                        </div>
-                    </div>
-                </div>
-            </section>
-
-            <section id="import" class="tab-content slide-in">
-                <div class="max-w-3xl mx-auto">
-                    <div class="mb-10 text-center">
-                        <h2 class="text-2xl font-bold text-slate-900">Importación Rápida</h2>
-                        <p class="text-sm text-slate-400 mt-1">Migra tus productos desde el catálogo de Treinta</p>
-                    </div>
-                    
-                    <div class="bg-white p-10 border border-slate-100 rounded-2xl shadow-sm space-y-8">
-                        <div class="space-y-4">
-                            <div class="p-5 bg-blue-50 border border-blue-100 rounded-xl flex gap-4">
-                                <div class="text-blue-500"><i data-lucide="info" class="w-5 h-5"></i></div>
-                                <div class="text-xs text-blue-700 leading-relaxed">
-                                    <strong>¿Cómo importar?</strong> <br>
-                                    1. Entra a tu catálogo de Treinta. <br>
-                                    2. Haz clic derecho y elige "Ver código fuente" o presiona Ctrl+U. <br>
-                                    3. Selecciona todo el código (Ctrl+A), cápialo y pégalo aquí abajo.
-                                </div>
-                            </div>
-                            
-                            <div class="space-y-1.5">
-                                <label class="text-[10px] font-bold uppercase tracking-widest text-slate-400 ml-1">Código Fuente HTML</label>
-                                <textarea id="treintaSource" placeholder="Pega el HTML aquí..." class="w-full h-80 input-minimal px-4 py-4 text-[10px] mono resize-none"></textarea>
-                            </div>
-                        </div>
-
-                        <div class="flex flex-col gap-4">
-                            <button id="importTreintaBtn" class="w-full btn-primary py-4 rounded-xl font-bold flex items-center justify-center gap-2 shadow-xl shadow-slate-200">
-                                <i data-lucide="download-cloud" class="w-5 h-5"></i> Importar desde Treinta
-                            </button>
-                            <p id="importStatus" class="text-center text-xs font-bold text-slate-400 hidden"></p>
                         </div>
                     </div>
                 </div>
@@ -215,9 +169,7 @@
         </main>
     </div>
 
-    <div id="toast" class="fixed bottom-8 left-1/2 -translate-x-1/2 z-[100] px-6 py-3 bg-black text-white text-sm font-medium rounded-full shadow-2xl transition-all duration-300 translate-y-20 opacity-0 pointer-events-none">
-        Operación exitosa
-    </div>
+    <div id="toast" class="fixed bottom-8 left-1/2 -translate-x-1/2 z-[100] px-6 py-3 bg-black text-white text-sm font-medium rounded-full shadow-2xl transition-all duration-300 translate-y-20 opacity-0 pointer-events-none"></div>
 
 </body>
 </html>
