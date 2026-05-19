@@ -4,7 +4,7 @@
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>GINI</title>
-    <link rel="icon" type="image/svg+xml" href="data:image/svg+xml;base64,PHN2ZyB4bWxucz0iaHR0cDovL3d3dy53My5vcmcvMjAwMC9zdmciIHZpZXdCb3g9IjAgMCA2NCA2NCI+PGcgaWQ9Imdpb3JnaW8iPjxjaXJjbGUgY3g9IjIyIiBjeT0iMzYiIHI9IjE0IiBmaWxsPSJub25lIiBzdHJva2U9IiMyMTk2RjMiIHN0cm9rZS13aWR0aD0iNSIgc3Ryb2tlLWxpbmVjYXA9InJvdW5kIi8+PHBhdGggZD0iTTIyLDIyIEMyMSwxNSAxNSwxNiAxOCwyMSIgZmlsbD0ibm9uZSIgc3Ryb2tlPSIjMjE5NkYzIiBzdHJva2Utd2lkdGg9IjQiIHN0cm9rZS1saW5lY2FwPSJyb3VuZCIvPjwvZz48ZyBpZD0ibmluYSI+PGNpcmNsZSBjeD0iNDIiIGN5PSIzNiIgcj0iMTQiIGZpbGw9Im5vbmUiIHN0cm9rZS1fI0U5MUU2MyIgc3Ryb2tlLXdpZHRoPSI1IiBzdHJva2UtbGluZWNhcD0icm91bmQiLz48cGF0aCBkPSJNNDIsMjIgTDM2LDE2IEwzNoyMjQgWiIgZmlsbD0iI0U5MUU2MyIvPjxwYXRoIGQ9Ik00MiwyMiBMNDgsMTYgTDQ4LDI0IFoiIGZpbGw9IiNFOTFFNjMiLz48Y2lyY2xlIGN4PSI0MiIgY3k9IjIwIiByPSIzIiBmaWxsPSIjRTkxRTYzIi8+PC9nPjwvc3ZnPg==">
+    <link rel="icon" type="image/svg+xml" href="data:image/svg+xml;base64,PHN2ZyB4bWxucz0iaHR0cDovL3d3dy53My5vcmcvMjAwMC9zdmciIHZpZXdCb3g9IjAgMCA2NCA2NCIgd2lkdGg9IjEwMCUiIGhlaWdodD0iMTAwJSI+PGcgaWQ9Imdpb3JnaW8iPjxjaXJjbGUgY3g9IjIyIiBjeT0iMzYiIHI9IjE0IiBmaWxsPSJub25lIiBzdHJva2U9IiMyMTk2RjMiIHN0cm9rZS13aWR0aD0iNSIgc3Ryb2tlLWxpbmVjYXA9InJvdW5kIi8+PHBhdGggZD0iTTIyLDIyIEMyMSwxNSAxNSwxNiAxOCwyMSIgZmlsbD0ibm9uZSIgc3Ryb2tlPSIjMjE5NkYzIiBzdHJva2Utd2lkdGg9IjQiIHN0cm9rZS1saW5lY2FwPSJyb3VuZCIvPjwvZz48ZyBpZD0ibmluYSI+PGNpcmNsZSBjeD0iNDIiIGN5PSIzNiIgcj0iMTQiIGZpbGw9Im5vbmUiIHN0cm9rZT0iI0U5MUU2MyIgc3Ryb2tlLXdpZHRoPSI1IiBzdHJva2UtbGluZWNhcD0icm91bmQiLz48cGF0aCBkPSJNNDIsMjIgTDM2LDE2IEwzNiwyNCBaIiBmaWxsPSIjRTkxRTYzIi8+PHBhdGggZD0iTTQyLDIyIEw0OCwxNiBMNDgsMjQgWiIgZmlsbD0iI0U5MUU2MyIvPjxjaXJjbGUgY3g9IjQyIiBjeT0iMjAiIHI9IjMiIGZpbGw9IiNFOTFFNjMiLz48/nPjwvc3ZnPg==">
     <script src="https://unpkg.com/@tailwindcss/browser@4"></script>
     <script src="https://unpkg.com/lucide@latest"></script>
     <link href="https://fonts.googleapis.com/css2?family=IBM+Plex+Mono:wght@400;500;600&family=Inter:wght@300;400;500;600;700&display=swap" rel="stylesheet">
@@ -21,11 +21,12 @@
         @keyframes slideIn { from { transform: translateY(10px); opacity: 0; } to { transform: translateY(0); opacity: 1; } }
         .slide-in { animation: slideIn 0.3s ease-out forwards; }
 
+        /* REGLAS COMPLEMENTARIAS DE INTEGRACIÓN DARK MODE */
         body.dark-mode { background-color: #020617; color: #F8FAFC; }
         body.dark-mode header { background-color: #0F172A !important; border-color: #1E293B !important; }
         body.dark-mode header span { color: #FFFFFF !important; }
-        body.dark-mode .bg-white { background-color: #0F172A !important; border-color: #1E293B !important; }
-        body.dark-mode .text-slate-900 { color: #FFFFFF !important; }
+        body.dark-mode .bg-white, body.dark-mode #loginCard { background-color: #0F172A !important; border-color: #1E293B !important; }
+        body.dark-mode .text-slate-900, body.dark-mode #loginCard h1 { color: #FFFFFF !important; }
         body.dark-mode .text-slate-800 { color: #E2E8F0 !important; }
         body.dark-mode .border-slate-100, body.dark-mode .border-slate-200 { border-color: #1E293B !important; }
         body.dark-mode .bg-slate-50 { background-color: #1E293B !important; }
@@ -34,17 +35,24 @@
         body.dark-mode input::placeholder { color: #64748B !important; }
         body.dark-mode .nav-tab:not(.bg-slate-900) { color: #94A3B8 !important; }
         body.dark-mode .nav-tab:not(.bg-slate-900):hover { color: #FFFFFF !important; background-color: #1E293B !important; }
-        body.dark-mode #themeToggle { background-color: #0F172A !important; border-color: #1E293B !important; color: #94A3B8 !important; }
-        body.dark-mode #themeToggle:hover { color: #FFFFFF !important; }
+        body.dark-mode #themeToggle, body.dark-mode #loginThemeToggle { background-color: #0F172A !important; border-color: #1E293B !important; color: #94A3B8 !important; }
+        body.dark-mode #themeToggle:hover, body.dark-mode #loginThemeToggle:hover { color: #FFFFFF !important; }
         body.dark-mode #logoutBtn { background-color: #0F172A !important; border-color: #1E293B !important; color: #64748B !important; }
         body.dark-mode #logoutBtn:hover { color: #EF4444 !important; background-color: #7F1D1D/20 !important; }
         body.dark-mode #productCount { background-color: #1E293B !important; color: #94A3B8 !important; }
+        body.dark-mode #loginSection { background-color: #020617 !important; }
+        body.dark-mode #loginCard button[type="submit"] { background-color: #FFFFFF !important; color: #020617 !important; }
     </style>
 </head>
 <body class="min-h-screen">
 
-    <div id="loginSection" class="hidden min-h-screen bg-slate-950 flex items-center justify-center p-6 select-none">
-        <div class="bg-slate-900 rounded-2xl p-10 shadow-2xl w-full max-w-md border border-slate-800 flex flex-col items-center slide-in">
+    <div id="loginSection" class="hidden min-h-screen bg-slate-50 flex items-center justify-center p-6 select-none relative transition-colors">
+        
+        <button id="loginThemeToggle" class="absolute top-6 right-6 text-slate-400 hover:text-slate-900 p-2 rounded-lg border border-slate-200 bg-white cursor-pointer transition-colors flex items-center justify-center w-9 h-9">
+            <i data-lucide="moon" class="w-4 h-4"></i>
+        </button>
+
+        <div id="loginCard" class="bg-white rounded-2xl p-10 shadow-2xl w-full max-w-md border border-slate-100 flex flex-col items-center slide-in transition-colors">
             <div class="text-center mb-8">
                 <div class="w-16 h-16 rounded-2xl flex items-center justify-center mx-auto mb-4 p-1">
                     <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 64 64" width="100%" height="100%">
@@ -60,25 +68,25 @@
                         </g>
                     </svg>
                 </div>
-                <h1 class="text-xl font-bold text-white tracking-tight">GINI EXPRESS</h1>
+                <h1 class="text-xl font-bold text-slate-900 tracking-tight">GINI EXPRESS</h1>
                 <p class="text-slate-400 text-xs mt-1.5">Identifícate para gestionar tu tienda</p>
             </div>
             
             <form id="loginForm" class="w-full space-y-5">
                 <div class="space-y-1.5">
                     <label class="text-[10px] font-bold uppercase tracking-widest text-slate-400 ml-1">E-mail Address</label>
-                    <input type="email" id="email" required class="w-full bg-slate-950 border border-slate-800 rounded-xl px-4 py-3 text-sm text-white focus:border-white focus:outline-none transition-colors">
+                    <input type="email" id="email" required class="w-full input-minimal px-4 py-3 text-sm focus:outline-none">
                 </div>
                 <div class="space-y-1.5">
                     <label class="text-[10px] font-bold uppercase tracking-widest text-slate-400 ml-1">Password</label>
-                    <input type="password" id="password" required class="w-full bg-slate-950 border border-slate-800 rounded-xl px-4 py-3 text-sm text-white focus:border-white focus:outline-none transition-colors">
+                    <input type="password" id="password" required class="w-full input-minimal px-4 py-3 text-sm focus:outline-none">
                 </div>
-                <button type="submit" id="loginBtn" class="w-full bg-white text-slate-950 hover:bg-slate-200 py-3.5 rounded-xl font-bold flex items-center justify-center gap-2 transition-all shadow-xl text-sm mt-2">
-                    Comenzar sesión <i data-lucide="chevron-right" class="w-4 h-4 text-slate-950/60"></i>
+                <button type="submit" id="loginBtn" class="w-full btn-primary py-3.5 rounded-xl font-bold flex items-center justify-center gap-2 transition-all shadow-xl text-sm mt-2 cursor-pointer">
+                    Comenzar sesión <i data-lucide="chevron-right" class="w-4 h-4 opacity-60"></i>
                 </button>
             </form>
             <div class="mt-8">
-                <a href="index.html" class="text-[11px] font-semibold text-slate-500 hover:text-slate-300 transition-colors tracking-wider uppercase">← Volver a la Tienda</a>
+                <a href="index.html" class="text-[11px] font-semibold text-slate-400 hover:text-slate-600 transition-colors tracking-wider uppercase">← Volver a la Tienda</a>
             </div>
         </div>
     </div>
@@ -112,7 +120,7 @@
                 </div>
                 <div class="flex items-center gap-3">
                     <div id="userEmail" class="text-[10px] font-bold text-slate-300 hidden sm:block bg-slate-50 px-3 py-1.5 rounded-md border border-slate-100">...</div>
-                    <button id="themeToggle" class="text-slate-400 hover:text-slate-900 p-2 rounded-lg border border-slate-100 bg-white cursor-pointer transition-colors flex items-center justify-center">
+                    <button id="themeToggle" class="text-slate-400 hover:text-slate-900 p-2 rounded-lg border border-slate-100 bg-white cursor-pointer transition-colors flex items-center justify-center w-9 h-9">
                         <i data-lucide="moon" class="w-4 h-4"></i>
                     </button>
                     <button id="logoutBtn" class="text-slate-300 hover:text-red-500 transition-colors bg-white p-2 rounded-lg border border-slate-100 cursor-pointer">
@@ -225,7 +233,8 @@
         let currentUser = null;
 
         async function init() {
-            const savedTheme = localStorage.getItem('admin_theme') || 'light';
+            // Sincronización compartida de LocalStorage utilizando la clave unica gini_theme
+            const savedTheme = localStorage.getItem('gini_theme') || 'light';
             if (savedTheme === 'dark') {
                 document.body.classList.add('dark-mode');
             }
@@ -244,20 +253,25 @@
             document.getElementById('addProductForm').onsubmit = handleAddProduct;
             document.getElementById('applyBulkBtn').onclick = handleBulkUpdate;
             document.getElementById('adminSearchInput').oninput = handleAdminSearch;
+            
+            // Listeners duplicados para responder al cambio desde Login o Panel Interno
             document.getElementById('themeToggle').onclick = toggleTheme;
+            document.getElementById('loginThemeToggle').onclick = toggleTheme;
         }
 
         function toggleTheme() {
             const isDark = document.body.classList.toggle('dark-mode');
-            localStorage.setItem('admin_theme', isDark ? 'dark' : 'light');
+            localStorage.setItem('gini_theme', isDark ? 'dark' : 'light');
             updateThemeToggleIcon();
         }
 
         function updateThemeToggleIcon() {
-            const toggleBtn = document.getElementById('themeToggle');
-            if (!toggleBtn) return;
             const isDark = document.body.classList.contains('dark-mode');
-            toggleBtn.innerHTML = isDark ? '<i data-lucide="sun" class="w-4 h-4 text-amber-400"></i>' : '<i data-lucide="moon" class="w-4 h-4"></i>';
+            const iconHTML = isDark ? '<i data-lucide="sun" class="w-4 h-4 text-amber-400"></i>' : '<i data-lucide="moon" class="w-4 h-4"></i>';
+            
+            if(document.getElementById('themeToggle')) document.getElementById('themeToggle').innerHTML = iconHTML;
+            if(document.getElementById('loginThemeToggle')) document.getElementById('loginThemeToggle').innerHTML = iconHTML;
+            
             lucide.createIcons();
         }
 

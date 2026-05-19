@@ -4,13 +4,13 @@
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>GINI</title>
-    <link rel="icon" type="image/svg+xml" href="data:image/svg+xml;base64,PHN2ZyB4bWxucz0iaHR0cDovL3d3dy53My5vcmcvMjAwMC9zdmciIHZpZXdCb3g9IjAgMCA2NCA2NCI+PGcgaWQ9Imdpb3JnaW8iPjxjaXJjbGUgY3g9IjIyIiBjeT0iMzYiIHI9IjE0IiBmaWxsPSJub25lIiBzdHJva2U9IiMyMTk2RjMiIHN0cm9rZS13aWR0aD0iNSIgc3Ryb2tlLWxpbmVjYXA9InJvdW5kIi8+PHBhdGggZD0iTTIyLDIyIEMyMSwxNSAxNSwxNiAxOCwyMSIgZmlsbD0ibm9uZSIgc3Ryb2tlPSIjMjE5NkYzIiBzdHJva2Utd2lkdGg9IjQiIHN0cm9rZS1saW5lY2FwPSJyb3VuZCIvPjwvZz48ZyBpZD0ibmluYSI+PGNpcmNsZSBjeD0iNDIiIGN5PSIzNiIgcj0iMTQiIGZpbGw9Im5vbmUiIHN0cm9rZS1fI0U5MUU2MyIgc3Ryb2tlLXdpZHRoPSI1IiBzdHJva2UtbGluZWNhcD0icm91bmQiLz48cGF0aCBkPSJNNDIsMjIgTDM2LDE2IEwzNoyMjQgWiIgZmlsbD0iI0U5MUU2MyIvPjxwYXRoIGQ9Ik00MiwyMiBMNDgsMTYgTDQ4LDI0IFoiIGZpbGw9IiNFOTFFNjMiLz48Y2lyY2xlIGN4PSI0MiIgY3k9IjIwIiByPSIzIiBmaWxsPSIjRTkxRTYzIi8+PC9nPjwvc3ZnPg==">
+    <link rel="icon" type="image/svg+xml" href="data:image/svg+xml;base64,PHN2ZyB4bWxucz0iaHR0cDovL3d3dy53My5vcmcvMjAwMC9zdmciIHZpZXdCb3g9IjAgMCA2NCA2NCIgd2lkdGg9IjEwMCUiIGhlaWdodD0iMTAwJSI+PGcgaWQ9Imdpb3JnaW8iPjxjaXJjbGUgY3g9IjIyIiBjeT0iMzYiIHI9IjE0IiBmaWxsPSJub25lIiBzdHJva2U9IiMyMTk2RjMiIHN0cm9rZS13aWR0aD0iNSIgc3Ryb2tlLWxpbmVjYXA9InJvdW5kIi8+PHBhdGggZD0iTTIyLDIyIEMyMSwxNSAxNSwxNiAxOCwyMSIgZmlsbD0ibm9uZSIgc3Ryb2tlPSIjMjE5NkYzIiBzdHJva2Utd2lkdGg9IjQiIHN0cm9rZS1saW5lY2FwPSJyb3VuZCIvPjwvZz48ZyBpZD0ibmluYSI+PGNpcmNsZSBjeD0iNDIiIGN5PSIzNiIgcj0iMTQiIGZpbGw9Im5vbmUiIHN0cm9rZT0iI0U5MUU2MyIgc3Ryb2tlLXdpZHRoPSI1IiBzdHJva2UtbGluZWNhcD0icm91bmQiLz48cGF0aCBkPSJNNDIsMjIgTDM2LDE2IEwzNiwyNCBaIiBmaWxsPSIjRTkxRTYzIi8+PHBhdGggZD0iTTQyLDIyIEw0OCwxNiBMNDgsMjQgWiIgZmlsbD0iI0U5MUU2MyIvPjxjaXJjbGUgY3g9IjQyIiBjeT0iMjAiIHI9IjMiIGZpbGw9IiNFOTFFNjMiLz48/Zz48L3N2Zz4=">
     <script src="https://unpkg.com/@tailwindcss/browser@4"></script>
     <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
     <script src="https://unpkg.com/lucide@latest"></script>
     <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700&display=swap" rel="stylesheet">
     <style>
-        body { font-family: 'Inter', system-ui, -apple-system, sans-serif; background-color: #F8FAFC; color: #1E293B; }
+        body { font-family: 'Inter', system-ui, -apple-system, sans-serif; background-color: #F8FAFC; color: #1E293B; transition: background-color 0.2s, color 0.2s; }
         .cart-drawer { transition: transform 0.3s cubic-bezier(0.4, 0, 0.2, 1); }
         .cart-drawer.open { transform: translateX(0); }
         .cart-drawer.closed { transform: translateX(100%); }
@@ -24,6 +24,27 @@
         .qty-minimal { background-color: #F1F5F9; border-radius: 6px; padding: 4px; }
         @keyframes fadeIn { from { opacity: 0; transform: translateY(10px); } to { opacity: 1; transform: translateY(0); } }
         .fade-in { animation: fadeIn 0.4s ease-out forwards; }
+
+        /* REGLAS COMPLEMENTARIAS PARA DARK MODE EN LA TIENDA */
+        body.dark-mode { background-color: #020617; color: #F8FAFC; }
+        body.dark-mode nav { background-color: #0F172A !important; border-color: #1E293B !important; }
+        body.dark-mode nav span, body.dark-mode nav a { color: #FFFFFF !important; }
+        body.dark-mode main h3 { color: #FFFFFF !important; }
+        body.dark-mode .card-minimal { background-color: #0F172A !important; border-color: #1E293B !important; }
+        body.dark-mode .card-minimal h4 { color: #FFFFFF !important; }
+        body.dark-mode .card-minimal span { color: #FFFFFF !important; }
+        body.dark-mode select, body.dark-mode input { background-color: #020617 !important; border-color: #1E293B !important; color: #FFFFFF !important; }
+        body.dark-mode .qty-minimal { background-color: #1E293B !important; }
+        body.dark-mode .qty-minimal input { color: #FFFFFF !important; }
+        body.dark-mode .cart-drawer { background-color: #0F172A !important; border-color: #1E293B !important; }
+        body.dark-mode .cart-drawer h2, body.dark-mode .cart-drawer h5, body.dark-mode .cart-drawer span, body.dark-mode #cartTotal { color: #FFFFFF !important; }
+        body.dark-mode .cart-drawer .bg-slate-50 { background-color: #1E293B !important; border-color: #1E293B !important; }
+        body.dark-mode .modal > div { background-color: #0F172A !important; color: #FFFFFF !important; border-color: #1E293B !important; }
+        body.dark-mode .modal h2, body.dark-mode #modalPrice { color: #FFFFFF !important; }
+        body.dark-mode .modal p { color: #94A3B8 !important; }
+        body.dark-mode .modal button { border-color: #1E293B !important; background-color: #020617 !important; }
+        body.dark-mode #themeToggle, body.dark-mode #openCart { border-color: #1E293B !important; }
+        body.dark-mode .border-slate-100 { border-color: #1E293B !important; }
     </style>
 </head>
 <body class="overflow-x-hidden">
@@ -48,9 +69,14 @@
                 <span class="font-bold text-lg tracking-tight text-slate-900 border-l-2 border-slate-200 pl-3">GINI EXPRESS</span>
             </div>
             
-            <div class="flex items-center gap-6">
+            <div class="flex items-center gap-4">
                 <a href="admin.html" class="text-sm font-medium text-slate-400 hover:text-slate-900 transition-colors">Admin Panel</a>
-                <button id="openCart" class="relative group flex items-center gap-2 btn-primary px-4 py-2 rounded-lg text-sm font-semibold">
+                
+                <button id="themeToggle" class="text-slate-400 hover:text-slate-900 p-2 rounded-lg border border-slate-200 bg-white cursor-pointer transition-colors flex items-center justify-center w-9 h-9">
+                    <i data-lucide="moon" class="w-4 h-4"></i>
+                </button>
+
+                <button id="openCart" class="relative group flex items-center gap-2 btn-primary px-4 py-2 rounded-lg text-sm font-semibold cursor-pointer">
                     <i data-lucide="shopping-bag" class="w-4 h-4 text-white/80"></i>
                     Carrito
                     <span id="cartCount" class="bg-white/20 text-white text-[10px] px-1.5 py-0.5 rounded-md hidden">0</span>
@@ -59,8 +85,6 @@
         </div>
     </nav>
 
-    <nav class="sticky top-0 z-50 bg-white border-b border-slate-200 h-16 flex items-center">
-    </nav>
     <main id="catalog" class="max-w-7xl mx-auto px-6 py-10">
         <div class="flex flex-col lg:flex-row justify-between items-start lg:items-center mb-10 gap-6 w-full border-b border-slate-100 pb-6">
             <div>
@@ -105,13 +129,12 @@
     <div id="cartDrawer" class="cart-drawer closed fixed top-0 right-0 h-full w-full max-w-[340px] bg-white z-[70] shadow-2xl flex flex-col border-l border-slate-200">
         <div class="p-6 border-b border-slate-100 flex items-center justify-between bg-white">
             <h2 class="text-lg font-bold text-slate-900 flex items-center gap-2">Mi Carrito</h2>
-            <button id="closeCart" class="p-2 hover:bg-slate-50 rounded-full transition-colors text-slate-400">
+            <button id="closeCart" class="p-2 hover:bg-slate-50 rounded-full transition-colors text-slate-400 cursor-pointer">
                 <i data-lucide="x" class="w-5 h-5"></i>
             </button>
         </div>
         <div id="cartItems" class="flex-1 overflow-y-auto p-6 space-y-8 bg-white">
             <div class="h-full flex flex-col items-center justify-center text-slate-300 text-center">
-                <i data-lucide="shopping-bag" class="w-12 h-12 mb-4 opacity-20"></i>
                 <p class="text-sm font-medium">Bolsa vacía</p>
             </div>
         </div>
@@ -120,7 +143,7 @@
                 <span class="text-xs font-bold text-slate-400 uppercase tracking-widest leading-none">Total Play.</span>
                 <span id="cartTotal" class="text-2xl font-bold text-slate-900 leading-none">$0</span>
             </div>
-            <button id="checkoutBtn" class="w-full btn-primary py-4 rounded-xl font-bold flex items-center justify-center gap-2 shadow-lg shadow-slate-200">
+            <button id="checkoutBtn" class="w-full btn-primary py-4 rounded-xl font-bold flex items-center justify-center gap-2 shadow-lg shadow-slate-200 cursor-pointer">
                 Finalizar pedido via WhatsApp
             </button>
         </div>
@@ -128,7 +151,7 @@
 
     <div id="productModal" class="modal hidden fixed inset-0 bg-slate-900/60 z-[100] flex items-center justify-center p-6 backdrop-blur-sm">
         <div class="bg-white rounded-2xl max-w-4xl w-full overflow-hidden flex flex-col md:flex-row relative shadow-2xl border border-white/20">
-            <button id="closeModal" class="absolute top-4 right-4 z-10 bg-white p-2 rounded-lg shadow-sm border border-slate-100 text-slate-400 hover:text-slate-900 transition-colors">
+            <button id="closeModal" class="absolute top-4 right-4 z-10 bg-white p-2 rounded-lg shadow-sm border border-slate-100 text-slate-400 hover:text-slate-900 transition-colors cursor-pointer">
                 <i data-lucide="x" class="w-4 h-4"></i>
             </button>
             <div class="md:w-1/2 h-80 md:h-auto bg-slate-50">
@@ -150,7 +173,7 @@
                         <input type="number" id="modalQty" value="1" min="1" class="w-8 text-center text-sm font-bold border-none focus:ring-0 p-0 bg-transparent">
                         <button onclick="updateModalQty(1)" class="w-6 h-6 flex items-center justify-center font-bold text-slate-400 hover:text-slate-900 transition-colors">+</button>
                     </div>
-                    <button id="modalAddBtn" class="flex-1 btn-primary py-4 rounded-xl font-bold shadow-xl shadow-slate-200">
+                    <button id="modalAddBtn" class="flex-1 btn-primary py-4 rounded-xl font-bold shadow-xl shadow-slate-200 cursor-pointer">
                         Añadir a la bolsa
                     </button>
                 </div>
@@ -173,6 +196,13 @@
         let cart = JSON.parse(localStorage.getItem('cart_pro')) || [];
 
         async function init() {
+            // Sincronización inicial del tema persistente compartido
+            const savedTheme = localStorage.getItem('gini_theme') || 'light';
+            if (savedTheme === 'dark') {
+                document.body.classList.add('dark-mode');
+            }
+            updateThemeToggleIcon();
+
             lucide.createIcons();
             setupEventListeners();
             await fetchProducts();
@@ -191,6 +221,21 @@
             document.getElementById('checkoutBtn').onclick = finalizeOrder;
             document.getElementById('searchInput').oninput = handleSearchAndSort;
             document.getElementById('sortSelect').onchange = handleSearchAndSort;
+            document.getElementById('themeToggle').onclick = toggleTheme;
+        }
+
+        function toggleTheme() {
+            const isDark = document.body.classList.toggle('dark-mode');
+            localStorage.setItem('gini_theme', isDark ? 'dark' : 'light');
+            updateThemeToggleIcon();
+        }
+
+        function updateThemeToggleIcon() {
+            const toggleBtn = document.getElementById('themeToggle');
+            if (!toggleBtn) return;
+            const isDark = document.body.classList.contains('dark-mode');
+            toggleBtn.innerHTML = isDark ? '<i data-lucide="sun" class="w-4 h-4 text-amber-400"></i>' : '<i data-lucide="moon" class="w-4 h-4"></i>';
+            lucide.createIcons();
         }
 
         async function fetchProducts() {
@@ -205,11 +250,6 @@
                 handleSearchAndSort();
             } catch (error) {
                 console.error('Error fetching products:', error);
-                document.getElementById('productGrid').innerHTML = `
-                    <div class="col-span-full py-20 text-center text-red-500">
-                        <p>Ups! No pudimos cargar los productos.</p>
-                    </div>
-                `;
             }
         }
 
@@ -275,7 +315,7 @@
                                     <input type="number" id="qty-${product.id}" value="1" min="1" class="w-5 text-center text-[11px] font-bold border-none focus:ring-0 p-0 bg-transparent" onclick="event.stopPropagation()">
                                     <button onclick="event.stopPropagation(); changeQtyInGrid(${product.id}, 1)" class="w-5 h-5 flex items-center justify-center font-bold text-slate-400 hover:text-slate-900 transition-colors text-xs">+</button>
                                 </div>
-                                <button onclick="event.stopPropagation(); addToCart(${product.id}, parseInt(document.getElementById('qty-${product.id}').value))" class="btn-primary p-2 rounded-lg">
+                                <button onclick="event.stopPropagation(); addToCart(${product.id}, parseInt(document.getElementById('qty-${product.id}').value))" class="btn-primary p-2 rounded-lg cursor-pointer">
                                     <i data-lucide="shopping-cart" class="w-3.5 h-3.5"></i>
                                 </button>
                             </div>
@@ -317,7 +357,7 @@
                     <div class="flex-1 min-w-0">
                         <div class="flex justify-between items-start mb-1">
                             <h5 class="font-bold text-xs text-slate-900 truncate leading-none capitalize">${item.titulo}</h5>
-                            <button onclick="removeFromCart(${item.id})" class="text-slate-300 hover:text-red-500 transition-colors">
+                            <button onclick="removeFromCart(${item.id})" class="text-slate-300 hover:text-red-500 transition-colors cursor-pointer">
                                 <i data-lucide="x" class="w-3 h-3"></i>
                             </button>
                         </div>
@@ -463,6 +503,7 @@
         window.updateCartQty = updateCartQty;
         window.finalizeOrder = finalizeOrder;
         window.handleSearchAndSort = handleSearchAndSort;
+        window.toggleTheme = toggleTheme;
     </script>
 </body>
 </html>
