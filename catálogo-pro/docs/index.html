@@ -333,10 +333,32 @@
                 return;
             }
 
+            const FALLBACK_IMAGE = './assets/fallback-imagen.svg';
+
+            function isPlaceholderImage(url = '') {
+                if (!url) return true;
+                const lower = url.toLowerCase();
+                return (
+                    lower.includes('placeholder') ||
+                    lower.includes('default') ||
+                    lower.includes('no-image') ||
+                    lower.includes('image-not-found') ||
+                    lower.includes('sin-imagen') ||
+                    lower.includes('placeholder-product.jpg') ||
+                    lower.includes('cdn.treinta.co/web-catalog/placeholder-product.jpg') ||
+                    lower.includes('imgproxy.treinta.co')
+                );
+            }
+
+            function getProductImageSrc(product) {
+                if (!product?.imagen_url || isPlaceholderImage(product.imagen_url)) return FALLBACK_IMAGE;
+                return product.imagen_url;
+            }
+
             grid.innerHTML = products.map((product, index) => `
         <div class="card-minimal flex flex-col overflow-hidden fade-in" style="animation-delay: ${index * 0.05}s">
-            <div class="relative bg-slate-50 aspect-square cursor-pointer overflow-hidden group" onclick="openProductDetail(${product.id})">
-                <img src="${product.imagen_url}" alt="${sanitize(product.titulo)}" class="w-full h-full object-cover group-hover:scale-105 transition-transform duration-500">
+                <div class="relative bg-slate-50 aspect-square cursor-pointer overflow-hidden group" onclick="openProductDetail(${product.id})">
+                <img src="${getProductImageSrc(product)}" alt="${sanitize(product.titulo)}" class="w-full h-full object-cover group-hover:scale-105 transition-transform duration-500">
                 <div class="absolute inset-0 bg-slate-900/0 group-hover:bg-slate-900/20 transition-all flex items-center justify-center opacity-0 group-hover:opacity-100 backdrop-blur-[1px]">
                     <span class="bg-white text-slate-900 px-6 py-2 rounded-full text-xs font-bold shadow-xl">Quick View</span>
                 </div>
@@ -399,7 +421,7 @@
                 return `
                 <div class="flex gap-4 group">
                     <div class="w-16 h-16 bg-slate-50 rounded-lg overflow-hidden flex-shrink-0 border border-slate-100">
-                        <img src="${item.imagen_url}" alt="${sanitize(item.titulo)}" class="w-full h-full object-cover">
+                        <img src="${getProductImageSrc(item)}" alt="${sanitize(item.titulo)}" class="w-full h-full object-cover">
                     </div>
                     <div class="flex-1 min-w-0">
                         <div class="flex justify-between items-start mb-1">
@@ -472,7 +494,7 @@
             if (!product) return;
 
             currentModalProduct = product;
-            document.getElementById('modalImg').src = product.imagen_url;
+            document.getElementById('modalImg').src = getProductImageSrc(product);
             document.getElementById('modalTitle').textContent = product.titulo;
             document.getElementById('modalPrice').textContent = `$${product.precio.toLocaleString()}`;
             document.getElementById('modalDescription').textContent = product.descripcion;
@@ -534,7 +556,8 @@
             }
 
             message += `\n*Total:* $${total.toLocaleString()}`;
-            window.open(`https://wa.me/5493513278986?text=${encodeURIComponent(message)}`, '_blank');
+            const whatsappUrl = `https://wa.me/5493513278986?text=${encodeURIComponent(message)}`;
+            window.open(whatsappUrl, '_blank', 'noopener,noreferrer');
         }
 
         function updateWhatsAppLink() {

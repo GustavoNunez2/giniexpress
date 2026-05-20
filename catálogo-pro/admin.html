@@ -193,11 +193,20 @@
         body.dark-mode tr:hover td.sticky {
             background-color: #1E293B !important;
         }
-        
+
         /* Scrollbar suave para la tabla en mobile */
-        .no-scrollbar::-webkit-scrollbar { display: none; }
-        .no-scrollbar { -ms-overflow-style: none; scrollbar-width: none; }
-        .table-container { -webkit-overflow-scrolling: touch; }
+        .no-scrollbar::-webkit-scrollbar {
+            display: none;
+        }
+
+        .no-scrollbar {
+            -ms-overflow-style: none;
+            scrollbar-width: none;
+        }
+
+        .table-container {
+            -webkit-overflow-scrolling: touch;
+        }
 
         /* LOGO SVG */
 
@@ -254,12 +263,17 @@
     </div>
 
     <div id="adminPanel" class="hidden flex flex-col min-h-screen">
-        <header class="bg-white border-b border-slate-200 sticky top-0 z-40 h-auto min-h-16 flex items-center py-2 md:py-0">
-            <div class="max-w-7xl w-full mx-auto px-2 md:px-6 flex flex-col md:flex-row items-start md:items-center justify-start md:justify-between gap-3 md:gap-4">
-                <div class="flex flex-col md:flex-row items-start md:items-center justify-start w-full md:w-auto gap-3 md:gap-8">
+        <header
+            class="bg-white border-b border-slate-200 sticky top-0 z-40 h-auto min-h-16 flex items-center py-2 md:py-0">
+            <div
+                class="max-w-7xl w-full mx-auto px-2 md:px-6 flex flex-col md:flex-row items-start md:items-center justify-start md:justify-between gap-3 md:gap-4">
+                <div
+                    class="flex flex-col md:flex-row items-start md:items-center justify-start w-full md:w-auto gap-3 md:gap-8">
                     <div class="flex items-center gap-2 md:gap-3 w-full md:w-auto">
                         <img src="imagensvg.svg" alt="Logo" class="logo-svg w-8 h-8 md:w-12 md:h-12 object-contain" />
-                        <span class="font-bold tracking-tight text-slate-900 uppercase text-[11px] md:text-sm whitespace-nowrap min-w-max">GINI EXPRESS</span>
+                        <span
+                            class="font-bold tracking-tight text-slate-900 uppercase text-[11px] md:text-sm whitespace-nowrap min-w-max">GINI
+                            EXPRESS</span>
                     </div>
                     <nav class="flex gap-1 overflow-x-auto no-scrollbar py-1 w-full md:w-auto">
                         <button onclick="showTab('inventory')"
@@ -273,7 +287,8 @@
                             data-tab="bulk">Bulk Reset</button>
                     </nav>
                 </div>
-                <div class="flex items-center justify-between md:justify-end w-full md:w-auto gap-2 md:gap-3 mt-1 md:mt-0">
+                <div
+                    class="flex items-center justify-between md:justify-end w-full md:w-auto gap-2 md:gap-3 mt-1 md:mt-0">
                     <div id="userEmail"
                         class="text-[9px] md:text-[10px] font-bold text-slate-300 truncate max-w-[100px] md:max-w-none bg-slate-50 px-2 md:px-3 py-1.5 rounded-md border border-slate-100">
                         ...</div>
@@ -310,14 +325,24 @@
                             <div class="absolute left-3 top-2.5 text-slate-400"><i data-lucide="search"
                                     class="w-3.5 h-3.5"></i></div>
                         </div>
-                        <div class="flex items-center gap-4 flex-shrink-0 self-end sm:self-auto">
+                        <div class="flex items-center gap-2 flex-shrink-0 self-end sm:self-auto">
+
+                            <button onclick="saveAllProducts()"
+                                class="bg-black hover:bg-slate-800 text-white px-4 py-2 rounded-lg text-xs font-bold flex items-center gap-2 cursor-pointer shadow-sm transition-all">
+                                <i data-lucide="save-all" class="w-4 h-4"></i>
+                                Guardar Todo
+                            </button>
+
                             <span id="productCount"
-                                class="text-[10px] font-bold uppercase tracking-widest text-slate-400 bg-slate-100 px-3 py-1 rounded-full">0
-                                ITEMS</span>
+                                class="text-[10px] font-bold uppercase tracking-widest text-slate-400 bg-slate-100 px-3 py-1 rounded-full">
+                                0 ITEMS
+                            </span>
+
                             <button onclick="fetchProducts()"
                                 class="p-2 border border-slate-200 rounded-lg text-slate-400 hover:text-slate-900 hover:bg-white transition-all cursor-pointer">
                                 <i data-lucide="rotate-cw" class="w-4 h-4"></i>
                             </button>
+
                         </div>
                     </div>
                 </div>
@@ -346,7 +371,8 @@
                                     <th style="width: 250px"
                                         class="px-6 py-4 text-[10px] font-bold uppercase tracking-widest text-slate-400">
                                         Descripción</th>
-                                    <th class="px-6 py-4 text-[10px] font-bold uppercase tracking-widest text-slate-400 text-right sticky right-0 bg-slate-50 md:relative">
+                                    <th
+                                        class="px-6 py-4 text-[10px] font-bold uppercase tracking-widest text-slate-400 text-right sticky right-0 bg-slate-50 md:relative">
                                         Acciones</th>
                                 </tr>
                             </thead>
@@ -425,13 +451,14 @@
                 <h3 class="font-bold text-base text-slate-900 flex items-center gap-2">
                     <i data-lucide="layers" class="w-4 h-4 text-orange-500"></i> Confirmar Renderizado de Stories
                 </h3>
-                <button onclick="closeExportModal()" class="text-slate-400 hover:text-slate-600 cursor-pointer"><i data-lucide="x"
-                        class="w-4 h-4"></i></button>
+                <button onclick="closeExportModal()" class="text-slate-400 hover:text-slate-600 cursor-pointer"><i
+                        data-lucide="x" class="w-4 h-4"></i></button>
             </div>
             <div id="exportModalList"
                 class="p-4 sm:p-6 overflow-y-auto space-y-4 bg-slate-50/50 flex-1 divide-y divide-slate-100 no-scrollbar">
             </div>
-            <div class="p-4 sm:p-6 bg-slate-50 border-t border-slate-100 flex flex-col sm:flex-row items-center gap-3 justify-end">
+            <div
+                class="p-4 sm:p-6 bg-slate-50 border-t border-slate-100 flex flex-col sm:flex-row items-center gap-3 justify-end">
                 <button onclick="closeExportModal()"
                     class="w-full sm:w-auto px-4 py-2.5 border rounded-xl text-xs font-semibold hover:bg-slate-100 cursor-pointer text-slate-500 text-center">Cancelar</button>
                 <button id="confirmExportBtn" onclick="processBatchExport()"
@@ -456,8 +483,26 @@
         const supabaseClient = createClient(SUPABASE_URL, SUPABASE_KEY);
 
         let products = [];
+        const productMap = new Map();
         let selectedProductIds = new Set();
         let currentUser = null;
+        let isSavingAll = false;
+
+        let hasUnsavedChanges = false;
+
+        const FALLBACK_IMAGE = './assets/fallback-imagen.svg';
+
+        function syncProductMap() {
+            productMap.clear();
+            for (const product of products) {
+                productMap.set(Number(product.id), product);
+            }
+        }
+
+        function autoResizeTextarea(textarea) {
+            textarea.style.height = 'auto';
+            textarea.style.height = textarea.scrollHeight + 'px';
+        }
 
         async function init() {
             const savedTheme = localStorage.getItem('gini_theme') || 'light';
@@ -479,6 +524,134 @@
             document.getElementById('adminSearchInput').oninput = handleAdminSearch;
             document.getElementById('themeToggle').onclick = toggleTheme;
             document.getElementById('loginThemeToggle').onclick = toggleTheme;
+            document.addEventListener('input', (e) => {
+                const target = e.target;
+                if (!target.id) return;
+
+                const [field, rowId] = target.id.split('-');
+                if (!rowId || !['desc', 'margin', 'fijo'].includes(field)) return;
+
+                const productId = Number(rowId);
+                const product = productMap.get(productId);
+                if (!product) return;
+
+                if (field === 'desc') {
+                    product.descripcion = target.value;
+                    autoResizeTextarea(target);
+                }
+                if (field === 'margin') {
+                    product.porcentaje_ganancia = parseFloat(target.value) || 0;
+                }
+                if (field === 'fijo') {
+                    product.precio_fijo = parseFloat(target.value) || 0;
+                }
+
+                hasUnsavedChanges = true;
+                markProductAsChanged(productId);
+            });
+        }
+
+        function markProductAsChanged(id) {
+            const product = productMap.get(Number(id));
+            if (!product) return;
+            product.hasChanges = true;
+            hasUnsavedChanges = true;
+            const row = document.getElementById(`row-${id}`);
+            if (row) {
+                row.classList.add('ring-2', 'ring-orange-400', 'bg-orange-50/30');
+            }
+        }
+
+        function isPlaceholderImage(url = '') {
+
+            if (!url) return true;
+
+            const lower = url.toLowerCase();
+
+            return (
+                lower.includes('placeholder-product.jpg') ||
+                lower.includes('/placeholder/') ||
+                lower.includes('no-image') ||
+                lower.includes('image-not-found') ||
+                lower.includes('sin-imagen')
+            );
+        }
+
+        function getProductImageSrc(product) {
+
+            if (product?.pendingPreviewUrl) {
+                return product.pendingPreviewUrl;
+            }
+
+            if (
+                !product?.imagen_url ||
+                isPlaceholderImage(product.imagen_url)
+            ) {
+                return FALLBACK_IMAGE;
+            }
+
+            return product.imagen_url;
+        }
+
+        function loadImageForExport(src) {
+            return new Promise((resolve, reject) => {
+                const img = new Image();
+                img.crossOrigin = 'anonymous';
+                img.onload = () => resolve(img);
+                img.onerror = () => {
+                    if (src !== FALLBACK_IMAGE) {
+                        img.onerror = () => reject(new Error('Fallback failed'));
+                        img.src = FALLBACK_IMAGE;
+                    } else {
+                        reject(new Error('Unable to load image'));
+                    }
+                };
+                img.src = src;
+            });
+        }
+
+        function drawWrappedText(ctx, text, x, y, maxWidth, lineHeight, maxLines = Infinity) {
+            const words = text.split(' ');
+            const lines = [];
+            let currentLine = '';
+
+            for (const word of words) {
+                const testLine = currentLine ? `${currentLine} ${word}` : word;
+                if (ctx.measureText(testLine).width <= maxWidth) {
+                    currentLine = testLine;
+                } else {
+                    if (currentLine) {
+                        lines.push(currentLine);
+                        currentLine = word;
+                    } else {
+                        let truncatedWord = word;
+                        while (ctx.measureText(`${truncatedWord}...`).width > maxWidth && truncatedWord.length > 1) {
+                            truncatedWord = truncatedWord.slice(0, -1);
+                        }
+                        lines.push(`${truncatedWord}...`);
+                        currentLine = '';
+                    }
+                }
+            }
+
+            if (currentLine) {
+                lines.push(currentLine);
+            }
+
+            const cappedLines = lines.length > maxLines ? lines.slice(0, maxLines) : lines;
+            if (lines.length > maxLines) {
+                let lastLine = cappedLines[cappedLines.length - 1];
+                while (ctx.measureText(`${lastLine}...`).width > maxWidth && lastLine.includes(' ')) {
+                    lastLine = lastLine.substring(0, lastLine.lastIndexOf(' '));
+                }
+                cappedLines[cappedLines.length - 1] = `${lastLine}...`;
+            }
+
+            cappedLines.forEach((line, index) => {
+                ctx.fillText(line, x, y + index * lineHeight);
+            });
+
+            return cappedLines.length;
         }
 
         function toggleTheme() {
@@ -536,8 +709,26 @@
             try {
                 const { data, error } = await supabaseClient.from('productos').select('*').order('created_at', { ascending: false });
                 if (error) throw error;
-                products = data;
+                products = data.map(serverProduct => {
+                    const existing = products.find(local => Number(local.id) === Number(serverProduct.id));
+                    if (!existing) return { ...serverProduct };
+                    if (existing.hasChanges || existing.pendingImageFile || existing.pendingPreviewUrl) {
+                        return {
+                            ...serverProduct,
+                            descripcion: existing.descripcion,
+                            porcentaje_ganancia: existing.porcentaje_ganancia,
+                            precio_fijo: existing.precio_fijo,
+                            precio: existing.precio,
+                            imagen_url: existing.imagen_url,
+                            hasChanges: existing.hasChanges,
+                            pendingImageFile: existing.pendingImageFile,
+                            pendingPreviewUrl: existing.pendingPreviewUrl
+                        };
+                    }
+                    return { ...serverProduct };
+                });
                 selectedProductIds.clear();
+                syncProductMap();
                 updateExportButtonState();
                 renderInventory(products);
             } catch (error) { showToast('Error al cargar inventario', 'red'); }
@@ -554,8 +745,9 @@
             // Manteniendo lógica de renderizado, solo actualizando clases para mobile
             table.innerHTML = productsToRender.map(p => {
                 const isChecked = selectedProductIds.has(p.id) ? 'checked' : '';
+                const changedClass = p.hasChanges ? 'ring-2 ring-orange-400 bg-orange-50/30' : '';
                 return `
-                <tr class="block md:table-row hover:bg-gray-50/50 transition-colors group border-b md:border-0 border-slate-100 p-4 md:p-0">
+                <tr id="row-${p.id}" style="contain: content;" class="block md:table-row hover:bg-gray-50/50 transition-colors group border-b md:border-0 border-slate-100 p-4 md:p-0 ${changedClass}">
                     <td class="block md:table-cell px-0 md:px-4 py-2 md:py-4 text-left md:text-center">
                         <div class="flex items-center justify-between md:block">
                             <span class="md:hidden text-[10px] font-bold uppercase tracking-widest text-slate-400">Seleccionar</span>
@@ -564,7 +756,28 @@
                     </td>
                     <td class="block md:table-cell px-0 md:px-6 py-2 md:py-4">
                         <div class="flex items-center gap-3">
-                            <img src="${p.imagen_url}" class="w-10 h-10 object-cover rounded-lg border">
+                            <div class="relative">
+    <img 
+        src="${getProductImageSrc(p)}" 
+        id="preview-img-${p.id}"
+        loading="lazy"
+        onerror="this.onerror=null;this.src='./assets/fallback-imagen.svg';"
+        class="w-14 h-14 object-cover rounded-lg border">
+
+    <label 
+        for="upload-${p.id}"
+        class="absolute -bottom-1 -right-1 bg-black text-white rounded-full p-1 cursor-pointer shadow-md hover:bg-slate-800 transition-all">
+
+        <i data-lucide="camera" class="w-3 h-3"></i>
+    </label>
+
+    <input 
+        type="file"
+        id="upload-${p.id}"
+        accept="image/*"
+        onchange="handleImageUpload(${p.id}, this)"
+        class="hidden">
+</div>
                             <div>
                                 <span class="block font-bold text-sm text-slate-800">${p.titulo}</span>
                                 <span class="block text-[10px] text-gray-400 mono">ID: ${p.id}</span>
@@ -601,8 +814,10 @@
                         <textarea id="desc-${p.id}" class="w-full bg-transparent border-b text-xs text-gray-500 resize-none focus:outline-none focus:border-slate-900" rows="1">${p.descripcion || ''}</textarea>
                     </td>
                     <td class="block md:table-cell px-0 md:px-6 py-4 text-right relative md:sticky md:right-0 bg-white md:bg-transparent">
-                        <div class="flex items-center justify-end gap-2 opacity-100 md:opacity-0 group-hover:opacity-100 transition-opacity">
-                            <button onclick="updateProduct(${p.id})" class="flex-1 md:flex-none p-2 bg-black text-white rounded-lg shadow-md cursor-pointer flex justify-center">
+                        <div class="flex items-center justify-end gap-2">
+                            <button
+    data-save-btn
+    onclick="updateProduct(${p.id})" class="flex-1 md:flex-none p-2 bg-black text-white rounded-lg shadow-md cursor-pointer flex justify-center">
                                 <i data-lucide="save" class="w-4 h-4"></i>
                             </button>
                             <button onclick="deleteProduct(${p.id})" class="flex-1 md:flex-none p-2 border text-gray-400 hover:text-red-500 rounded-lg cursor-pointer flex justify-center">
@@ -614,10 +829,7 @@
             `}).join('');
             lucide.createIcons();
 
-            document.querySelectorAll('textarea[id^="desc-"]').forEach(ta => {
-                ta.style.height = 'auto'; ta.style.height = ta.scrollHeight + 'px';
-                ta.addEventListener('input', () => { ta.style.height = 'auto'; ta.style.height = ta.scrollHeight + 'px'; });
-            });
+            table.querySelectorAll('textarea[id^="desc-"]').forEach(autoResizeTextarea);
         }
 
         function handleRowSelect(id, checkbox) {
@@ -670,7 +882,7 @@
 
                 return `
                 <div class="flex items-start gap-4 pt-3 first:pt-0">
-                    <img src="${p.imagen_url}" class="w-12 h-12 object-cover rounded-lg border border-slate-200 mt-1 flex-shrink-0">
+                    <img src="${getProductImageSrc(p)}" onerror="this.onerror=null;this.src='./assets/fallback-imagen.svg';" class="w-12 h-12 object-cover rounded-lg border border-slate-200 mt-1 flex-shrink-0">
                     <div class="flex-1 min-w-0">
                         <div class="flex justify-between items-baseline">
                             <h4 class="text-xs font-bold text-slate-800 truncate uppercase">${p.titulo}</h4>
@@ -716,13 +928,8 @@
                 }
 
                 try {
-                    const img = await new Promise((resolve, reject) => {
-                        const i = new Image();
-                        i.crossOrigin = "anonymous";
-                        i.src = p.imagen_url;
-                        i.onload = () => resolve(i);
-                        i.onerror = (e) => reject(e);
-                    });
+                    const imageSource = getProductImageSrc(p);
+                    const img = await loadImageForExport(imageSource);
 
                     ctx.clearRect(0, 0, 1080, 1920);
 
@@ -771,17 +978,19 @@
 
                     if (cleanDesc === '') {
                         ctx.font = "bold 52px Arial, Helvetica, sans-serif";
-                        let titleText = p.titulo.toUpperCase();
-                        if (titleText.length > 38) titleText = titleText.substring(0, 35) + "...";
-                        ctx.fillText(titleText, 50, 1660);
+                        const titleText = p.titulo.toUpperCase();
+                        const titleLines = drawWrappedText(ctx, titleText, 50, 1660, 980, 60, 3);
+                        if (titleLines === 0) {
+                            ctx.fillText(titleText, 50, 1660);
+                        }
                     } else {
                         ctx.font = "bold 40px Arial, Helvetica, sans-serif";
-                        let titleText = p.titulo.toUpperCase();
-                        if (titleText.length > 45) titleText = titleText.substring(0, 42) + "...";
-                        ctx.fillText(titleText, 50, 1495);
+                        const titleText = p.titulo.toUpperCase();
+                        const titleLines = drawWrappedText(ctx, titleText, 50, 1495, 980, 48, 3);
 
                         ctx.fillStyle = "#94a3b8";
                         ctx.font = "30px Arial, Helvetica, sans-serif";
+                        const descStartY = 1560 + (Math.max(1, titleLines) - 1) * 48;
 
                         const rawLines = cleanDesc.replace(/\*/g, '').split('\n').map(l => l.trim()).filter(l => l.length > 0);
                         const cleanLines = rawLines.filter(line => {
@@ -792,17 +1001,28 @@
                         cleanLines.forEach((line, index) => {
                             let textLine = line;
                             if (textLine.length > 55) textLine = textLine.substring(0, 52) + "...";
-                            ctx.fillText(textLine, 50, 1560 + (index * 45));
+                            ctx.fillText(textLine, 50, descStartY + (index * 45));
                         });
                     }
 
-                    const dataUrl = canvas.toDataURL("image/jpeg", 0.92);
+                    const blob = await new Promise((resolve, reject) => {
+                        canvas.toBlob((blobResult) => {
+                            if (!blobResult) {
+                                reject(new Error('Unable to create blob from canvas'));
+                                return;
+                            }
+                            resolve(blobResult);
+                        }, "image/jpeg", 0.92);
+                    });
+
+                    const objectUrl = URL.createObjectURL(blob);
                     const downloadLink = document.createElement("a");
                     downloadLink.download = `story-${p.titulo.toLowerCase().replace(/[^a-z0-9]/g, "-")}.jpg`;
-                    downloadLink.href = dataUrl;
+                    downloadLink.href = objectUrl;
                     document.body.appendChild(downloadLink);
                     downloadLink.click();
                     document.body.removeChild(downloadLink);
+                    URL.revokeObjectURL(objectUrl);
 
                     downloadedCount++;
                     await new Promise(r => setTimeout(r, 250));
@@ -826,6 +1046,7 @@
             document.getElementById(`container-margin-${id}`).classList.toggle('hidden', mode !== 'porcentaje');
             document.getElementById(`container-fijo-${id}`).classList.toggle('hidden', mode !== 'fijo');
             recalcRowPrice(id);
+            markProductAsChanged(id);
         }
 
         function recalcRowPrice(id) {
@@ -850,49 +1071,212 @@
             renderInventory(filtered);
         }
 
-        async function updateProduct(id) {
-            const product = products.find(p => p.id === id);
-            if (!product) return;
+        async function handleImageUpload(id, input) {
 
-            const mode = document.getElementById(`mode-${id}`).value;
-            const descripcion = document.getElementById(`desc-${id}`).value;
-            const costoBase = product.precio_costo || 0;
+            const file = input.files[0];
 
-            let porcentaje_ganancia = null;
-            let precio_fijo = null;
-            let nuevoPrecioVenta = 0;
-
-            if (mode === 'porcentaje') {
-                porcentaje_ganancia = parseFloat(document.getElementById(`margin-${id}`).value) || 0;
-                nuevoPrecioVenta = Math.round(costoBase * (1 + porcentaje_ganancia / 100));
-            } else {
-                precio_fijo = parseFloat(document.getElementById(`fijo-${id}`).value) || 0;
-                nuevoPrecioVenta = precio_fijo;
-                porcentaje_ganancia = costoBase > 0 ? Math.round(((precio_fijo - costoBase) / costoBase) * 100) : 0;
+            if (!file) return;
+            if (!file.type.startsWith('image/')) {
+                input.value = '';
+                showToast('Archivo no válido: selecciona una imagen', 'red');
+                return;
+            }
+            const MAX_SIZE = 5 * 1024 * 1024;
+            if (file.size > MAX_SIZE) {
+                input.value = '';
+                showToast('Imagen demasiado grande: máximo 5MB', 'red');
+                return;
             }
 
-            const { error } = await supabaseClient
-                .from('productos')
-                .update({ porcentaje_ganancia, precio_fijo, precio: nuevoPrecioVenta, descripcion })
-                .eq('id', id);
+            try {
 
-            if (error) {
-                showToast('Error: ' + error.message, 'red');
-            } else {
-                product.porcentaje_ganancia = porcentaje_ganancia;
-                product.precio_fijo = precio_fijo;
-                product.precio = nuevoPrecioVenta;
-                product.descripcion = descripcion;
+                const product = products.find(p => p.id === id);
+                if (!product) return;
 
-                showToast('Producto guardado correctamente');
-
-                const query = document.getElementById('adminSearchInput').value.toLowerCase().trim();
-                if (query) {
-                    const filtered = products.filter(p => p.titulo.toLowerCase().includes(query));
-                    renderInventory(filtered);
-                } else {
-                    renderInventory(products);
+                // PREVIEW INSTANTÁNEO
+                if (product.pendingPreviewUrl) {
+                    URL.revokeObjectURL(product.pendingPreviewUrl);
                 }
+                const previewUrl = URL.createObjectURL(file);
+                product.pendingPreviewUrl = previewUrl;
+                product.pendingImageFile = file;
+                markProductAsChanged(id);
+
+                document.getElementById(`preview-img-${id}`).src = previewUrl;
+
+                showToast('Imagen lista para guardar');
+
+            } catch (err) {
+
+                console.error(err);
+                showToast('Error cargando imagen', 'red');
+
+            }
+        }
+
+        async function updateProduct(id, showMessage = true) {
+            const product = products.find(p => p.id === id);
+            if (!product) return;
+            if (product.isSaving) return;
+            product.isSaving = true;
+
+            const row = document.getElementById(`row-${id}`);
+            const saveBtn = row?.querySelector('[data-save-btn]');
+            if (saveBtn) saveBtn.disabled = true;
+
+            try {
+                const mode = document.getElementById(`mode-${id}`).value;
+                const descripcion = document.getElementById(`desc-${id}`).value;
+                let imagen_url = product.imagen_url;
+                let uploadFailed = false;
+
+                // SI HAY NUEVA IMAGEN PENDIENTE
+                if (product.pendingImageFile) {
+                    const file = product.pendingImageFile;
+                    const fileExt = file.name.split('.').pop();
+                    const fileName = `${product.id}-${Date.now()}.${fileExt}`;
+                    product.previousImagenUrl = product.imagen_url; // guardamos para futura limpieza
+
+                    try {
+                        const { error: uploadError } = await supabaseClient.storage
+                            .from('productos')
+                            .upload(fileName, file, {
+                                cacheControl: '3600',
+                                upsert: true
+                            });
+
+                        if (uploadError) throw uploadError;
+
+                        try {
+                            const { data } = await supabaseClient.storage
+                                .from('productos')
+                                .getPublicUrl(fileName);
+
+                            if (!data || !data.publicUrl) throw new Error('getPublicUrl returned empty data');
+
+                            imagen_url = data.publicUrl;
+                            product.imagen_url = imagen_url;
+                        } catch (pubErr) {
+                            uploadFailed = true;
+                            console.error(`Error obteniendo publicUrl para ${fileName}:`, pubErr);
+                            showToast(`Error obteniendo URL pública para ${product.titulo}`, 'red');
+                        }
+                    } catch (uploadError) {
+                        uploadFailed = true;
+                        console.error(`Error subiendo imagen del producto ${product.id}:`, uploadError);
+                        showToast(`Error guardando imagen de ${product.titulo}`, 'red');
+                    }
+                }
+                const costoBase = product.precio_costo || 0;
+
+                let porcentaje_ganancia = null;
+                let precio_fijo = null;
+                let nuevoPrecioVenta = 0;
+
+                if (mode === 'porcentaje') {
+                    porcentaje_ganancia = parseFloat(document.getElementById(`margin-${id}`).value) || 0;
+                    nuevoPrecioVenta = Math.round(costoBase * (1 + porcentaje_ganancia / 100));
+                } else {
+                    precio_fijo = parseFloat(document.getElementById(`fijo-${id}`).value) || 0;
+                    nuevoPrecioVenta = precio_fijo;
+                    porcentaje_ganancia = costoBase > 0 ? Math.round(((precio_fijo - costoBase) / costoBase) * 100) : 0;
+                }
+
+                if (product.pendingImageFile && uploadFailed) {
+                    return;
+                }
+
+                const { error } = await supabaseClient
+                    .from('productos')
+                    .update({
+                        porcentaje_ganancia,
+                        precio_fijo,
+                        precio: nuevoPrecioVenta,
+                        descripcion,
+                        imagen_url
+                    })
+                    .eq('id', id);
+
+                if (error) {
+                    console.error(`Error guardando producto ${product.id}:`, error);
+                    showToast('Error: ' + error.message, 'red');
+                } else {
+                    product.porcentaje_ganancia = porcentaje_ganancia;
+                    product.precio_fijo = precio_fijo;
+                    product.precio = nuevoPrecioVenta;
+                    product.descripcion = descripcion;
+                    product.hasChanges = false;
+                    if (product.pendingPreviewUrl) {
+                        URL.revokeObjectURL(product.pendingPreviewUrl);
+                        delete product.pendingPreviewUrl;
+                    }
+                    delete product.pendingImageFile;
+                    hasUnsavedChanges = products.some(item => item.hasChanges || item.pendingImageFile);
+
+                    if (row) {
+                        row.classList.remove('ring-2', 'ring-orange-400', 'bg-orange-50/30');
+                        const img = row.querySelector(`#preview-img-${id}`);
+                        if (img) img.src = getProductImageSrc(product);
+                    }
+
+                    if (showMessage) {
+                        showToast('Producto guardado correctamente');
+                    }
+                }
+            } finally {
+                product.isSaving = false;
+                if (saveBtn) saveBtn.disabled = false;
+            }
+        }
+
+        async function saveAllProducts() {
+
+            const btn = document.querySelector('[onclick="saveAllProducts()"]');
+
+            if (isSavingAll) return;
+            isSavingAll = true;
+            btn.disabled = true;
+            btn.innerHTML = `
+        <span class="animate-spin rounded-full h-3.5 w-3.5 border-2 border-white/30 border-t-white"></span>
+        Guardando...
+    `;
+            const changedProducts = products.filter(p => (p.hasChanges || p.pendingImageFile) && !p.isSaving);
+            if (changedProducts.length === 0) {
+                showToast('No hay cambios pendientes');
+                btn.disabled = false;
+                btn.innerHTML = `
+            <i data-lucide="save-all" class="w-4 h-4"></i>
+            Guardar Todo
+        `;
+                lucide.createIcons();
+                isSavingAll = false;
+                return;
+            }
+
+            try {
+
+                for (const product of changedProducts) {
+                    await updateProduct(product.id, false);
+                }
+
+                showToast('Todos los productos fueron guardados correctamente');
+
+            } catch (err) {
+
+                console.error('saveAllProducts error:', err);
+                showToast('Error al guardar productos', 'red');
+
+            } finally {
+
+                isSavingAll = false;
+                btn.disabled = false;
+
+                btn.innerHTML = `
+            <i data-lucide="save-all" class="w-4 h-4"></i>
+            Guardar Todo
+        `;
+
+                lucide.createIcons();
             }
         }
 
@@ -963,6 +1347,16 @@
 
         init();
 
+        window.addEventListener('beforeunload', function (e) {
+
+            if (hasUnsavedChanges) {
+
+                e.preventDefault();
+                e.returnValue = '';
+
+            }
+        });
+
         window.showTab = showTab;
         window.fetchProducts = fetchProducts;
         window.updateProduct = updateProduct;
@@ -976,6 +1370,8 @@
         window.openExportModal = openExportModal;
         window.closeExportModal = closeExportModal;
         window.processBatchExport = processBatchExport;
+        window.handleImageUpload = handleImageUpload;
+        window.saveAllProducts = saveAllProducts;
     </script>
 </body>
 
