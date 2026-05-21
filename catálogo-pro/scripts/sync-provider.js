@@ -5,6 +5,8 @@ import 'dotenv/config';
 const PROVIDER_URL = 'https://catalogo.treinta.co/brajaexpress-e8aefd?sort=name-asc';
 const DEFAULT_MARGIN = 15;
 
+const limpiarTitulo = (t) => t.toLowerCase().replace(/[^a-z0-9]/g, '').trim();
+
 const { SUPABASE_URL, SUPABASE_KEY, TELEGRAM_BOT_TOKEN, TELEGRAM_CHAT_ID } = process.env;
 if (!SUPABASE_URL || !SUPABASE_KEY) {
     console.error('Error fatal: Faltan las variables de entorno de Supabase.');
@@ -163,7 +165,7 @@ async function syncCatalog() {
             }
         }
 
-        const localMap = new Map(dbProducts.map(p => [p.titulo.toLowerCase(), p]));
+        const localMap = new Map(dbProducts.map(p => [limpiarTitulo(p.titulo), p]));
 
         browser = await puppeteer.launch({
             headless: true, // Volvemos a ocultarlo para GitHub
@@ -209,7 +211,7 @@ async function syncCatalog() {
         // 🔄 PROCESAR CAMBIOS: Productos modificados, nuevos y eliminados
         // ════════════════════════════════════════════════════════════════════════
         for (const item of finalScraped) {
-            const key = item.titulo.toLowerCase();
+            const key = limpiarTitulo(item.titulo); 
             if (localMap.has(key)) {
                 // ✅ PRODUCTO EXISTENTE - Comparar cambios
                 const localItem = localMap.get(key);
@@ -288,7 +290,7 @@ async function syncCatalog() {
         // ════════════════════════════════════════════════════════════════════════
         // 🗑️ DETECTAR PRODUCTOS ELIMINADOS (En BD local pero no en scraping)
         // ════════════════════════════════════════════════════════════════════════
-        const scrapedTitles = new Set(finalScraped.map(p => p.titulo.toLowerCase()));
+        const scrapedTitles = new Set(finalScraped.map(p => limpiarTitulo(p.titulo)));
         for (const [key, localItem] of localMap) {
             if (!scrapedTitles.has(key)) {
                 registrosAuditoria.push({
