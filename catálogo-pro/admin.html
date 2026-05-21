@@ -1397,10 +1397,11 @@
                     : null;
 
                 const tituloTienda = productoReal ? productoReal.titulo : null;
-                const margenHistorico = productoReal ? (productoReal.porcentaje_ganancia || 0) : 50;
+                const margenHistorico = productoReal ? (productoReal.porcentaje_ganancia || 0) : 40;
 
-                const u = o.imagen_url_nueva || (productoReal ? productoReal.imagen_url : null) || "./assets/fallback-imagen.svg";
-                const costoReferencia = n ? (o.costo_nuevo || 0) : (o.costo_nuevo || (productoReal ? productoReal.precio_costo : 0) || 0);
+                // CORRECCIÓN: Usamos 'imagen_url' que es la columna real de la BD
+                const u = o.imagen_url || (productoReal ? productoReal.imagen_url : null) || "./assets/fallback-imagen.svg";
+                const costoReferencia = o.costo_nuevo || 0;
 
                 let d = "bg-emerald-100 text-green-700", s = "✨ NUEVO";
                 if (r) { d = "bg-amber-100 text-amber-700"; s = "🔄 CAMBIO PRECIO"; }
@@ -1408,7 +1409,7 @@
 
                 let precioSugeridoInicial = o.venta_sugerida || 0;
                 if (n && !precioSugeridoInicial && costoReferencia) {
-                    precioSugeridoInicial = Math.round(costoReferencia * 1.50);
+                    precioSugeridoInicial = Math.round(costoReferencia * 1.40);
                 } else if (r && !precioSugeridoInicial && costoReferencia) {
                     precioSugeridoInicial = Math.round(costoReferencia * (1 + margenHistorico / 100));
                 } else if (a && productoReal) {
@@ -1418,18 +1419,18 @@
                 return `<div class="bg-white border border-slate-100 rounded-xl p-4 shadow-sm hover:shadow-md transition-all flex flex-col gap-3">
                     <div class="flex justify-between items-start">
                         <span class="text-[10px] font-bold px-2 py-1 rounded-md uppercase ${d}">${s}</span>
-                        <span class="text-[10px] text-slate-400 mono">${new Date(o.created_at).toLocaleDateString()}</span>
+                        <span class="text-[10px] text-slate-400 mono">${o.created_at ? new Date(o.created_at).toLocaleDateString() : new Date().toLocaleDateString()}</span>
                     </div>
                     <div class="flex gap-3">
                         <img src="${u}" class="w-16 h-16 object-cover rounded-lg border border-slate-50 bg-slate-50 flex-shrink-0" onerror="this.onerror=null;this.src='./assets/fallback-imagen.svg';">
                         <div class="flex-1 min-w-0">
-                            <h3 class="font-bold text-sm text-slate-800 truncate uppercase">${o.titulo}</h3>
+                            <h3 class="font-bold text-sm text-slate-800 truncate uppercase">${o.titulo || 'SIN TÍTULO'}</h3>
                             ${tituloTienda ? `<p class="text-[11px] text-orange-500 font-medium truncate">En Tienda: ${tituloTienda.toUpperCase()}</p>` : ""}
                             
                             <div class="text-[11px] text-slate-500 mt-1">
                                 ${n ? `<p>Costo Proveedor: <span class="mono font-bold text-slate-700">$${costoReferencia.toLocaleString()}</span></p>` : ""}
-                                ${r ? `<p>Costo: $${o.costo_anterior.toLocaleString()} → <span class="text-blue-600 font-bold">$${costoReferencia.toLocaleString()}</span> <span class="text-slate-600 font-semibold italic">(${margenHistorico}% anterior)</span></p>` : ""}
-                                ${a ? `<p class="text-red-500 font-medium">Descontinuado. <span class="text-slate-600 font-semibold italic">Margen tienda: ${margenHistorico}%</span></p>` : ""}
+                                ${r ? `<p>Costo: $${(o.costo_anterior || 0).toLocaleString()} → <span class="text-blue-600 font-bold">$${costoReferencia.toLocaleString()}</span></p>` : ""}
+                                ${a ? `<p class="text-red-500 font-medium">Ya no figura en proveedor.</p>` : ""}
                             </div>
                         </div>
                     </div>
@@ -1442,13 +1443,13 @@
                             </select>
                             
                             <div id="container-staging-margin-${o.id}" class="flex items-center gap-1 justify-end w-[40%]">
-                                <input type="number" id="margin-staging-${o.id}" value="${margenHistorico}" oninput="recalcStagingRowPrice(${o.id}, ${costoReferencia})" class="w-12 bg-white border border-slate-200 rounded text-center text-xs mono py-1 font-semibold">
+                                <input type="number" id="margin-staging-${o.id}" value="${o.margen_porcentaje || margenHistorico}" oninput="recalcStagingRowPrice(${o.id}, ${costoReferencia})" class="w-12 bg-white border border-slate-200 rounded text-center text-xs mono py-1 font-semibold">
                                 <span class="text-slate-400 text-xs font-bold">%</span>
                             </div>
                             
                             <div id="container-staging-fijo-${o.id}" class="hidden items-center gap-1 justify-end w-[40%]">
                                 <span class="text-slate-400 text-xs font-bold">$</span>
-                                <input type="number" id="fijo-staging-${o.id}" value="${precioSugeridoInicial}" oninput="recalcStagingRowPrice(${o.id}, ${costoReferencia})" class="w-20 bg-white border border-slate-200 rounded text-left text-xs mono px-1 py-1 font-semibold">
+                                <input type="number" id="fijo-staging-${o.id}" value="${Math.round(precioSugeridoInicial)}" oninput="recalcStagingRowPrice(${o.id}, ${costoReferencia})" class="w-20 bg-white border border-slate-200 rounded text-left text-xs mono px-1 py-1 font-semibold">
                             </div>
                         </div>
                         
