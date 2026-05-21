@@ -11,7 +11,8 @@ const limpiarTitulo = (t) => {
         .toLowerCase()
         .normalize("NFD") // Descompone caracteres con acentos
         .replace(/[\u0300-\u036f]/g, "") // Elimina acentos
-        .replace(/[^a-z0-9]/g, "") // ELIMINA TODO: guiones, puntos, espacios, comillas, etc.
+        .replace(/[^a-z0-9\s]/g, "") // Conserva espacios para evitar colisiones erróneas
+        .replace(/\s+/g, "") // Elimina espacios al final para la comparación
         .trim();
 };
 
@@ -163,7 +164,7 @@ async function syncCatalog() {
         while (hasMore) {
             const { data, error } = await supabase
                 .from('productos')
-                .select('id, titulo, precio, porcentaje_ganancia, precio_costo, precio_fijo')
+                .select('id, titulo, precio, porcentaje_ganancia, precio_costo, precio_fijo, disponible')
                 .order('id')
                 .range(rangeStart, rangeEnd);
 
@@ -219,6 +220,15 @@ async function syncCatalog() {
         let insertarProductosNuevos = []; // Para INSERT en tabla principal (cuando sea)
         let registrosAuditoria = [];       // Para INSERT en staging_products
 
+        const { data: stagingActual } = await supabase
+            .from('staging_products')
+            .select('producto_id, tipo_cambio')
+            .eq('procesado', false);
+
+        const alertasExistentes = new Set(
+            (stagingActual || []).map(a => `${a.producto_id}-${a.tipo_cambio}`)
+        );
+
         // ════════════════════════════════════════════════════════════════════════
         // 🔄 PROCESAR CAMBIOS: Productos modificados, nuevos y eliminados
         // ════════════════════════════════════════════════════════════════════════
@@ -252,20 +262,24 @@ async function syncCatalog() {
                         }
                     });
 
-                    // 📝 Registrar en staging para auditoría
-                    registrosAuditoria.push({
-                        producto_id: localItem.id,
-                        titulo: localItem.titulo,
-                        tipo_cambio: 'PRECIO_MODIFICADO',
-                        costo_anterior: localItem.precio_costo,
-                        costo_nuevo: item.precioCosto,
-                        margen_porcentaje: parseFloat(margenPorcentaje.toFixed(2)),
-                        venta_sugerida: ventaSugerida,
-                        created_at: new Date().toISOString(),
-                        imagen_url_nueva: item.imagen_url
-                    });
-
-                    console.log(`📌 [ACTUALIZADO] ${localItem.titulo}: $${localItem.precio_costo} → $${item.precioCosto} | Margen: ${margenPorcentaje.toFixed(2)}% | Venta sugerida: $${ventaSugerida}`);
+                    // 📝 Registrar en staging para auditoría (Evitando duplicados)
+                    const claveAlerta = `${localItem.id}-PRECIO_MODIFICADO`;
+                    if (!alertasExistentes.has(claveAlerta)) {
+                        registrosAuditoria.push({
+                            producto_id: localItem.id,
+                            titulo: localItem.titulo,
+                            tipo_cambio: 'PRECIO_MODIFICADO',
+                            costo_anterior: localItem.precio_costo,
+                            costo_nuevo: item.precioCosto,
+                            margen_porcentaje: parseFloat(margenPorcentaje.toFixed(2)),
+                            venta_sugerida: ventaSugerida,
+                            created_at: new Date().toISOString(),
+                            imagen_url_nueva: item.imagen_url
+                        });
+                        console.log(`📌 [ACTUALIZADO] ${localItem.titulo}: $${localItem.precio_costo} → $${item.precioCosto} | Margen: ${margenPorcentaje.toFixed(2)}% | Venta sugerida: $${ventaSugerida}`);
+                    } else {
+                        console.log(`ℹ️ Alerta de cambio de precio para ${localItem.titulo} ya existe en staging, ignorando duplicado.`);
+                    }
                 } else {
                     // Solo actualizar imagen si cambió
                     if (localItem.imagen_url !== item.imagen_url) {
@@ -312,17 +326,31 @@ async function syncCatalog() {
         } else {
             for (const [key, localItem] of localMap) {
                 if (!scrapedTitles.has(key)) {
-                    registrosAuditoria.push({
-                        producto_id: localItem.id,
-                        titulo: localItem.titulo,
-                        tipo_cambio: 'ELIMINADO',
-                        costo_anterior: localItem.precio_costo,
-                        costo_nuevo: null,
-                        margen_porcentaje: null,
-                        venta_sugerida: null,
-                        created_at: new Date().toISOString()
+                    const claveAlerta = `${localItem.id}-ELIMINADO`;
+
+                    if (!alertasExistentes.has(claveAlerta)) {
+                        registrosAuditoria.push({
+                            producto_id: localItem.id,
+                            titulo: localItem.titulo,
+                            tipo_cambio: 'ELIMINADO',
+                            costo_anterior: localItem.precio_costo,
+                            costo_nuevo: null,
+                            margen_porcentaje: null,
+                            venta_sugerida: null,
+                            created_at: new Date().toISOString()
+                        });
+                        console.log(`🗑️  [ELIMINADO] ${localItem.titulo} (realmente no está)`);
+                    } else {
+                        console.log(`ℹ️ Alerta de ELIMINADO para ${localItem.titulo} ya existe en staging, ignorando duplicado.`);
+                    }
+
+                    // 🔄 OCULTAR PRODUCTO EN TABLA PRINCIPAL INMEDIATAMENTE
+                    actualizarProductos.push({
+                        id: localItem.id,
+                        updates: {
+                            disponible: false
+                        }
                     });
-                    console.log(`🗑️  [ELIMINADO] ${localItem.titulo} (realmente no está)`);
                 }
             }
         }
@@ -345,9 +373,9 @@ async function syncCatalog() {
             }
         }
 
-        // 2️⃣ Actualizar precios en tabla principal (COMENTADO - YA NO ES AUTOMÁTICO)
-        /* if (actualizarProductos.length > 0) {
-            console.log(`\n⚙️ Actualizando ${actualizarProductos.length} productos en tabla principal...`);
+        // 2️⃣ Aplicar actualizaciones automáticas (Hiding de bajas)
+        if (actualizarProductos.length > 0) {
+            console.log(`\n⚙️  Procesando ${actualizarProductos.length} actualizaciones en tabla principal...`);
             let updatePromises = [];
             for (const { id, updates } of actualizarProductos) {
                 updatePromises.push(
@@ -358,10 +386,10 @@ async function syncCatalog() {
                 const batch = updatePromises.slice(i, i + 50);
                 await Promise.all(batch);
             }
-            console.log(`✅ Productos actualizados con piloto automático`);
+            console.log(`✅ Tabla principal sincronizada (Bajas procesadas)`);
         }
-        */
-        console.log("ℹ️ Piloto automático desactivado. Todos los cambios van a la sala de espera (staging).");
+
+        console.log("ℹ️ Los cambios de PRECIO siguen requiriendo aprobación manual en el panel de control.");
 
         // ════════════════════════════════════════════════════════════════════════
         // 📊 RESUMEN FINAL Y NOTIFICACIÓN

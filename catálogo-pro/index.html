@@ -697,6 +697,7 @@
                 const { data, error } = await supabaseClient
                     .from('productos')
                     .select('*')
+                    .eq('disponible', true)
                     .order('created_at', { ascending: false });
 
                 if (error) throw error;
