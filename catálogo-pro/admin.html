@@ -75,7 +75,6 @@
             animation: slideIn 0.3s ease-out forwards;
         }
 
-        /* Estilos Dinámicos Dark Mode */
         body.dark-mode {
             background-color: #020617;
             color: #F8FAFC;
@@ -179,7 +178,6 @@
             color: #020617 !important;
         }
 
-        /* Corrección Sticky Columns en Dark Mode */
         body.dark-mode th.sticky {
             background-color: #1E293B !important;
             border-color: #1E293B !important;
@@ -194,7 +192,6 @@
             background-color: #1E293B !important;
         }
 
-        /* Scrollbar suave para la tabla en mobile */
         .no-scrollbar::-webkit-scrollbar {
             display: none;
         }
@@ -208,15 +205,11 @@
             -webkit-overflow-scrolling: touch;
         }
 
-        /* LOGO SVG */
-
         .logo-svg {
-            filter:
-                brightness(0) saturate(100%) invert(9%) sepia(18%) saturate(1817%) hue-rotate(182deg) brightness(95%) contrast(97%);
+            filter: brightness(0) saturate(100%) invert(9%) sepia(18%) saturate(1817%) hue-rotate(182deg) brightness(95%) contrast(97%);
             transition: filter 0.2s ease;
         }
 
-        /* DARK MODE = BLANCO */
         body.dark-mode .logo-svg {
             filter: brightness(0) invert(1);
         }
@@ -264,43 +257,48 @@
 
     <div id="adminPanel" class="hidden flex flex-col min-h-screen">
         <header
-            class="bg-white border-b border-slate-200 sticky top-0 z-40 h-auto min-h-16 flex items-center py-2 md:py-0">
-            <div
-                class="max-w-7xl w-full mx-auto px-2 md:px-6 flex flex-col md:flex-row items-start md:items-center justify-start md:justify-between gap-3 md:gap-4">
-                <div
-                    class="flex flex-col md:flex-row items-start md:items-center justify-start w-full md:w-auto gap-3 md:gap-8">
-                    <div class="flex items-center gap-2 md:gap-3 w-full md:w-auto">
-                        <img src="imagensvg.svg" alt="Logo" class="logo-svg w-8 h-8 md:w-12 md:h-12 object-contain" />
-                        <span
-                            class="font-bold tracking-tight text-slate-900 uppercase text-[11px] md:text-sm whitespace-nowrap min-w-max">GINI
+            class="bg-white border-b border-slate-200 sticky top-0 z-40 min-h-16 flex items-center py-2 px-3 transition-colors">
+            <div class="w-full mx-auto flex flex-col gap-2">
+                <div class="flex items-center justify-between w-full">
+                    <div class="flex items-center gap-2">
+                        <img src="imagensvg.svg" alt="Logo" class="logo-svg w-7 h-7 object-contain" />
+                        <span class="font-bold tracking-tight text-slate-900 uppercase text-xs md:text-sm">GINI
                             EXPRESS</span>
                     </div>
-                    <nav class="flex gap-1 overflow-x-auto no-scrollbar py-1 w-full md:w-auto">
-                        <button onclick="showTab('inventory')"
-                            class="nav-tab text-[10px] md:text-xs font-bold uppercase tracking-wider px-3 md:px-4 py-2 rounded-lg bg-slate-900 text-white whitespace-nowrap min-w-max"
-                            data-tab="inventory">Inventory</button>
-                        <button onclick="showTab('add')"
-                            class="nav-tab text-[10px] md:text-xs font-bold uppercase tracking-wider px-3 md:px-4 py-2 rounded-lg text-gray-500 hover:text-slate-900 transition-colors whitespace-nowrap min-w-max"
-                            data-tab="add">Add NEW</button>
-                        <button onclick="showTab('bulk')"
-                            class="nav-tab text-[10px] md:text-xs font-bold uppercase tracking-wider px-3 md:px-4 py-2 rounded-lg text-gray-500 hover:text-slate-900 transition-colors whitespace-nowrap min-w-max"
-                            data-tab="bulk">Bulk Reset</button>
-                    </nav>
+                    <div class="flex items-center gap-1.5">
+                        <div id="userEmail"
+                            class="hidden md:block text-[10px] font-bold text-slate-400 bg-slate-50 px-2.5 py-1.5 rounded-md border border-slate-100">
+                            ...
+                        </div>
+                        <button id="themeToggle"
+                            class="text-slate-400 hover:text-slate-900 p-1.5 rounded-lg border border-slate-100 bg-white cursor-pointer flex items-center justify-center w-7 h-7 md:w-8 md:h-8">
+                            <i data-lucide="moon" class="w-3.5 h-3.5"></i>
+                        </button>
+                        <button id="logoutBtn"
+                            class="text-slate-300 hover:text-red-500 transition-colors bg-white p-1.5 rounded-lg border border-slate-100 cursor-pointer h-7 w-7 md:h-8 md:w-8 flex items-center justify-center">
+                            <i data-lucide="log-out" class="w-3.5 h-3.5"></i>
+                        </button>
+                    </div>
                 </div>
-                <div
-                    class="flex items-center justify-between md:justify-end w-full md:w-auto gap-2 md:gap-3 mt-1 md:mt-0">
-                    <div id="userEmail"
-                        class="text-[9px] md:text-[10px] font-bold text-slate-300 truncate max-w-[100px] md:max-w-none bg-slate-50 px-2 md:px-3 py-1.5 rounded-md border border-slate-100">
-                        ...</div>
-                    <button id="themeToggle"
-                        class="text-slate-400 hover:text-slate-900 p-2 rounded-lg border border-slate-100 bg-white cursor-pointer flex items-center justify-center w-9 h-9">
-                        <i data-lucide="moon" class="w-4 h-4"></i>
+
+                <nav class="flex flex-wrap gap-1 w-full border-t border-slate-100 pt-1.5">
+                    <button onclick="showTab('inventory')"
+                        class="nav-tab text-[9px] md:text-xs font-bold uppercase tracking-wider px-2.5 py-1.5 rounded-md bg-slate-900 text-white whitespace-nowrap cursor-pointer flex-1 text-center"
+                        data-tab="inventory">Inventory</button>
+                    <button onclick="showTab('add')"
+                        class="nav-tab text-[9px] md:text-xs font-bold uppercase tracking-wider px-2.5 py-1.5 rounded-md text-gray-500 hover:text-slate-900 transition-colors whitespace-nowrap cursor-pointer flex-1 text-center"
+                        data-tab="add">Add NEW</button>
+                    <button onclick="showTab('bulk')"
+                        class="nav-tab text-[9px] md:text-xs font-bold uppercase tracking-wider px-2.5 py-1.5 rounded-md text-gray-500 hover:text-slate-900 transition-colors whitespace-nowrap cursor-pointer flex-1 text-center"
+                        data-tab="bulk">Bulk Reset</button>
+                    <button onclick="showTab('staging')" data-tab="staging"
+                        class="nav-tab flex items-center justify-center gap-1 px-2.5 py-1.5 rounded-md text-gray-500 hover:bg-gray-100 transition-all text-[9px] md:text-xs font-bold uppercase tracking-wider whitespace-nowrap cursor-pointer flex-1 text-center">
+                        <i data-lucide="clipboard-check" class="w-3 h-3"></i>
+                        <span>Control</span>
+                        <span id="stagingBadgeCount"
+                            class="hidden bg-orange-500 text-white text-[8px] px-1 rounded-full font-black">0</span>
                     </button>
-                    <button id="logoutBtn"
-                        class="text-slate-300 hover:text-red-500 transition-colors bg-white p-2 rounded-lg border border-slate-100 cursor-pointer">
-                        <i data-lucide="log-out" class="w-4 h-4"></i>
-                    </button>
-                </div>
+                </nav>
             </div>
         </header>
 
@@ -312,13 +310,16 @@
                         <p class="text-sm text-slate-400 mt-1">Gestión avanzada de reglas de precios e importaciones</p>
                     </div>
                     <div class="flex flex-col sm:flex-row items-center gap-4 w-full lg:w-auto">
-
                         <button id="exportStoriesBtn" onclick="openExportModal()"
                             class="hidden w-full sm:w-auto bg-orange-500 hover:bg-orange-600 text-white px-4 py-2 rounded-lg text-xs font-bold gap-2 items-center justify-center cursor-pointer transition-all shadow-md slide-in">
                             <i data-lucide="image-down" class="w-3.5 h-3.5"></i> Exportar Stories (<span
                                 id="selectedCount">0</span>)
                         </button>
-
+                        <button id="deleteBulkBtn" onclick="deleteSelectedProducts()"
+                            class="hidden bg-red-600 hover:bg-red-700 text-white px-4 py-2 rounded-lg text-xs font-bold gap-2 items-center justify-center cursor-pointer transition-all shadow-md slide-in">
+                            <i data-lucide="trash-2" class="w-3.5 h-3.5"></i> Eliminar Seleccionados (<span
+                                id="deleteCount">0</span>)
+                        </button>
                         <div class="relative w-full sm:w-64">
                             <input type="text" id="adminSearchInput" placeholder="Buscar producto a editar..."
                                 class="w-full bg-white border border-slate-200 rounded-lg pl-9 pr-4 py-2 text-xs focus:border-slate-950 focus:outline-none transition-colors shadow-sm">
@@ -326,30 +327,24 @@
                                     class="w-3.5 h-3.5"></i></div>
                         </div>
                         <div class="flex items-center gap-2 flex-shrink-0 self-end sm:self-auto">
-
                             <button onclick="saveAllProducts()"
                                 class="bg-black hover:bg-slate-800 text-white px-4 py-2 rounded-lg text-xs font-bold flex items-center gap-2 cursor-pointer shadow-sm transition-all">
-                                <i data-lucide="save-all" class="w-4 h-4"></i>
-                                Guardar Todo
+                                <i data-lucide="save-all" class="w-4 h-4"></i> Guardar Todo
                             </button>
-
                             <span id="productCount"
-                                class="text-[10px] font-bold uppercase tracking-widest text-slate-400 bg-slate-100 px-3 py-1 rounded-full">
-                                0 ITEMS
-                            </span>
-
-                            <button onclick="fetchProducts()"
+                                class="text-[10px] font-bold uppercase tracking-widest text-slate-400 bg-slate-100 px-3 py-1 rounded-full">0
+                                ITEMS</span>
+                            <!-- <button onclick="fetchProducts()"
                                 class="p-2 border border-slate-200 rounded-lg text-slate-400 hover:text-slate-900 hover:bg-white transition-all cursor-pointer">
                                 <i data-lucide="rotate-cw" class="w-4 h-4"></i>
-                            </button>
-
+                            </button> -->
                         </div>
                     </div>
                 </div>
 
-                <div class="bg-white border border-slate-100 rounded-2xl overflow-hidden shadow-sm">
-                    <div class="overflow-x-auto table-container">
-                        <table class="w-full text-left md:min-w-[900px]">
+                <div class="bg-white border border-slate-100 rounded-2xl overflow-hidden shadow-sm w-full">
+                    <div class="w-full overflow-x-hidden md:overflow-x-auto table-container">
+                        <table class="w-full text-left border-collapse table-fixed md:table-auto">
                             <thead class="hidden md:table-header-group bg-slate-50 border-b border-slate-100">
                                 <tr>
                                     <th class="px-4 py-4 w-10 text-center">
@@ -440,6 +435,38 @@
                     </div>
                 </div>
             </section>
+
+            <section id="staging" class="tab-content hidden animate-in fade-in duration-300">
+                <div class="flex flex-col gap-6">
+                    <header class="flex flex-col sm:flex-row justify-between items-start sm:items-center gap-4">
+                        <div>
+                            <h2 class="text-xl font-bold text-slate-800 tracking-tight">Auditoría de Sincronización</h2>
+                            <p class="text-sm text-slate-500">Gestioná los cambios detectados por el robot en el
+                                catálogo del proveedor.</p>
+                        </div>
+                        <div class="flex items-center gap-2 w-full sm:w-auto justify-end">
+                            <button id="syncTreintaBtn" onclick="forceSyncWithTreinta()"
+                                class="bg-blue-600 hover:bg-blue-700 text-white px-3 py-2 rounded-lg text-xs font-bold flex items-center gap-1.5 cursor-pointer shadow-sm transition-all">
+                                <i data-lucide="refresh-cw" class="w-3.5 h-3.5"></i> Sincronizar Treinta
+                            </button>
+                            <!-- <button onclick="injectTestAlerts()"
+                                class="border border-dashed border-orange-400 text-orange-500 hover:bg-orange-50 px-3 py-2 rounded-lg text-xs font-bold flex items-center gap-1.5 cursor-pointer transition-all">
+                                <i data-lucide="beaker" class="w-3.5 h-3.5"></i> Inyectar Pruebas
+                            </button> -->
+                            <!-- <button onclick="fetchAlertas()"
+                                class="p-2 text-slate-400 hover:text-black transition-colors">
+                                <i data-lucide="rotate-cw" class="w-5 h-5"></i>
+                            </button> -->
+                        </div>
+                    </header>
+                    <div id="stagingList" class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4"></div>
+                    <div id="stagingEmptyState"
+                        class="hidden flex flex-col items-center justify-center py-20 text-slate-400">
+                        <i data-lucide="check-circle-2" class="w-12 h-12 mb-4 opacity-20"></i>
+                        <p>No hay cambios pendientes de revisión.</p>
+                    </div>
+                </div>
+            </section>
         </main>
     </div>
 
@@ -487,10 +514,13 @@
         let selectedProductIds = new Set();
         let currentUser = null;
         let isSavingAll = false;
-
         let hasUnsavedChanges = false;
 
         const FALLBACK_IMAGE = './assets/fallback-imagen.svg';
+
+        // Declaración única global para Staging
+        let alertasLocales = [];
+        const alertasProcesadasEnSesion = new Set();
 
         function syncProductMap() {
             productMap.clear();
@@ -563,11 +593,8 @@
         }
 
         function isPlaceholderImage(url = '') {
-
             if (!url) return true;
-
             const lower = url.toLowerCase();
-
             return (
                 lower.includes('placeholder-product.jpg') ||
                 lower.includes('/placeholder/') ||
@@ -578,18 +605,12 @@
         }
 
         function getProductImageSrc(product) {
-
             if (product?.pendingPreviewUrl) {
                 return product.pendingPreviewUrl;
             }
-
-            if (
-                !product?.imagen_url ||
-                isPlaceholderImage(product.imagen_url)
-            ) {
+            if (!product?.imagen_url || isPlaceholderImage(product.imagen_url)) {
                 return FALLBACK_IMAGE;
             }
-
             return product.imagen_url;
         }
 
@@ -682,6 +703,7 @@
             if (confirm('¿Cerrar sesión?')) await supabaseClient.auth.signOut();
         }
 
+        // CONTROL DE TABS E INTERFAZ
         function showLogin() {
             document.getElementById('loginSection').classList.remove('hidden');
             document.getElementById('adminPanel').classList.add('hidden');
@@ -692,7 +714,9 @@
             document.getElementById('loginSection').classList.add('hidden');
             document.getElementById('adminPanel').classList.remove('hidden');
             document.getElementById('userEmail').textContent = user.email;
+            if (document.getElementById('userEmailMobile')) document.getElementById('userEmailMobile').textContent = user.email.split('@')[0];
             fetchProducts();
+            fetchAlertas();
         }
 
         function showTab(tabId) {
@@ -703,8 +727,12 @@
                 el.classList.add('text-gray-500');
                 if (el.dataset.tab === tabId) el.classList.add('bg-black', 'text-white');
             });
+            if (tabId === "staging") {
+                fetchAlertas();
+            }
         }
 
+        // OPERACIONES DE INVENTARIO PRINCIPAL
         async function fetchProducts() {
             try {
                 const { data, error } = await supabaseClient.from('productos').select('*').order('created_at', { ascending: false });
@@ -742,93 +770,89 @@
                 table.innerHTML = `<tr><td colspan="7" class="px-8 py-16 text-center text-slate-400 text-sm">No hay coincidencias.</td></tr>`;
                 return;
             }
-            // Manteniendo lógica de renderizado, solo actualizando clases para mobile
             table.innerHTML = productsToRender.map(p => {
                 const isChecked = selectedProductIds.has(p.id) ? 'checked' : '';
                 const changedClass = p.hasChanges ? 'ring-2 ring-orange-400 bg-orange-50/30' : '';
                 return `
-                <tr id="row-${p.id}" style="contain: content;" class="block md:table-row hover:bg-gray-50/50 transition-colors group border-b md:border-0 border-slate-100 p-4 md:p-0 ${changedClass}">
-                    <td class="block md:table-cell px-0 md:px-4 py-2 md:py-4 text-left md:text-center">
-                        <div class="flex items-center justify-between md:block">
+                <tr id="row-${p.id}" class="block w-full md:table-row hover:bg-gray-50/50 transition-colors border-b border-slate-100 p-4 md:p-0 bg-white ${changedClass}">
+                    <td class="block md:table-cell px-0 md:px-4 py-1 md:py-4 w-full md:w-12">
+                        <div class="flex items-center justify-between md:justify-center gap-2">
                             <span class="md:hidden text-[10px] font-bold uppercase tracking-widest text-slate-400">Seleccionar</span>
-                        <input type="checkbox" data-id="${p.id}" ${isChecked} onchange="handleRowSelect(${p.id}, this)" class="w-4 h-4 rounded border-slate-300 accent-slate-900 cursor-pointer row-checkbox">
+                            <input type="checkbox" data-id="${p.id}" ${isChecked} onchange="handleRowSelect(${p.id}, this)" class="w-4 h-4 rounded border-slate-300 accent-slate-900 cursor-pointer row-checkbox">
                         </div>
                     </td>
-                    <td class="block md:table-cell px-0 md:px-6 py-2 md:py-4">
+                    
+                    <td class="block md:table-cell px-0 md:px-6 md:py-4 w-full">
                         <div class="flex items-center gap-3">
-                            <div class="relative">
-    <img 
-        src="${getProductImageSrc(p)}" 
-        id="preview-img-${p.id}"
-        loading="lazy"
-        onerror="this.onerror=null;this.src='./assets/fallback-imagen.svg';"
-        class="w-14 h-14 object-cover rounded-lg border">
-
-    <label 
-        for="upload-${p.id}"
-        class="absolute -bottom-1 -right-1 bg-black text-white rounded-full p-1 cursor-pointer shadow-md hover:bg-slate-800 transition-all">
-
-        <i data-lucide="camera" class="w-3 h-3"></i>
-    </label>
-
-    <input 
-        type="file"
-        id="upload-${p.id}"
-        accept="image/*"
-        onchange="handleImageUpload(${p.id}, this)"
-        class="hidden">
-</div>
-                            <div>
-                                <span class="block font-bold text-sm text-slate-800">${p.titulo}</span>
-                                <span class="block text-[10px] text-gray-400 mono">ID: ${p.id}</span>
+                            <div class="relative flex-shrink-0">
+                                <img src="${getProductImageSrc(p)}" id="preview-img-${p.id}" loading="lazy" onerror="this.onerror=null;this.src='./assets/fallback-imagen.svg';" class="w-11 h-11 md:w-14 md:h-14 object-cover rounded-lg border">
+                                <label for="upload-${p.id}" class="absolute -bottom-1 -right-1 bg-black text-white rounded-full p-0.5 cursor-pointer shadow-md hover:bg-slate-800 transition-all">
+                                    <i data-lucide="camera" class="w-2.5 h-2.5"></i>
+                                </label>
+                                <input type="file" id="upload-${p.id}" accept="image/*" onchange="handleImageUpload(${p.id}, this)" class="hidden">
+                            </div>
+                            <div class="min-w-0 flex-1">
+                                <span class="block font-bold text-xs md:text-sm text-slate-800 truncate uppercase">${p.titulo}</span>
+                                <span class="block text-[9px] text-gray-400 mono">ID: ${p.id}</span>
                             </div>
                         </div>
                     </td>
-                    <td class="block md:table-cell px-0 md:px-6 py-2 md:py-4">
-                        <span class="md:hidden text-[10px] font-bold uppercase tracking-widest text-slate-400 mb-1 block">Costo Base</span>
-                        <span class="text-xs font-semibold text-slate-500 mono">$${(p.precio_costo || 0).toLocaleString()}</span>
+                    
+                    <td class="block md:table-cell px-0 md:px-6 md:py-4 w-full md:w-32">
+                        <div class="flex justify-between items-center md:block">
+                            <span class="md:hidden text-[10px] font-bold uppercase tracking-widest text-slate-400">Costo Base</span>
+                            <span class="text-xs font-semibold text-slate-500 mono">$${(p.precio_costo || 0).toLocaleString()}</span>
+                        </div>
                     </td>
-                    <td class="block md:table-cell px-0 md:px-6 py-2 md:py-4">
-                        <span class="md:hidden text-[10px] font-bold uppercase tracking-widest text-slate-400 mb-1 block">Estrategia</span>
-                        <div class="flex flex-col gap-1">
-                            <select id="mode-${p.id}" onchange="toggleRowMode(${p.id})" class="w-full md:w-auto text-[10px] font-bold bg-slate-100 border rounded px-1.5 py-0.5 text-slate-700 outline-none cursor-pointer">
-                                <option value="porcentaje" ${p.precio_fijo === null ? 'selected' : ''}>Por Porcentaje</option>
-                                <option value="fijo" ${p.precio_fijo !== null ? 'selected' : ''}>Precio Fijo Manual</option>
-                            </select>
-                            <div id="container-margin-${p.id}" class="${p.precio_fijo !== null ? 'hidden' : 'flex'} items-center gap-1 mt-1">
-                                <input type="number" id="margin-${p.id}" value="${p.porcentaje_ganancia || 15}" oninput="recalcRowPrice(${p.id})" class="w-full md:w-12 border-b text-center text-xs mono">
-                                <span class="text-slate-400 text-xs font-bold">%</span>
+                    
+                    <td class="block md:table-cell px-0 md:px-6 md:py-4 w-full md:w-48">
+                        <div class="flex flex-col gap-1.5">
+                            <div class="flex justify-between items-center md:block">
+                                <span class="md:hidden text-[10px] font-bold uppercase tracking-widest text-slate-400">Estrategia</span>
+                                <select id="mode-${p.id}" onchange="toggleRowMode(${p.id})" class="text-[10px] font-bold bg-slate-100 border border-slate-200 rounded px-1 py-0.5 text-slate-700 outline-none cursor-pointer w-32 md:w-auto">
+                                    <option value="porcentaje" ${p.precio_fijo === null ? 'selected' : ''}>Por Porcentaje</option>
+                                    <option value="fijo" ${p.precio_fijo !== null ? 'selected' : ''}>Precio Fijo Manual</option>
+                                </select>
                             </div>
-                            <div id="container-fijo-${p.id}" class="${p.precio_fijo === null ? 'hidden' : 'flex'} items-center gap-1 mt-1">
-                                <span class="text-slate-400 text-xs font-bold">$</span>
-                                <input type="number" id="fijo-${p.id}" value="${p.precio_fijo || p.precio || 0}" oninput="recalcRowPrice(${p.id})" class="w-full md:w-20 border-b text-left text-xs mono">
+                            <div class="flex justify-end md:justify-start">
+                                <div id="container-margin-${p.id}" class="${p.precio_fijo !== null ? 'hidden' : 'flex'} items-center gap-1">
+                                    <input type="number" id="margin-${p.id}" value="${p.porcentaje_ganancia || 15}" oninput="recalcRowPrice(${p.id})" class="w-12 border rounded px-1 text-center text-xs mono py-0.5 bg-white">
+                                    <span class="text-slate-400 text-xs font-bold">%</span>
+                                </div>
+                                <div id="container-fijo-${p.id}" class="${p.precio_fijo === null ? 'hidden' : 'flex'} items-center gap-1">
+                                    <span class="text-slate-400 text-xs font-bold">$</span>
+                                    <input type="number" id="fijo-${p.id}" value="${p.precio_fijo || p.precio || 0}" oninput="recalcRowPrice(${p.id})" class="w-20 border rounded px-1 text-left text-xs mono py-0.5 bg-white">
+                                </div>
                             </div>
                         </div>
                     </td>
-                    <td class="block md:table-cell px-0 md:px-6 py-2 md:py-4">
-                        <span class="md:hidden text-[10px] font-bold uppercase tracking-widest text-slate-400 mb-1 block">Precio Venta</span>
-                        <span id="preview-precio-${p.id}" class="text-sm font-bold text-slate-900 mono">$${(p.precio || 0).toLocaleString()}</span>
+                    
+                    <td class="block md:table-cell px-0 md:px-6 md:py-4 w-full md:w-32">
+                        <div class="flex justify-between items-center md:block">
+                            <span class="md:hidden text-[10px] font-bold uppercase tracking-widest text-slate-400">Precio Venta</span>
+                            <span id="preview-precio-${p.id}" class="text-sm font-black text-slate-900 mono">$${(p.precio || 0).toLocaleString()}</span>
+                        </div>
                     </td>
-                    <td class="block md:table-cell px-0 md:px-6 py-2 md:py-4">
+                    
+                    <td class="block md:table-cell px-0 md:px-6 md:py-4 w-full">
                         <span class="md:hidden text-[10px] font-bold uppercase tracking-widest text-slate-400 mb-1 block">Descripción</span>
-                        <textarea id="desc-${p.id}" class="w-full bg-transparent border-b text-xs text-gray-500 resize-none focus:outline-none focus:border-slate-900" rows="1">${p.descripcion || ''}</textarea>
+                        <textarea id="desc-${p.id}" class="w-full bg-slate-50 md:bg-transparent border border-slate-200 rounded md:border-0 md:border-b p-1.5 md:p-0 text-xs text-gray-500 resize-none focus:outline-none focus:border-slate-900" rows="1">${p.descripcion || ''}</textarea>
                     </td>
-                    <td class="block md:table-cell px-0 md:px-6 py-4 text-right relative md:sticky md:right-0 bg-white md:bg-transparent">
-                        <div class="flex items-center justify-end gap-2">
-                            <button
-    data-save-btn
-    onclick="updateProduct(${p.id})" class="flex-1 md:flex-none p-2 bg-black text-white rounded-lg shadow-md cursor-pointer flex justify-center">
-                                <i data-lucide="save" class="w-4 h-4"></i>
+                    
+                    <td class="block md:table-cell px-0 md:px-6 md:py-4 text-right w-full md:w-28">
+                        <div class="flex items-center justify-end gap-2 mt-1 md:mt-0 w-full">
+                            <button data-save-btn onclick="updateProduct(${p.id})" class="flex-1 md:flex-none p-2 bg-black text-white rounded-lg shadow-sm cursor-pointer flex justify-center items-center gap-1 text-xs font-bold">
+                                <i data-lucide="save" class="w-3.5 h-3.5"></i> <span class="md:hidden">Guardar</span>
                             </button>
-                            <button onclick="deleteProduct(${p.id})" class="flex-1 md:flex-none p-2 border text-gray-400 hover:text-red-500 rounded-lg cursor-pointer flex justify-center">
-                                <i data-lucide="trash-2" class="w-4 h-4"></i>
+                            <button onclick="deleteProduct(${p.id})" class="flex-1 md:flex-none p-2 border border-slate-200 text-slate-400 hover:text-red-500 rounded-lg cursor-pointer flex justify-center items-center gap-1 text-xs font-bold">
+                                <i data-lucide="trash-2" class="w-3.5 h-3.5"></i> <span class="md:hidden">Eliminar</span>
                             </button>
                         </div>
                     </td>
                 </tr>
-            `}).join('');
+                `;
+            }).join('');
             lucide.createIcons();
-
             table.querySelectorAll('textarea[id^="desc-"]').forEach(autoResizeTextarea);
         }
 
@@ -851,13 +875,21 @@
         }
 
         function updateExportButtonState() {
-            const btn = document.getElementById('exportStoriesBtn');
+            const btnExport = document.getElementById('exportStoriesBtn');
+            const btnDelete = document.getElementById('deleteBulkBtn');
             const countEl = document.getElementById('selectedCount');
+            const deleteCountEl = document.getElementById('deleteCount');
+
             if (selectedProductIds.size > 0) {
-                countEl.textContent = selectedProductIds.size;
-                btn.classList.replace('hidden', 'flex');
+                if (countEl) countEl.textContent = selectedProductIds.size;
+                if (deleteCountEl) deleteCountEl.textContent = selectedProductIds.size;
+
+                if (btnExport) btnExport.classList.replace('hidden', 'flex');
+                if (btnDelete) btnDelete.classList.replace('hidden', 'flex');
             } else {
-                btn.classList.replace('flex', 'hidden');
+                if (btnExport) btnExport.classList.replace('flex', 'hidden');
+                if (btnDelete) btnDelete.classList.replace('flex', 'hidden');
+
                 const masterCheckbox = document.getElementById('selectAllCheckbox');
                 if (masterCheckbox) masterCheckbox.checked = false;
             }
@@ -933,7 +965,6 @@
 
                     ctx.clearRect(0, 0, 1080, 1920);
 
-                    // 1. CAPA BASE: Fondo cover
                     const scaleBase = Math.max(1080 / img.width, 1920 / img.height);
                     const wBase = img.width * scaleBase;
                     const hBase = img.height * scaleBase;
@@ -945,7 +976,6 @@
                     ctx.drawImage(canvas, 0, 0);
                     ctx.filter = "none";
 
-                    // 2. CAPA MEDIA: Centrar producto (fit inside)
                     const scaleMedia = Math.min(1010 / img.width, 1250 / img.height);
                     const wMedia = img.width * scaleMedia;
                     const hMedia = img.height * scaleMedia;
@@ -953,7 +983,6 @@
                     const yMedia = 100 + (1250 - hMedia) / 2;
                     ctx.drawImage(img, xMedia, yMedia, wMedia, hMedia);
 
-                    // 3. CAPA SUPERIOR: Sticker Naranja
                     ctx.fillStyle = "rgba(0,0,0,0.4)";
                     ctx.beginPath(); ctx.roundRect(685, 85, 350, 150, 25); ctx.fill();
                     ctx.fillStyle = "#f97316";
@@ -966,11 +995,9 @@
                     ctx.font = "bold 58px Arial, Helvetica, sans-serif";
                     ctx.fillText(`$${finalPrice.toLocaleString()}`, 680 + 175, 80 + 122);
 
-                    // Zócalo inferior informativo
                     ctx.fillStyle = "rgba(15, 23, 42, 0.92)";
                     ctx.fillRect(0, 1420, 1080, 500);
 
-                    // Control condicional de texto según descripción vacía
                     const cleanDesc = descValue ? descValue.replace(/sin descripción disponible\./gi, '').trim() : '';
 
                     ctx.fillStyle = "#FFFFFF";
@@ -1072,9 +1099,7 @@
         }
 
         async function handleImageUpload(id, input) {
-
             const file = input.files[0];
-
             if (!file) return;
             if (!file.type.startsWith('image/')) {
                 input.value = '';
@@ -1089,11 +1114,9 @@
             }
 
             try {
-
                 const product = products.find(p => p.id === id);
                 if (!product) return;
 
-                // PREVIEW INSTANTÁNEO
                 if (product.pendingPreviewUrl) {
                     URL.revokeObjectURL(product.pendingPreviewUrl);
                 }
@@ -1103,14 +1126,10 @@
                 markProductAsChanged(id);
 
                 document.getElementById(`preview-img-${id}`).src = previewUrl;
-
                 showToast('Imagen lista para guardar');
-
             } catch (err) {
-
                 console.error(err);
                 showToast('Error cargando imagen', 'red');
-
             }
         }
 
@@ -1130,12 +1149,11 @@
                 let imagen_url = product.imagen_url;
                 let uploadFailed = false;
 
-                // SI HAY NUEVA IMAGEN PENDIENTE
                 if (product.pendingImageFile) {
                     const file = product.pendingImageFile;
                     const fileExt = file.name.split('.').pop();
                     const fileName = `${product.id}-${Date.now()}.${fileExt}`;
-                    product.previousImagenUrl = product.imagen_url; // guardamos para futura limpieza
+                    product.previousImagenUrl = product.imagen_url;
 
                     try {
                         const { error: uploadError } = await supabaseClient.storage
@@ -1230,52 +1248,34 @@
         }
 
         async function saveAllProducts() {
-
             const btn = document.querySelector('[onclick="saveAllProducts()"]');
-
             if (isSavingAll) return;
             isSavingAll = true;
             btn.disabled = true;
-            btn.innerHTML = `
-        <span class="animate-spin rounded-full h-3.5 w-3.5 border-2 border-white/30 border-t-white"></span>
-        Guardando...
-    `;
+            btn.innerHTML = `<span class="animate-spin rounded-full h-3.5 w-3.5 border-2 border-white/30 border-t-white"></span> Guardando...`;
+
             const changedProducts = products.filter(p => (p.hasChanges || p.pendingImageFile) && !p.isSaving);
             if (changedProducts.length === 0) {
                 showToast('No hay cambios pendientes');
                 btn.disabled = false;
-                btn.innerHTML = `
-            <i data-lucide="save-all" class="w-4 h-4"></i>
-            Guardar Todo
-        `;
+                btn.innerHTML = `<i data-lucide="save-all" class="w-4 h-4"></i> Guardar Todo`;
                 lucide.createIcons();
                 isSavingAll = false;
                 return;
             }
 
             try {
-
                 for (const product of changedProducts) {
                     await updateProduct(product.id, false);
                 }
-
                 showToast('Todos los productos fueron guardados correctamente');
-
             } catch (err) {
-
                 console.error('saveAllProducts error:', err);
                 showToast('Error al guardar productos', 'red');
-
             } finally {
-
                 isSavingAll = false;
                 btn.disabled = false;
-
-                btn.innerHTML = `
-            <i data-lucide="save-all" class="w-4 h-4"></i>
-            Guardar Todo
-        `;
-
+                btn.innerHTML = `<i data-lucide="save-all" class="w-4 h-4"></i> Guardar Todo`;
                 lucide.createIcons();
             }
         }
@@ -1330,6 +1330,7 @@
 
         function showToast(msg, bg = 'black') {
             const toast = document.getElementById('toast');
+            if (!toast) return;
             toast.textContent = msg;
             toast.style.backgroundColor = bg === 'red' ? '#ef4444' : '#000000';
             toast.classList.replace('translate-y-20', 'translate-y-0');
@@ -1340,6 +1341,476 @@
             }, 3000);
         }
 
+        // =========================================================================
+        // CONTROL DE CAMBIOS INTELIGENTE (STAGING ADUANA)
+        // =========================================================================
+        async function fetchAlertas() {
+            const e = document.getElementById("stagingEmptyState"),
+                o = document.getElementById("stagingBadgeCount");
+            try {
+                const { data: n, error: r } = await supabaseClient
+                    .from("staging_products")
+                    .select("*")
+                    .not("procesado", "is", true)
+                    .order("created_at", { ascending: false });
+
+                //console.log("DATOS TRAÍDOS DE STAGING:", n, "ERROR DE SUPABASE:", r);
+                if (r) throw r;
+
+                alertasLocales = (n || []).filter(alerta => !alertasProcesadasEnSesion.has(Number(alerta.id)));
+
+                if (alertasLocales.length > 0) {
+                    if (o) { o.textContent = alertasLocales.length; o.classList.remove("hidden"); }
+                    if (e) e.classList.add("hidden");
+                } else {
+                    if (o) o.classList.add("hidden");
+                    if (e) e.classList.remove("hidden");
+                }
+                renderAlertas(alertasLocales);
+            } catch (n) {
+                console.error("Error en fetchAlertas:", n);
+                showToast("Error al cargar auditoría", "red");
+            }
+        }
+
+        function renderAlertas(t) {
+            const e = document.getElementById("stagingList");
+            if (!e) return;
+
+            const alertasFiltradas = t.filter(o => !alertasProcesadasEnSesion.has(Number(o.id)));
+
+            if (alertasFiltradas.length === 0) {
+                e.innerHTML = "";
+                document.getElementById("stagingEmptyState")?.classList.remove("hidden");
+                const badge = document.getElementById("stagingBadgeCount");
+                if (badge) badge.classList.add("hidden");
+                return;
+            }
+
+            e.innerHTML = alertasFiltradas.map(o => {
+                const n = o.tipo_cambio === "NUEVO",
+                    r = o.tipo_cambio === "PRECIO_MODIFICADO",
+                    a = o.tipo_cambio === "ELIMINADO";
+
+                const productoReal = o.producto_id
+                    ? products.find(p => String(p.id) === String(o.producto_id))
+                    : null;
+
+                const tituloTienda = productoReal ? productoReal.titulo : null;
+                const margenHistorico = productoReal ? (productoReal.porcentaje_ganancia || 0) : 50;
+
+                const u = o.imagen_url_nueva || (productoReal ? productoReal.imagen_url : null) || "./assets/fallback-imagen.svg";
+                const costoReferencia = n ? (o.costo_nuevo || 0) : (o.costo_nuevo || (productoReal ? productoReal.precio_costo : 0) || 0);
+
+                let d = "bg-emerald-100 text-green-700", s = "✨ NUEVO";
+                if (r) { d = "bg-amber-100 text-amber-700"; s = "🔄 CAMBIO PRECIO"; }
+                if (a) { d = "bg-red-100 text-red-700"; s = "🗑️ ELIMINADO"; }
+
+                let precioSugeridoInicial = o.venta_sugerida || 0;
+                if (n && !precioSugeridoInicial && costoReferencia) {
+                    precioSugeridoInicial = Math.round(costoReferencia * 1.50);
+                } else if (r && !precioSugeridoInicial && costoReferencia) {
+                    precioSugeridoInicial = Math.round(costoReferencia * (1 + margenHistorico / 100));
+                } else if (a && productoReal) {
+                    precioSugeridoInicial = productoReal.precio || 0;
+                }
+
+                return `<div class="bg-white border border-slate-100 rounded-xl p-4 shadow-sm hover:shadow-md transition-all flex flex-col gap-3">
+                    <div class="flex justify-between items-start">
+                        <span class="text-[10px] font-bold px-2 py-1 rounded-md uppercase ${d}">${s}</span>
+                        <span class="text-[10px] text-slate-400 mono">${new Date(o.created_at).toLocaleDateString()}</span>
+                    </div>
+                    <div class="flex gap-3">
+                        <img src="${u}" class="w-16 h-16 object-cover rounded-lg border border-slate-50 bg-slate-50 flex-shrink-0" onerror="this.onerror=null;this.src='./assets/fallback-imagen.svg';">
+                        <div class="flex-1 min-w-0">
+                            <h3 class="font-bold text-sm text-slate-800 truncate uppercase">${o.titulo}</h3>
+                            ${tituloTienda ? `<p class="text-[11px] text-orange-500 font-medium truncate">En Tienda: ${tituloTienda.toUpperCase()}</p>` : ""}
+                            
+                            <div class="text-[11px] text-slate-500 mt-1">
+                                ${n ? `<p>Costo Proveedor: <span class="mono font-bold text-slate-700">$${costoReferencia.toLocaleString()}</span></p>` : ""}
+                                ${r ? `<p>Costo: $${o.costo_anterior.toLocaleString()} → <span class="text-blue-600 font-bold">$${costoReferencia.toLocaleString()}</span> <span class="text-slate-600 font-semibold italic">(${margenHistorico}% anterior)</span></p>` : ""}
+                                ${a ? `<p class="text-red-500 font-medium">Descontinuado. <span class="text-slate-600 font-semibold italic">Margen tienda: ${margenHistorico}%</span></p>` : ""}
+                            </div>
+                        </div>
+                    </div>
+                    
+                    <div class="bg-slate-50 rounded-lg p-3 border border-slate-100 flex flex-col gap-3">
+                        <div class="flex flex-row items-center justify-between gap-2 w-full">
+                            <select id="mode-staging-${o.id}" onchange="toggleStagingRowMode(${o.id}, ${costoReferencia})" class="text-[10px] font-bold bg-white border rounded px-1.5 py-1 text-slate-700 outline-none cursor-pointer w-[55%] min-w-[105px]">
+                                <option value="porcentaje">Por Porcentaje</option>
+                                <option value="fijo">Precio Fijo Manual</option>
+                            </select>
+                            
+                            <div id="container-staging-margin-${o.id}" class="flex items-center gap-1 justify-end w-[40%]">
+                                <input type="number" id="margin-staging-${o.id}" value="${margenHistorico}" oninput="recalcStagingRowPrice(${o.id}, ${costoReferencia})" class="w-12 bg-white border border-slate-200 rounded text-center text-xs mono py-1 font-semibold">
+                                <span class="text-slate-400 text-xs font-bold">%</span>
+                            </div>
+                            
+                            <div id="container-staging-fijo-${o.id}" class="hidden items-center gap-1 justify-end w-[40%]">
+                                <span class="text-slate-400 text-xs font-bold">$</span>
+                                <input type="number" id="fijo-staging-${o.id}" value="${precioSugeridoInicial}" oninput="recalcStagingRowPrice(${o.id}, ${costoReferencia})" class="w-20 bg-white border border-slate-200 rounded text-left text-xs mono px-1 py-1 font-semibold">
+                            </div>
+                        </div>
+                        
+                        <div class="flex justify-between items-center pt-2 border-t border-slate-200/60">
+                            <span class="text-[10px] font-bold text-slate-400 tracking-wider">PRECIO VENTA FINAL</span>
+                            <div class="text-sm font-black text-slate-900 mono">$<span id="preview-staging-precio-${o.id}">${Math.round(precioSugeridoInicial).toLocaleString()}</span></div>
+                        </div>
+                    </div>
+
+                    <div class="grid grid-cols-2 gap-2 mt-1 pb-1">
+                        ${n ? `
+                            <button onclick="aceptarNuevo(${o.id})" class="text-[10px] font-bold bg-black text-white py-2.5 rounded-lg hover:bg-slate-800 transition-all uppercase cursor-pointer">DAR DE ALTA</button>
+                            <button onclick="descartarAlerta(${o.id})" class="text-[10px] font-bold border border-slate-200 text-slate-400 py-2.5 rounded-lg hover:bg-red-50 hover:text-red-500 transition-all uppercase cursor-pointer">DESCARTAR</button>
+                        ` : ""}
+                        ${r ? `
+                            <button onclick="confirmarCambioPrecio(${o.producto_id}, ${o.id})" class="text-[10px] font-bold bg-blue-600 text-white py-2.5 rounded-lg hover:bg-blue-700 transition-all uppercase cursor-pointer">GUARDAR PRECIO</button>
+                            <button onclick="archivarPrecioConHistorico(${o.producto_id}, ${o.id}, ${margenHistorico})" class="text-[10px] font-bold border border-slate-200 bg-white text-slate-600 py-2.5 rounded-lg hover:bg-slate-100 transition-all uppercase cursor-pointer">APLICAR (${margenHistorico}%)</button>
+                        ` : ""}
+                        ${a ? `
+                            <button onclick="conservarProductoEliminado(${o.producto_id}, ${o.id})" class="text-[10px] font-bold bg-emerald-600 text-white py-2.5 rounded-lg hover:bg-emerald-700 transition-all uppercase cursor-pointer">CONSERVAR ART.</button>
+                            <button onclick="eliminarProductoWeb(${o.id})" class="text-[10px] font-bold bg-red-500 text-white py-2.5 rounded-lg hover:bg-red-600 transition-all uppercase cursor-pointer">BORRAR DE WEB</button>
+                        ` : ""}
+                    </div>
+                </div>`;
+            }).join("");
+            if (window.lucide) lucide.createIcons();
+        }
+
+        window.toggleStagingRowMode = function (id, costo) {
+            const mode = document.getElementById(`mode-staging-${id}`).value;
+            const containerMargin = document.getElementById(`container-staging-margin-${id}`);
+            const containerFijo = document.getElementById(`container-staging-fijo-${id}`);
+
+            if (mode === 'porcentaje') {
+                containerMargin.style.display = 'flex';
+                containerFijo.style.display = 'none';
+            } else {
+                containerMargin.style.display = 'none';
+                containerFijo.style.display = 'flex';
+            }
+            recalcStagingRowPrice(id, costo);
+        }
+
+        window.recalcStagingRowPrice = function (id, costo) {
+            const mode = document.getElementById(`mode-staging-${id}`).value;
+            const previewEl = document.getElementById(`preview-staging-precio-${id}`);
+            const inputFijo = document.getElementById(`fijo-staging-${id}`);
+            let finalPrice = 0;
+
+            if (mode === 'porcentaje') {
+                const margin = parseFloat(document.getElementById(`margin-staging-${id}`).value) || 0;
+                finalPrice = Math.round(costo * (1 + margin / 100));
+                if (inputFijo) inputFijo.value = finalPrice;
+            } else {
+                finalPrice = parseFloat(inputFijo.value) || 0;
+            }
+            if (previewEl) previewEl.textContent = Math.round(finalPrice).toLocaleString();
+        }
+
+        function obtenerPrecioFinalYMargenDeCard(id, costoBase) {
+            const mode = document.getElementById(`mode-staging-${id}`).value;
+            let precioVenta = 0;
+            let margen = 0;
+
+            if (mode === 'porcentaje') {
+                margen = Math.round(parseFloat(document.getElementById(`margin-staging-${id}`).value) || 0);
+                precioVenta = Math.round(costoBase * (1 + margen / 100));
+            } else {
+                precioVenta = Math.round(parseFloat(document.getElementById(`fijo-staging-${id}`).value) || 0);
+                margen = costoBase > 0 ? Math.round(((precioVenta - costoBase) / costoBase) * 100) : 0;
+            }
+            return { precioVenta, margen };
+        }
+
+        async function aceptarNuevo(t) {
+            const e = alertasLocales.find(n => Number(n.id) === Number(t));
+            if (!e) return;
+
+            const costo = e.costo_nuevo || 0;
+            const { precioVenta, margen } = obtenerPrecioFinalYMargenDeCard(t, costo);
+
+            alertasProcesadasEnSesion.add(Number(t));
+            alertasLocales = alertasLocales.filter(n => Number(n.id) !== Number(t));
+            renderAlertas(alertasLocales);
+            showToast("Procesando alta de producto...");
+
+            try {
+                const { error: insError } = await supabaseClient.from("productos").insert([{
+                    titulo: e.titulo,
+                    precio_costo: costo,
+                    precio: precioVenta,
+                    porcentaje_ganancia: margen,
+                    precio_fijo: null,
+                    imagen_url: e.imagen_url_nueva || null,
+                    created_at: new Date().toISOString()
+                }]);
+                if (insError) throw insError;
+                await supabaseClient.from("staging_products").update({ procesado: true }).eq("id", Number(t));
+            } catch (error) {
+                console.error("Error en alta:", error);
+            } finally {
+                await fetchAlertas();
+                if (typeof fetchProducts === "function") await fetchProducts();
+            }
+        }
+
+        async function confirmarCambioPrecio(productoId, alertaId) {
+            const alerta = alertasLocales.find(n => Number(n.id) === Number(alertaId));
+            if (!alerta) return;
+
+            const costoNuevo = alerta.costo_nuevo || 0;
+            const { precioVenta, margen } = obtenerPrecioFinalYMargenDeCard(alertaId, costoNuevo);
+
+            alertasProcesadasEnSesion.add(Number(alertaId));
+            alertasLocales = alertasLocales.filter(n => Number(n.id) !== Number(alertaId));
+            renderAlertas(alertasLocales);
+            showToast("Guardando nuevo precio...");
+
+            try {
+                const { error: errProd } = await supabaseClient
+                    .from("productos")
+                    .update({ precio: precioVenta, precio_costo: costoNuevo, porcentaje_ganancia: margen })
+                    .eq("id", Number(productoId));
+                if (errProd) throw errProd;
+                await supabaseClient.from("staging_products").update({ procesado: true }).eq("id", Number(alertaId));
+            } catch (error) {
+                console.error("Error al guardar precio:", error);
+            } finally {
+                await fetchAlertas();
+                if (typeof fetchProducts === "function") await fetchProducts();
+            }
+        }
+
+        async function archivarPrecioConHistorico(productoId, alertaId, margenHistorico) {
+            const alerta = alertasLocales.find(n => Number(n.id) === Number(alertaId));
+            if (!alerta) return;
+
+            alertasProcesadasEnSesion.add(Number(alertaId));
+            alertasLocales = alertasLocales.filter(n => Number(n.id) !== Number(alertaId));
+            renderAlertas(alertasLocales);
+            showToast("Aplicando margen histórico...");
+
+            try {
+                const costoNuevo = alerta.costo_nuevo || 0;
+                const precioCalculado = Math.round(costoNuevo * (1 + margenHistorico / 100));
+
+                const { error: errProd } = await supabaseClient
+                    .from("productos")
+                    .update({ precio: precioCalculado, precio_costo: costoNuevo, porcentaje_ganancia: margenHistorico })
+                    .eq("id", Number(productoId));
+                if (errProd) throw errProd;
+                await supabaseClient.from("staging_products").update({ procesado: true }).eq("id", Number(alertaId));
+            } catch (error) {
+                console.error("Error al auto-aplicar margen:", error);
+            } finally {
+                await fetchAlertas();
+                if (typeof fetchProducts === "function") await fetchProducts();
+            }
+        }
+
+        async function conservarProductoEliminado(productoId, alertaId) {
+            const productoReal = productoId ? products.find(p => String(p.id) === String(productoId)) : null;
+            const costoBase = productoReal ? (productoReal.precio_costo || 0) : 0;
+            const { precioVenta, margen } = obtenerPrecioFinalYMargenDeCard(alertaId, costoBase);
+
+            alertasProcesadasEnSesion.add(Number(alertaId));
+            alertasLocales = alertasLocales.filter(n => Number(n.id) !== Number(alertaId));
+            renderAlertas(alertasLocales);
+            showToast("Conservando producto...");
+
+            try {
+                const { error: errProd } = await supabaseClient
+                    .from("productos")
+                    .update({ precio: precioVenta, porcentaje_ganancia: margen })
+                    .eq("id", Number(productoId));
+                if (errProd) throw errProd;
+                await supabaseClient.from("staging_products").update({ procesado: true }).eq("id", Number(alertaId));
+            } catch (error) {
+                console.error("Error al conservar producto:", error);
+            } finally {
+                await fetchAlertas();
+                if (typeof fetchProducts === "function") await fetchProducts();
+            }
+        }
+
+        async function eliminarProductoWeb(alertaId) {
+            const alerta = alertasLocales.find(n => Number(n.id) === Number(alertaId));
+            if (!alerta) return;
+            if (!confirm("¿Confirmás eliminar este producto definitivamente de la tienda?")) return;
+
+            const productoId = alerta.producto_id;
+            alertasProcesadasEnSesion.add(Number(alertaId));
+            alertasLocales = alertasLocales.filter(n => Number(n.id) !== Number(alertaId));
+            renderAlertas(alertasLocales);
+            showToast("Eliminando producto de la tienda...");
+
+            try {
+                if (productoId && productoId !== "null") {
+                    await supabaseClient.from("productos").delete().eq("id", Number(productoId));
+                }
+                await supabaseClient.from("staging_products").update({ procesado: true }).eq("id", Number(alertaId));
+            } catch (error) {
+                console.error("Error en borrado asíncrono:", error);
+            } finally {
+                await fetchAlertas();
+                if (typeof fetchProducts === "function") await fetchProducts();
+            }
+        }
+
+        async function descartarAlerta(t) {
+            alertasProcesadasEnSesion.add(Number(t));
+            alertasLocales = alertasLocales.filter(n => Number(n.id) !== Number(t));
+            renderAlertas(alertasLocales);
+            showToast("Archivando aviso...");
+
+            try {
+                const { data: fetchResult } = await supabaseClient.from("staging_products").select("*").eq("id", Number(t));
+                const alertaFull = fetchResult && fetchResult[0] ? fetchResult[0] : null;
+
+                if (alertaFull && alertaFull.producto_id) {
+                    await supabaseClient.from("productos").update({ precio_fijo: 0 }).eq("id", Number(alertaFull.producto_id));
+                }
+                await supabaseClient.from("staging_products").update({ procesado: true }).eq("id", Number(t));
+            } catch (error) {
+                console.error("Error al descartar alerta:", error);
+            } finally {
+                await fetchAlertas();
+                if (typeof fetchProducts === "function") await fetchProducts();
+            }
+        }
+
+        async function deleteSelectedProducts() {
+            if (selectedProductIds.size === 0) {
+                showToast("No seleccionaste ningún producto", "red");
+                return;
+            }
+
+            const cantidad = selectedProductIds.size;
+            if (!confirm(`¿Estás seguro de que querés ELIMINAR definitivamente los ${cantidad} productos seleccionados de la tienda?`)) {
+                return;
+            }
+
+            const idsParaBorrar = Array.from(selectedProductIds).map(Number);
+            showToast(`Eliminando ${cantidad} productos...`);
+            console.group(`🗑️ AUDITORÍA: Borrado Masivo de ${cantidad} ítems`);
+
+            try {
+                const { data, error } = await supabaseClient
+                    .from("productos")
+                    .delete()
+                    .in("id", idsParaBorrar)
+                    .select();
+
+                if (error) throw error;
+
+                console.log("✅ Productos eliminados en lote de la base de datos:", data);
+                showToast(`¡${cantidad} productos eliminados correctamente!`);
+
+                selectedProductIds.clear();
+                updateExportButtonState();
+
+            } catch (error) {
+                console.error("🚨 Falló el borrado masivo en Supabase:", error);
+                showToast("Hubo un error al borrar los elementos.", "red");
+            } finally {
+                console.groupEnd();
+                await fetchProducts();
+            }
+        }
+
+        async function forceSyncWithTreinta() {
+            const syncBtn = document.getElementById('syncTreintaBtn');
+            if (!syncBtn) return;
+            
+            const originalHTML = syncBtn.innerHTML;
+            syncBtn.disabled = true;
+            syncBtn.innerHTML = `<span class="animate-spin rounded-full h-3 w-3 border-2 border-white/30 border-t-white mr-1.5 inline-block"></span> Scrapeando...`;
+
+            try {
+                // Intentamos conectar con la API local
+                const response = await fetch('/api/scrape-treinta', { method: 'POST' });
+                
+                if (response.status === 404) {
+                    // Manejo controlado del entorno sin API local instalada
+                    alert("Aviso: El endpoint de scraping directo no está montado en este puerto local aún.\n\nEl robot de Treinta debe ejecutarse en segundo plano o mediante tu script backend.");
+                    return;
+                }
+                
+                if (!response.ok) throw new Error('Error en el servidor de scraping');
+                showToast('¡Sincronización finalizada con éxito!');
+            } catch (error) {
+                console.error('Error al sincronizar:', error);
+                showToast('Servidor de Scraping fuera de línea', 'red');
+            } finally {
+                syncBtn.disabled = false;
+                syncBtn.innerHTML = originalHTML;
+                lucide.createIcons();
+                await fetchAlertas(); 
+            }
+        }
+
+        // Simulación Completa LOCAL para bypass de políticas RLS de Supabase
+        /*async function injectTestAlerts() {
+            if (products.length === 0) {
+                showToast("Cargando inventario primero...", "red");
+                await fetchProducts();
+            }
+
+            // Tomamos un producto existente para simular Modificación y Eliminación
+            const productoPiloto = products[0] || { id: 99999, titulo: "Producto Test Base", precio_costo: 1000 };
+            const idPiloto = Number(productoPiloto.id);
+
+            showToast("Inyectando set de pruebas locales...");
+
+            // Generamos las alertas mock directo en la memoria del cliente
+            const pruebasMock = [
+                {
+                    id: Math.floor(Math.random() * -10000), // IDs negativos temporales para no chocar
+                    titulo: "PROD NUEVO SIMULADO " + Math.floor(Math.random() * 100),
+                    tipo_cambio: "NUEVO",
+                    costo_nuevo: 2500,
+                    imagen_url_nueva: "https://images.unsplash.com/photo-1542291026-7eec264c27ff?w=200",
+                    procesado: false,
+                    created_at: new Date().toISOString()
+                },
+                {
+                    id: Math.floor(Math.random() * -10000) - 1,
+                    producto_id: idPiloto,
+                    titulo: productoPiloto.titulo,
+                    tipo_cambio: "PRECIO_MODIFICADO",
+                    costo_anterior: Number(productoPiloto.precio_costo || 1000),
+                    costo_nuevo: Number(productoPiloto.precio_costo || 1000) * 1.30,
+                    procesado: false,
+                    created_at: new Date().toISOString()
+                },
+                {
+                    id: Math.floor(Math.random() * -10000) - 2,
+                    producto_id: idPiloto,
+                    titulo: productoPiloto.titulo,
+                    tipo_cambio: "ELIMINADO",
+                    procesado: false,
+                    created_at: new Date().toISOString()
+                }
+            ];
+
+            // Forzamos el estado de la UI
+            alertasProcesadasEnSesion.clear();
+            alertasLocales = pruebasMock;
+
+            // Actualizamos los contadores visuales del Header y vaciamos el Empty State
+            const badge = document.getElementById("stagingBadgeCount");
+            const emptyState = document.getElementById("stagingEmptyState");
+            
+            if (badge) { badge.textContent = alertasLocales.length; badge.classList.remove("hidden"); }
+            if (emptyState) emptyState.classList.add("hidden");
+
+            // Renderizamos las tarjetas de test localmente al instante
+            renderAlertas(alertasLocales);
+            showToast("¡Tarjetas de prueba inyectadas localmente!");
+        }*/
+
+        // CONTROLADORES DE EVENTOS SUPABASE AUTH
         supabaseClient.auth.onAuthStateChange((event, session) => {
             if (event === 'SIGNED_IN') showAdminPanel(session.user);
             if (event === 'SIGNED_OUT') showLogin();
@@ -1348,15 +1819,13 @@
         init();
 
         window.addEventListener('beforeunload', function (e) {
-
             if (hasUnsavedChanges) {
-
                 e.preventDefault();
                 e.returnValue = '';
-
             }
         });
 
+        // FIRMAS FINALES ALCANCE GLOBAL WINDOW
         window.showTab = showTab;
         window.fetchProducts = fetchProducts;
         window.updateProduct = updateProduct;
@@ -1372,6 +1841,18 @@
         window.processBatchExport = processBatchExport;
         window.handleImageUpload = handleImageUpload;
         window.saveAllProducts = saveAllProducts;
+        window.fetchAlertas = fetchAlertas;
+        window.aceptarNuevo = aceptarNuevo;
+        window.confirmarCambioPrecio = confirmarCambioPrecio;
+        window.eliminarProductoWeb = eliminarProductoWeb;
+        window.descartarAlerta = descartarAlerta;
+        window.deleteSelectedProducts = deleteSelectedProducts;
+        window.toggleStagingRowMode = toggleStagingRowMode;
+        window.recalcStagingRowPrice = recalcStagingRowPrice;
+        window.archivarPrecioConHistorico = archivarPrecioConHistorico;
+        window.conservarProductoEliminado = conservarProductoEliminado;
+        window.forceSyncWithTreinta = forceSyncWithTreinta;
+        //window.injectTestAlerts = injectTestAlerts;
     </script>
 </body>
 

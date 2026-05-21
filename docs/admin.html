@@ -75,7 +75,6 @@
             animation: slideIn 0.3s ease-out forwards;
         }
 
-        /* Estilos Dinámicos Dark Mode */
         body.dark-mode {
             background-color: #020617;
             color: #F8FAFC;
@@ -179,7 +178,6 @@
             color: #020617 !important;
         }
 
-        /* Corrección Sticky Columns en Dark Mode */
         body.dark-mode th.sticky {
             background-color: #1E293B !important;
             border-color: #1E293B !important;
@@ -194,7 +192,6 @@
             background-color: #1E293B !important;
         }
 
-        /* Scrollbar suave para la tabla en mobile */
         .no-scrollbar::-webkit-scrollbar {
             display: none;
         }
@@ -208,20 +205,16 @@
             -webkit-overflow-scrolling: touch;
         }
 
-        /* LOGO SVG */
-
         .logo-svg {
-            filter:
-                brightness(0) saturate(100%) invert(9%) sepia(18%) saturate(1817%) hue-rotate(182deg) brightness(95%) contrast(97%);
+            filter: brightness(0) saturate(100%) invert(9%) sepia(18%) saturate(1817%) hue-rotate(182deg) brightness(95%) contrast(97%);
             transition: filter 0.2s ease;
         }
 
-        /* DARK MODE = BLANCO */
         body.dark-mode .logo-svg {
             filter: brightness(0) invert(1);
         }
     </style>
-  <script type="module" crossorigin src="/giniexpress/assets/admin-B5Y4Lyse.js"></script>
+  <script type="module" crossorigin src="/giniexpress/assets/admin-DJGjh65r.js"></script>
   <link rel="modulepreload" crossorigin href="/giniexpress/assets/index-CMzVDswU.js">
 </head>
 
@@ -266,43 +259,48 @@
 
     <div id="adminPanel" class="hidden flex flex-col min-h-screen">
         <header
-            class="bg-white border-b border-slate-200 sticky top-0 z-40 h-auto min-h-16 flex items-center py-2 md:py-0">
-            <div
-                class="max-w-7xl w-full mx-auto px-2 md:px-6 flex flex-col md:flex-row items-start md:items-center justify-start md:justify-between gap-3 md:gap-4">
-                <div
-                    class="flex flex-col md:flex-row items-start md:items-center justify-start w-full md:w-auto gap-3 md:gap-8">
-                    <div class="flex items-center gap-2 md:gap-3 w-full md:w-auto">
-                        <img src="/giniexpress/assets/imagensvg-pP-w7Uxs.svg" alt="Logo" class="logo-svg w-8 h-8 md:w-12 md:h-12 object-contain" />
-                        <span
-                            class="font-bold tracking-tight text-slate-900 uppercase text-[11px] md:text-sm whitespace-nowrap min-w-max">GINI
+            class="bg-white border-b border-slate-200 sticky top-0 z-40 min-h-16 flex items-center py-2 px-3 transition-colors">
+            <div class="w-full mx-auto flex flex-col gap-2">
+                <div class="flex items-center justify-between w-full">
+                    <div class="flex items-center gap-2">
+                        <img src="/giniexpress/assets/imagensvg-pP-w7Uxs.svg" alt="Logo" class="logo-svg w-7 h-7 object-contain" />
+                        <span class="font-bold tracking-tight text-slate-900 uppercase text-xs md:text-sm">GINI
                             EXPRESS</span>
                     </div>
-                    <nav class="flex gap-1 overflow-x-auto no-scrollbar py-1 w-full md:w-auto">
-                        <button onclick="showTab('inventory')"
-                            class="nav-tab text-[10px] md:text-xs font-bold uppercase tracking-wider px-3 md:px-4 py-2 rounded-lg bg-slate-900 text-white whitespace-nowrap min-w-max"
-                            data-tab="inventory">Inventory</button>
-                        <button onclick="showTab('add')"
-                            class="nav-tab text-[10px] md:text-xs font-bold uppercase tracking-wider px-3 md:px-4 py-2 rounded-lg text-gray-500 hover:text-slate-900 transition-colors whitespace-nowrap min-w-max"
-                            data-tab="add">Add NEW</button>
-                        <button onclick="showTab('bulk')"
-                            class="nav-tab text-[10px] md:text-xs font-bold uppercase tracking-wider px-3 md:px-4 py-2 rounded-lg text-gray-500 hover:text-slate-900 transition-colors whitespace-nowrap min-w-max"
-                            data-tab="bulk">Bulk Reset</button>
-                    </nav>
+                    <div class="flex items-center gap-1.5">
+                        <div id="userEmail"
+                            class="hidden md:block text-[10px] font-bold text-slate-400 bg-slate-50 px-2.5 py-1.5 rounded-md border border-slate-100">
+                            ...
+                        </div>
+                        <button id="themeToggle"
+                            class="text-slate-400 hover:text-slate-900 p-1.5 rounded-lg border border-slate-100 bg-white cursor-pointer flex items-center justify-center w-7 h-7 md:w-8 md:h-8">
+                            <i data-lucide="moon" class="w-3.5 h-3.5"></i>
+                        </button>
+                        <button id="logoutBtn"
+                            class="text-slate-300 hover:text-red-500 transition-colors bg-white p-1.5 rounded-lg border border-slate-100 cursor-pointer h-7 w-7 md:h-8 md:w-8 flex items-center justify-center">
+                            <i data-lucide="log-out" class="w-3.5 h-3.5"></i>
+                        </button>
+                    </div>
                 </div>
-                <div
-                    class="flex items-center justify-between md:justify-end w-full md:w-auto gap-2 md:gap-3 mt-1 md:mt-0">
-                    <div id="userEmail"
-                        class="text-[9px] md:text-[10px] font-bold text-slate-300 truncate max-w-[100px] md:max-w-none bg-slate-50 px-2 md:px-3 py-1.5 rounded-md border border-slate-100">
-                        ...</div>
-                    <button id="themeToggle"
-                        class="text-slate-400 hover:text-slate-900 p-2 rounded-lg border border-slate-100 bg-white cursor-pointer flex items-center justify-center w-9 h-9">
-                        <i data-lucide="moon" class="w-4 h-4"></i>
+
+                <nav class="flex flex-wrap gap-1 w-full border-t border-slate-100 pt-1.5">
+                    <button onclick="showTab('inventory')"
+                        class="nav-tab text-[9px] md:text-xs font-bold uppercase tracking-wider px-2.5 py-1.5 rounded-md bg-slate-900 text-white whitespace-nowrap cursor-pointer flex-1 text-center"
+                        data-tab="inventory">Inventory</button>
+                    <button onclick="showTab('add')"
+                        class="nav-tab text-[9px] md:text-xs font-bold uppercase tracking-wider px-2.5 py-1.5 rounded-md text-gray-500 hover:text-slate-900 transition-colors whitespace-nowrap cursor-pointer flex-1 text-center"
+                        data-tab="add">Add NEW</button>
+                    <button onclick="showTab('bulk')"
+                        class="nav-tab text-[9px] md:text-xs font-bold uppercase tracking-wider px-2.5 py-1.5 rounded-md text-gray-500 hover:text-slate-900 transition-colors whitespace-nowrap cursor-pointer flex-1 text-center"
+                        data-tab="bulk">Bulk Reset</button>
+                    <button onclick="showTab('staging')" data-tab="staging"
+                        class="nav-tab flex items-center justify-center gap-1 px-2.5 py-1.5 rounded-md text-gray-500 hover:bg-gray-100 transition-all text-[9px] md:text-xs font-bold uppercase tracking-wider whitespace-nowrap cursor-pointer flex-1 text-center">
+                        <i data-lucide="clipboard-check" class="w-3 h-3"></i>
+                        <span>Control</span>
+                        <span id="stagingBadgeCount"
+                            class="hidden bg-orange-500 text-white text-[8px] px-1 rounded-full font-black">0</span>
                     </button>
-                    <button id="logoutBtn"
-                        class="text-slate-300 hover:text-red-500 transition-colors bg-white p-2 rounded-lg border border-slate-100 cursor-pointer">
-                        <i data-lucide="log-out" class="w-4 h-4"></i>
-                    </button>
-                </div>
+                </nav>
             </div>
         </header>
 
@@ -314,13 +312,16 @@
                         <p class="text-sm text-slate-400 mt-1">Gestión avanzada de reglas de precios e importaciones</p>
                     </div>
                     <div class="flex flex-col sm:flex-row items-center gap-4 w-full lg:w-auto">
-
                         <button id="exportStoriesBtn" onclick="openExportModal()"
                             class="hidden w-full sm:w-auto bg-orange-500 hover:bg-orange-600 text-white px-4 py-2 rounded-lg text-xs font-bold gap-2 items-center justify-center cursor-pointer transition-all shadow-md slide-in">
                             <i data-lucide="image-down" class="w-3.5 h-3.5"></i> Exportar Stories (<span
                                 id="selectedCount">0</span>)
                         </button>
-
+                        <button id="deleteBulkBtn" onclick="deleteSelectedProducts()"
+                            class="hidden bg-red-600 hover:bg-red-700 text-white px-4 py-2 rounded-lg text-xs font-bold gap-2 items-center justify-center cursor-pointer transition-all shadow-md slide-in">
+                            <i data-lucide="trash-2" class="w-3.5 h-3.5"></i> Eliminar Seleccionados (<span
+                                id="deleteCount">0</span>)
+                        </button>
                         <div class="relative w-full sm:w-64">
                             <input type="text" id="adminSearchInput" placeholder="Buscar producto a editar..."
                                 class="w-full bg-white border border-slate-200 rounded-lg pl-9 pr-4 py-2 text-xs focus:border-slate-950 focus:outline-none transition-colors shadow-sm">
@@ -328,30 +329,24 @@
                                     class="w-3.5 h-3.5"></i></div>
                         </div>
                         <div class="flex items-center gap-2 flex-shrink-0 self-end sm:self-auto">
-
                             <button onclick="saveAllProducts()"
                                 class="bg-black hover:bg-slate-800 text-white px-4 py-2 rounded-lg text-xs font-bold flex items-center gap-2 cursor-pointer shadow-sm transition-all">
-                                <i data-lucide="save-all" class="w-4 h-4"></i>
-                                Guardar Todo
+                                <i data-lucide="save-all" class="w-4 h-4"></i> Guardar Todo
                             </button>
-
                             <span id="productCount"
-                                class="text-[10px] font-bold uppercase tracking-widest text-slate-400 bg-slate-100 px-3 py-1 rounded-full">
-                                0 ITEMS
-                            </span>
-
-                            <button onclick="fetchProducts()"
+                                class="text-[10px] font-bold uppercase tracking-widest text-slate-400 bg-slate-100 px-3 py-1 rounded-full">0
+                                ITEMS</span>
+                            <!-- <button onclick="fetchProducts()"
                                 class="p-2 border border-slate-200 rounded-lg text-slate-400 hover:text-slate-900 hover:bg-white transition-all cursor-pointer">
                                 <i data-lucide="rotate-cw" class="w-4 h-4"></i>
-                            </button>
-
+                            </button> -->
                         </div>
                     </div>
                 </div>
 
-                <div class="bg-white border border-slate-100 rounded-2xl overflow-hidden shadow-sm">
-                    <div class="overflow-x-auto table-container">
-                        <table class="w-full text-left md:min-w-[900px]">
+                <div class="bg-white border border-slate-100 rounded-2xl overflow-hidden shadow-sm w-full">
+                    <div class="w-full overflow-x-hidden md:overflow-x-auto table-container">
+                        <table class="w-full text-left border-collapse table-fixed md:table-auto">
                             <thead class="hidden md:table-header-group bg-slate-50 border-b border-slate-100">
                                 <tr>
                                     <th class="px-4 py-4 w-10 text-center">
@@ -439,6 +434,38 @@
                                 <i data-lucide="zap" class="w-4 h-4"></i> Aplicar Porcentaje Global
                             </button>
                         </div>
+                    </div>
+                </div>
+            </section>
+
+            <section id="staging" class="tab-content hidden animate-in fade-in duration-300">
+                <div class="flex flex-col gap-6">
+                    <header class="flex flex-col sm:flex-row justify-between items-start sm:items-center gap-4">
+                        <div>
+                            <h2 class="text-xl font-bold text-slate-800 tracking-tight">Auditoría de Sincronización</h2>
+                            <p class="text-sm text-slate-500">Gestioná los cambios detectados por el robot en el
+                                catálogo del proveedor.</p>
+                        </div>
+                        <div class="flex items-center gap-2 w-full sm:w-auto justify-end">
+                            <button id="syncTreintaBtn" onclick="forceSyncWithTreinta()"
+                                class="bg-blue-600 hover:bg-blue-700 text-white px-3 py-2 rounded-lg text-xs font-bold flex items-center gap-1.5 cursor-pointer shadow-sm transition-all">
+                                <i data-lucide="refresh-cw" class="w-3.5 h-3.5"></i> Sincronizar Treinta
+                            </button>
+                            <!-- <button onclick="injectTestAlerts()"
+                                class="border border-dashed border-orange-400 text-orange-500 hover:bg-orange-50 px-3 py-2 rounded-lg text-xs font-bold flex items-center gap-1.5 cursor-pointer transition-all">
+                                <i data-lucide="beaker" class="w-3.5 h-3.5"></i> Inyectar Pruebas
+                            </button> -->
+                            <!-- <button onclick="fetchAlertas()"
+                                class="p-2 text-slate-400 hover:text-black transition-colors">
+                                <i data-lucide="rotate-cw" class="w-5 h-5"></i>
+                            </button> -->
+                        </div>
+                    </header>
+                    <div id="stagingList" class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4"></div>
+                    <div id="stagingEmptyState"
+                        class="hidden flex flex-col items-center justify-center py-20 text-slate-400">
+                        <i data-lucide="check-circle-2" class="w-12 h-12 mb-4 opacity-20"></i>
+                        <p>No hay cambios pendientes de revisión.</p>
                     </div>
                 </div>
             </section>

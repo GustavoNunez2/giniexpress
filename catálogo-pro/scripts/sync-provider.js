@@ -165,34 +165,164 @@ async function syncCatalog() {
         await browser.close();
 
         const finalScraped = scrapedProducts.filter(p => p.titulo && p.precioCosto > 0);
-        let inserts = [];
-        let updates = [];
+        let actualizarProductos = [];      // Para UPDATE en tabla principal
+        let insertarProductosNuevos = []; // Para INSERT en tabla principal (cuando sea)
+        let registrosAuditoria = [];       // Para INSERT en staging_products
 
+        // ════════════════════════════════════════════════════════════════════════
+        // 🔄 PROCESAR CAMBIOS: Productos modificados, nuevos y eliminados
+        // ════════════════════════════════════════════════════════════════════════
         for (const item of finalScraped) {
             const key = item.titulo.toLowerCase();
             if (localMap.has(key)) {
+                // ✅ PRODUCTO EXISTENTE - Comparar cambios
                 const localItem = localMap.get(key);
-                updates.push(supabase.from('productos').update({
-                    precio_costo: item.precioCosto,
-                    precio: localItem.precio_fijo || Math.round(item.precioCosto * (1 + (localItem.porcentaje_ganancia || DEFAULT_MARGIN) / 100)),
-                    imagen_url: item.imagen_url
-                }).eq('id', localItem.id));
+                const costoCambio = item.precioCosto !== localItem.precio_costo;
+
+                if (costoCambio) {
+                    // 📊 CALCULAR NUEVO PRECIO CON MARGEN INTELIGENTE
+                    let margenPorcentaje = localItem.porcentaje_ganancia || DEFAULT_MARGIN;
+                    
+                    // Si existe precio fijo, calcular el margen actual
+                    if (localItem.precio_fijo && localItem.precio_fijo > 0 && localItem.precio_costo > 0) {
+                        margenPorcentaje = ((localItem.precio_fijo / localItem.precio_costo) - 1) * 100;
+                    }
+
+                    const ventaSugerida = Math.round(
+                        item.precioCosto * (1 + margenPorcentaje / 100)
+                    );
+
+                    // 🔄 Actualizar tabla principal
+                    actualizarProductos.push({
+                        id: localItem.id,
+                        updates: {
+                            precio_costo: item.precioCosto,
+                            precio: ventaSugerida,
+                            imagen_url: item.imagen_url
+                        }
+                    });
+
+                    // 📝 Registrar en staging para auditoría
+                    registrosAuditoria.push({
+                        producto_id: localItem.id,
+                        titulo: localItem.titulo,
+                        tipo_cambio: 'PRECIO_MODIFICADO',
+                        costo_anterior: localItem.precio_costo,
+                        costo_nuevo: item.precioCosto,
+                        margen_porcentaje: parseFloat(margenPorcentaje.toFixed(2)),
+                        venta_sugerida: ventaSugerida,
+                        timestamp: new Date().toISOString()
+                    });
+
+                    console.log(`📌 [ACTUALIZADO] ${localItem.titulo}: $${localItem.precio_costo} → $${item.precioCosto} | Margen: ${margenPorcentaje.toFixed(2)}% | Venta sugerida: $${ventaSugerida}`);
+                } else {
+                    // Solo actualizar imagen si cambió
+                    if (localItem.imagen_url !== item.imagen_url) {
+                        actualizarProductos.push({
+                            id: localItem.id,
+                            updates: {
+                                imagen_url: item.imagen_url
+                            }
+                        });
+                    }
+                }
             } else {
-                inserts.push({
+                // ✨ PRODUCTO NUEVO - Registrar en staging, no en tabla principal
+                const margenBase = 40; // 40% de ganancia por defecto
+                const ventaSugerida = Math.round(
+                    item.precioCosto * (1 + margenBase / 100)
+                );
+
+                registrosAuditoria.push({
+                    producto_id: null, // Sin ID porque aún no está en tabla principal
                     titulo: item.titulo,
-                    precio_costo: item.precioCosto,
-                    porcentaje_ganancia: DEFAULT_MARGIN,
-                    precio_fijo: null,
-                    precio: Math.round(item.precioCosto * (1 + DEFAULT_MARGIN / 100)),
+                    tipo_cambio: 'NUEVO',
+                    costo_anterior: null,
+                    costo_nuevo: item.precioCosto,
+                    margen_porcentaje: margenBase,
+                    venta_sugerida: ventaSugerida,
+                    timestamp: new Date().toISOString(),
                     imagen_url: item.imagen_url
                 });
+
+                console.log(`✨ [NUEVO] ${item.titulo}: $${item.precioCosto} | Margen sugerido: ${margenBase}% | Venta sugerida: $${ventaSugerida}`);
             }
         }
 
-        if (inserts.length > 0) await supabase.from('productos').insert(inserts);
-        for (let i = 0; i < updates.length; i += 50) await Promise.all(updates.slice(i, i + 50));
+        // ════════════════════════════════════════════════════════════════════════
+        // 🗑️ DETECTAR PRODUCTOS ELIMINADOS (En BD local pero no en scraping)
+        // ════════════════════════════════════════════════════════════════════════
+        const scrapedTitles = new Set(finalScraped.map(p => p.titulo.toLowerCase()));
+        for (const [key, localItem] of localMap) {
+            if (!scrapedTitles.has(key)) {
+                registrosAuditoria.push({
+                    producto_id: localItem.id,
+                    titulo: localItem.titulo,
+                    tipo_cambio: 'ELIMINADO',
+                    costo_anterior: localItem.precio_costo,
+                    costo_nuevo: null,
+                    margen_porcentaje: null,
+                    venta_sugerida: null,
+                    timestamp: new Date().toISOString()
+                });
 
-        console.log(`[SINCRO COMPLETADA] Base de datos actualizada.`);
+                console.log(`🗑️  [ELIMINADO] ${localItem.titulo} (ya no disponible en proveedor)`);
+            }
+        }
+
+        // ════════════════════════════════════════════════════════════════════════
+        // 💾 APLICAR CAMBIOS: 1) Auditoría, 2) Actualizaciones de precios
+        // ════════════════════════════════════════════════════════════════════════
+
+        // 1️⃣ Guardar registros de auditoría en staging_products
+        if (registrosAuditoria.length > 0) {
+            console.log(`\n📋 Registrando ${registrosAuditoria.length} cambios en auditoría...`);
+            const { error: auditError } = await supabase
+                .from('staging_products')
+                .insert(registrosAuditoria);
+            
+            if (auditError) {
+                console.error(`⚠️  Error al guardar auditoría: ${auditError.message}`);
+            } else {
+                console.log(`✅ Auditoría guardada exitosamente`);
+            }
+        }
+
+        // 2️⃣ Actualizar precios en tabla principal (PILOTO AUTOMÁTICO)
+        if (actualizarProductos.length > 0) {
+            console.log(`\n⚙️  Actualizando ${actualizarProductos.length} productos en tabla principal...`);
+            
+            let updatePromises = [];
+            for (const { id, updates } of actualizarProductos) {
+                updatePromises.push(
+                    supabase.from('productos').update(updates).eq('id', id)
+                );
+            }
+
+            // Procesar actualizaciones en lotes de 50
+            for (let i = 0; i < updatePromises.length; i += 50) {
+                const batch = updatePromises.slice(i, i + 50);
+                const results = await Promise.all(batch);
+                
+                const errors = results.filter(r => r.error);
+                if (errors.length > 0) {
+                    console.error(`⚠️  ${errors.length} errores en lote de actualizaciones`);
+                    errors.forEach(e => console.error(`   → ${e.error.message}`));
+                }
+            }
+
+            console.log(`✅ Productos actualizados con piloto automático`);
+        }
+
+        // 📊 RESUMEN FINAL
+        console.log(`\n${'═'.repeat(70)}`);
+        console.log(`[SINCRO COMPLETADA]`);
+        console.log(`├─ Cambios registrados en auditoría: ${registrosAuditoria.length}`);
+        console.log(`├─ Productos actualizados: ${actualizarProductos.length}`);
+        console.log(`├─ Nuevos productos (en staging): ${registrosAuditoria.filter(r => r.tipo_cambio === 'NUEVO').length}`);
+        console.log(`├─ Productos eliminados: ${registrosAuditoria.filter(r => r.tipo_cambio === 'ELIMINADO').length}`);
+        console.log(`└─ Total de cambios detectados: ${registrosAuditoria.filter(r => r.tipo_cambio === 'PRECIO_MODIFICADO').length} modificaciones`);
+        console.log(`${'═'.repeat(70)}\n`);
     } catch (error) {
         console.error(`[Error]: ${error.message}`);
         if (browser) await browser.close();
