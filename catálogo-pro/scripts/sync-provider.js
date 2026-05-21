@@ -126,6 +126,7 @@ async function notificarCambios(cantidadNuevos, cantidadModificados) {
 🔄 Cambios de precio: ${cantidadModificados}
 🔗 [Ver panel de auditoría](https://gustavonunez2.github.io/giniexpress/admin.html)`;
 
+    console.log("DEBUG Telegram:", { token: !!token, chatId: !!chatId });
     const url = `https://api.telegram.org/bot${token}/sendMessage?chat_id=${chatId}&text=${encodeURIComponent(mensaje)}&parse_mode=Markdown`;
 
     // Ejecutamos el fetch sin esperar (fire-and-forget) para no bloquear el script
