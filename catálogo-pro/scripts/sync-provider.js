@@ -5,7 +5,15 @@ import 'dotenv/config';
 const PROVIDER_URL = 'https://catalogo.treinta.co/brajaexpress-e8aefd?sort=name-asc';
 const DEFAULT_MARGIN = 15;
 
-const limpiarTitulo = (t) => t.toLowerCase().replace(/[^a-z0-9]/g, '').trim();
+const limpiarTitulo = (t) => {
+    if (!t) return "";
+    return t.toString()
+            .toLowerCase()
+            .normalize("NFD") // Descompone caracteres con acentos
+            .replace(/[\u0300-\u036f]/g, "") // Elimina acentos
+            .replace(/[^a-z0-9]/g, "") // ELIMINA TODO: guiones, puntos, espacios, comillas, etc.
+            .trim();
+};
 
 const { SUPABASE_URL, SUPABASE_KEY, TELEGRAM_BOT_TOKEN, TELEGRAM_CHAT_ID } = process.env;
 if (!SUPABASE_URL || !SUPABASE_KEY) {
@@ -212,7 +220,7 @@ async function syncCatalog() {
         // 🔄 PROCESAR CAMBIOS: Productos modificados, nuevos y eliminados
         // ════════════════════════════════════════════════════════════════════════
         for (const item of finalScraped) {
-            const key = limpiarTitulo(item.titulo); 
+            const key = limpiarTitulo(item.titulo);
             if (localMap.has(key)) {
                 // ✅ PRODUCTO EXISTENTE - Comparar cambios
                 const localItem = localMap.get(key);
