@@ -129,17 +129,16 @@ async function notificarCambios(cantidadNuevos, cantidadModificados) {
         return;
     }
 
-    const mensaje = `🚨 *Actualización GINI EXPRESS*
-✅ Nuevos: ${cantidadNuevos}
-🔄 Cambios de precio: ${cantidadModificados}
-🔗 [Ver panel de auditoría](https://gustavonunez2.github.io/giniexpress/admin.html)`;
+    const mensaje = `🚨 <b>Actualización GINI EXPRESS</b>\n` +
+        `✅ Nuevos: ${cantidadNuevos}\n` +
+        `🔄 Cambios de precio: ${cantidadModificados}\n\n` +
+        `🔗 <a href="https://gustavonunez2.github.io/giniexpress/admin.html">Ver panel de auditoría</a>`;
 
-    // Construcción profesional de la URL
     const baseUrl = `https://api.telegram.org/bot${token}/sendMessage`;
     const params = new URLSearchParams({
         chat_id: chatId,
         text: mensaje,
-        parse_mode: 'Markdown'
+        parse_mode: 'HTML'
     });
 
     fetch(`${baseUrl}?${params.toString()}`)
@@ -328,10 +327,10 @@ async function syncCatalog() {
         }
 
         // ════════════════════════════════════════════════════════════════════════
-        // 💾 APLICAR CAMBIOS: 1) Auditoría, 2) Actualizaciones de precios
+        // 💾 APLICAR CAMBIOS: SOLO EN AUDITORÍA (PILOTO AUTOMÁTICO DESACTIVADO)
         // ════════════════════════════════════════════════════════════════════════
 
-        // 1️⃣ Guardar registros de auditoría en staging_products
+        // 1️⃣ Guardar registros de auditoría en staging_products (SÍ SE HACE)
         if (registrosAuditoria.length > 0) {
             console.log(`\n📋 Registrando ${registrosAuditoria.length} cambios en auditoría...`);
             const { error: auditError } = await supabase
@@ -339,37 +338,29 @@ async function syncCatalog() {
                 .insert(registrosAuditoria);
 
             if (auditError) {
-                console.error(`⚠️  Error al guardar auditoría: ${auditError.message}`);
+                console.error(`⚠️ Error al guardar auditoría: ${auditError.message}`);
             } else {
                 console.log(`✅ Auditoría guardada exitosamente`);
             }
         }
 
-        // 2️⃣ Actualizar precios en tabla principal (PILOTO AUTOMÁTICO)
-        if (actualizarProductos.length > 0) {
-            console.log(`\n⚙️  Actualizando ${actualizarProductos.length} productos en tabla principal...`);
-
+        // 2️⃣ Actualizar precios en tabla principal (COMENTADO - YA NO ES AUTOMÁTICO)
+        /* if (actualizarProductos.length > 0) {
+            console.log(`\n⚙️ Actualizando ${actualizarProductos.length} productos en tabla principal...`);
             let updatePromises = [];
             for (const { id, updates } of actualizarProductos) {
                 updatePromises.push(
                     supabase.from('productos').update(updates).eq('id', id)
                 );
             }
-
-            // Procesar actualizaciones en lotes de 50
             for (let i = 0; i < updatePromises.length; i += 50) {
                 const batch = updatePromises.slice(i, i + 50);
-                const results = await Promise.all(batch);
-
-                const errors = results.filter(r => r.error);
-                if (errors.length > 0) {
-                    console.error(`⚠️  ${errors.length} errores en lote de actualizaciones`);
-                    errors.forEach(e => console.error(`   → ${e.error.message}`));
-                }
+                await Promise.all(batch);
             }
-
             console.log(`✅ Productos actualizados con piloto automático`);
         }
+        */
+        console.log("ℹ️ Piloto automático desactivado. Todos los cambios van a la sala de espera (staging).");
 
         // ════════════════════════════════════════════════════════════════════════
         // 📊 RESUMEN FINAL Y NOTIFICACIÓN
