@@ -116,11 +116,10 @@ async function scrollAndExtract(page) {
 async function notificarCambios(cantidadNuevos, cantidadModificados) {
     const hora = new Date().getHours();
 
-    // Franja de silencio: 01:00 a 08:00
+    // Franja de silencio local: 01:00 a 08:00
     if (hora >= 1 && hora < 8) return;
     if (cantidadNuevos === 0 && cantidadModificados === 0) return;
 
-    // Usamos .trim() para limpiar cualquier espacio oculto que venga del .env o GitHub Secrets
     const token = process.env.TELEGRAM_BOT_TOKEN?.trim();
     const chatId = process.env.TELEGRAM_CHAT_ID?.trim();
 
@@ -129,22 +128,23 @@ async function notificarCambios(cantidadNuevos, cantidadModificados) {
         return;
     }
 
-    const mensaje = `🚨 <b>Actualización GINI EXPRESS</b>\n` +
-        `✅ Nuevos: ${cantidadNuevos}\n` +
-        `🔄 Cambios de precio: ${cantidadModificados}\n\n` +
+    // Formateo limpio en HTML (A prueba de balas)
+    const mensaje = `🚨 <b>Actualización GINI EXPRESS</b>\n\n` +
+        `✅ Nuevos: <b>${cantidadNuevos}</b>\n` +
+        `🔄 Cambios de precio: <b>${cantidadModificados}</b>\n\n` +
         `🔗 <a href="https://gustavonunez2.github.io/giniexpress/admin.html">Ver panel de auditoría</a>`;
 
     const baseUrl = `https://api.telegram.org/bot${token}/sendMessage`;
     const params = new URLSearchParams({
         chat_id: chatId,
         text: mensaje,
-        parse_mode: 'HTML'
+        parse_mode: 'HTML' // <--- HTML no se rompe con caracteres raros
     });
 
     fetch(`${baseUrl}?${params.toString()}`)
         .then(res => {
             if (!res.ok) throw new Error(`HTTP error! status: ${res.status}`);
-            console.log("✅ Notificación enviada a Telegram.");
+            console.log("✅ Notificación enviada a Telegram de manera exitosa.");
         })
         .catch(e => {
             console.error("❌ Falló el envío a Telegram:", e.message);
