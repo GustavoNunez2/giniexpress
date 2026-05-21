@@ -1354,7 +1354,8 @@
                     .not("procesado", "is", true)
                     .order("created_at", { ascending: false });
 
-                //console.log("DATOS TRAÍDOS DE STAGING:", n, "ERROR DE SUPABASE:", r);
+                console.log("DATOS RECIBIDOS DE STAGING:", n);
+                if (r) console.error("ERROR DE SUPABASE EN STAGING:", r);
                 if (r) throw r;
 
                 alertasLocales = (n || []).filter(alerta => !alertasProcesadasEnSesion.has(Number(alerta.id)));
@@ -1399,8 +1400,8 @@
                 const tituloTienda = productoReal ? productoReal.titulo : null;
                 const margenHistorico = productoReal ? (productoReal.porcentaje_ganancia || 0) : 40;
 
-                // CORRECCIÓN: Usamos 'imagen_url' que es la columna real de la BD
-                const u = o.imagen_url || (productoReal ? productoReal.imagen_url : null) || "./assets/fallback-imagen.svg";
+                // Leemos 'imagen_url_nueva' que es lo que inyecta el robot de sincronización
+                const u = o.imagen_url_nueva || (productoReal ? productoReal.imagen_url : null) || "./assets/fallback-imagen.svg";
                 const costoReferencia = o.costo_nuevo || 0;
 
                 let d = "bg-emerald-100 text-green-700", s = "✨ NUEVO";

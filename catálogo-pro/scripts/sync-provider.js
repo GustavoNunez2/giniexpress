@@ -261,7 +261,8 @@ async function syncCatalog() {
                         costo_nuevo: item.precioCosto,
                         margen_porcentaje: parseFloat(margenPorcentaje.toFixed(2)),
                         venta_sugerida: ventaSugerida,
-                        timestamp: new Date().toISOString()
+                        created_at: new Date().toISOString(),
+                        imagen_url_nueva: item.imagen_url
                     });
 
                     console.log(`📌 [ACTUALIZADO] ${localItem.titulo}: $${localItem.precio_costo} → $${item.precioCosto} | Margen: ${margenPorcentaje.toFixed(2)}% | Venta sugerida: $${ventaSugerida}`);
@@ -291,8 +292,8 @@ async function syncCatalog() {
                     costo_nuevo: item.precioCosto,
                     margen_porcentaje: margenBase,
                     venta_sugerida: ventaSugerida,
-                    timestamp: new Date().toISOString(),
-                    imagen_url: item.imagen_url
+                    created_at: new Date().toISOString(),
+                    imagen_url_nueva: item.imagen_url
                 });
 
                 console.log(`✨ [NUEVO] ${item.titulo}: $${item.precioCosto} | Margen sugerido: ${margenBase}% | Venta sugerida: $${ventaSugerida}`);
@@ -319,7 +320,7 @@ async function syncCatalog() {
                         costo_nuevo: null,
                         margen_porcentaje: null,
                         venta_sugerida: null,
-                        timestamp: new Date().toISOString()
+                        created_at: new Date().toISOString()
                     });
                     console.log(`🗑️  [ELIMINADO] ${localItem.titulo} (realmente no está)`);
                 }
