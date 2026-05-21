@@ -8,11 +8,11 @@ const DEFAULT_MARGIN = 15;
 const limpiarTitulo = (t) => {
     if (!t) return "";
     return t.toString()
-            .toLowerCase()
-            .normalize("NFD") // Descompone caracteres con acentos
-            .replace(/[\u0300-\u036f]/g, "") // Elimina acentos
-            .replace(/[^a-z0-9]/g, "") // ELIMINA TODO: guiones, puntos, espacios, comillas, etc.
-            .trim();
+        .toLowerCase()
+        .normalize("NFD") // Descompone caracteres con acentos
+        .replace(/[\u0300-\u036f]/g, "") // Elimina acentos
+        .replace(/[^a-z0-9]/g, "") // ELIMINA TODO: guiones, puntos, espacios, comillas, etc.
+        .trim();
 };
 
 const { SUPABASE_URL, SUPABASE_KEY, TELEGRAM_BOT_TOKEN, TELEGRAM_CHAT_ID } = process.env;
@@ -118,11 +118,11 @@ async function notificarCambios(cantidadNuevos, cantidadModificados) {
 
     // Franja de silencio: 01:00 a 08:00
     if (hora >= 1 && hora < 8) return;
-
     if (cantidadNuevos === 0 && cantidadModificados === 0) return;
 
-    const token = process.env.TELEGRAM_BOT_TOKEN;
-    const chatId = process.env.TELEGRAM_CHAT_ID;
+    // Usamos .trim() para limpiar cualquier espacio oculto que venga del .env o GitHub Secrets
+    const token = process.env.TELEGRAM_BOT_TOKEN?.trim();
+    const chatId = process.env.TELEGRAM_CHAT_ID?.trim();
 
     if (!token || !chatId) {
         console.warn("⚠️ Notificación omitida: Faltan credenciales de Telegram.");
@@ -134,18 +134,21 @@ async function notificarCambios(cantidadNuevos, cantidadModificados) {
 🔄 Cambios de precio: ${cantidadModificados}
 🔗 [Ver panel de auditoría](https://gustavonunez2.github.io/giniexpress/admin.html)`;
 
-    console.log("DEBUG Telegram:", { token: !!token, chatId: !!chatId });
-    const url = `https://api.telegram.org/bot${token}/sendMessage?chat_id=${chatId}&text=${encodeURIComponent(mensaje)}&parse_mode=Markdown`;
+    // Construcción profesional de la URL
+    const baseUrl = `https://api.telegram.org/bot${token}/sendMessage`;
+    const params = new URLSearchParams({
+        chat_id: chatId,
+        text: mensaje,
+        parse_mode: 'Markdown'
+    });
 
-    // Ejecutamos el fetch sin esperar (fire-and-forget) para no bloquear el script
-    // y manejamos errores internamente.
-    fetch(url)
+    fetch(`${baseUrl}?${params.toString()}`)
         .then(res => {
             if (!res.ok) throw new Error(`HTTP error! status: ${res.status}`);
             console.log("✅ Notificación enviada a Telegram.");
         })
         .catch(e => {
-            console.error("❌ Falló el envío a Telegram, pero el script sigue adelante:", e.message);
+            console.error("❌ Falló el envío a Telegram:", e.message);
         });
 }
 
@@ -162,6 +165,7 @@ async function syncCatalog() {
             const { data, error } = await supabase
                 .from('productos')
                 .select('id, titulo, precio, porcentaje_ganancia, precio_costo, precio_fijo')
+                .order('id')
                 .range(rangeStart, rangeEnd);
 
             if (error) throw error;
@@ -297,23 +301,29 @@ async function syncCatalog() {
         }
 
         // ════════════════════════════════════════════════════════════════════════
-        // 🗑️ DETECTAR PRODUCTOS ELIMINADOS (En BD local pero no en scraping)
+        // 🗑️ DETECTAR PRODUCTOS ELIMINADOS (Con Freno de Emergencia)
         // ════════════════════════════════════════════════════════════════════════
         const scrapedTitles = new Set(finalScraped.map(p => limpiarTitulo(p.titulo)));
-        for (const [key, localItem] of localMap) {
-            if (!scrapedTitles.has(key)) {
-                registrosAuditoria.push({
-                    producto_id: localItem.id,
-                    titulo: localItem.titulo,
-                    tipo_cambio: 'ELIMINADO',
-                    costo_anterior: localItem.precio_costo,
-                    costo_nuevo: null,
-                    margen_porcentaje: null,
-                    venta_sugerida: null,
-                    timestamp: new Date().toISOString()
-                });
 
-                console.log(`🗑️  [ELIMINADO] ${localItem.titulo} (ya no disponible en proveedor)`);
+        // Si el scraper capturó menos del 70% de lo que hay en BD, ABORTAR eliminación
+        if (finalScraped.length < (localMap.size * 0.7)) {
+            console.warn(`🚨 ALERTA: Scraper capturó solo ${finalScraped.length} productos (BD tiene ${localMap.size}).`);
+            console.warn("🛑 Freno de emergencia activado: Omitiendo detección de productos eliminados.");
+        } else {
+            for (const [key, localItem] of localMap) {
+                if (!scrapedTitles.has(key)) {
+                    registrosAuditoria.push({
+                        producto_id: localItem.id,
+                        titulo: localItem.titulo,
+                        tipo_cambio: 'ELIMINADO',
+                        costo_anterior: localItem.precio_costo,
+                        costo_nuevo: null,
+                        margen_porcentaje: null,
+                        venta_sugerida: null,
+                        timestamp: new Date().toISOString()
+                    });
+                    console.log(`🗑️  [ELIMINADO] ${localItem.titulo} (realmente no está)`);
+                }
             }
         }
 
