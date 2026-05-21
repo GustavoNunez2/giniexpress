@@ -133,7 +133,7 @@ async function notificarCambios(cantidadNuevos, cantidadModificados) {
     const mensaje = `🚨 <b>Actualización GINI EXPRESS</b>\n\n` +
         `✅ Nuevos: <b>${cantidadNuevos}</b>\n` +
         `🔄 Cambios de precio: <b>${cantidadModificados}</b>\n\n` +
-        `🔗 <a href="https://gustavonunez2.github.io/giniexpress/admin.html">Ver panel de auditoría</a>`;
+        `🔗 https://gustavonunez2.github.io/giniexpress/admin.html`;
 
     const baseUrl = `https://api.telegram.org/bot${token}/sendMessage`;
     const params = new URLSearchParams({
@@ -222,11 +222,14 @@ async function syncCatalog() {
 
         const { data: stagingActual } = await supabase
             .from('staging_products')
-            .select('producto_id, tipo_cambio')
+            .select('producto_id, titulo, tipo_cambio')
             .eq('procesado', false);
 
         const alertasExistentes = new Set(
-            (stagingActual || []).map(a => `${a.producto_id}-${a.tipo_cambio}`)
+            (stagingActual || []).map(a => {
+                const claveObj = a.producto_id ? a.producto_id : limpiarTitulo(a.titulo);
+                return `${claveObj}-${a.tipo_cambio}`;
+            })
         );
 
         // ════════════════════════════════════════════════════════════════════════
@@ -298,19 +301,24 @@ async function syncCatalog() {
                     item.precioCosto * (1 + margenBase / 100)
                 );
 
-                registrosAuditoria.push({
-                    producto_id: null, // Sin ID porque aún no está en tabla principal
-                    titulo: item.titulo,
-                    tipo_cambio: 'NUEVO',
-                    costo_anterior: null,
-                    costo_nuevo: item.precioCosto,
-                    margen_porcentaje: margenBase,
-                    venta_sugerida: ventaSugerida,
-                    created_at: new Date().toISOString(),
-                    imagen_url_nueva: item.imagen_url
-                });
+                const claveAlerta = `${limpiarTitulo(item.titulo)}-NUEVO`;
+                if (!alertasExistentes.has(claveAlerta)) {
+                    registrosAuditoria.push({
+                        producto_id: null, // Sin ID porque aún no está en tabla principal
+                        titulo: item.titulo,
+                        tipo_cambio: 'NUEVO',
+                        costo_anterior: null,
+                        costo_nuevo: item.precioCosto,
+                        margen_porcentaje: margenBase,
+                        venta_sugerida: ventaSugerida,
+                        created_at: new Date().toISOString(),
+                        imagen_url_nueva: item.imagen_url
+                    });
 
-                console.log(`✨ [NUEVO] ${item.titulo}: $${item.precioCosto} | Margen sugerido: ${margenBase}% | Venta sugerida: $${ventaSugerida}`);
+                    console.log(`✨ [NUEVO] ${item.titulo}: $${item.precioCosto} | Margen sugerido: ${margenBase}% | Venta sugerida: $${ventaSugerida}`);
+                } else {
+                    console.log(`ℹ️ Alerta de NUEVO para ${item.titulo} ya existe en staging, ignorando duplicado.`);
+                }
             }
         }
 
