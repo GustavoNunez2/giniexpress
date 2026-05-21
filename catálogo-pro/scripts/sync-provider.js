@@ -1,10 +1,11 @@
 import { createClient } from '@supabase/supabase-js';
 import puppeteer from 'puppeteer';
+import 'dotenv/config';
 
 const PROVIDER_URL = 'https://catalogo.treinta.co/brajaexpress-e8aefd?sort=name-asc';
 const DEFAULT_MARGIN = 15;
 
-const { SUPABASE_URL, SUPABASE_KEY } = process.env;
+const { SUPABASE_URL, SUPABASE_KEY, TELEGRAM_BOT_TOKEN, TELEGRAM_CHAT_ID } = process.env;
 if (!SUPABASE_URL || !SUPABASE_KEY) {
     console.error('Error fatal: Faltan las variables de entorno de Supabase.');
     process.exit(1);
@@ -102,6 +103,41 @@ async function scrollAndExtract(page) {
     return Array.from(foundMap.values());
 }
 
+async function notificarCambios(cantidadNuevos, cantidadModificados) {
+    const hora = new Date().getHours();
+
+    // Franja de silencio: 01:00 a 08:00
+    if (hora >= 1 && hora < 8) return;
+
+    if (cantidadNuevos === 0 && cantidadModificados === 0) return;
+
+    const token = process.env.TELEGRAM_BOT_TOKEN;
+    const chatId = process.env.TELEGRAM_CHAT_ID;
+
+    if (!token || !chatId) {
+        console.warn("⚠️ Notificación omitida: Faltan credenciales de Telegram.");
+        return;
+    }
+
+    const mensaje = `🚨 *Actualización GINI EXPRESS*
+✅ Nuevos: ${cantidadNuevos}
+🔄 Cambios de precio: ${cantidadModificados}
+🔗 [Ver panel de auditoría](https://gustavonunez2.github.io/giniexpress/admin.html)`;
+
+    const url = `https://api.telegram.org/bot${token}/sendMessage?chat_id=${chatId}&text=${encodeURIComponent(mensaje)}&parse_mode=Markdown`;
+
+    // Ejecutamos el fetch sin esperar (fire-and-forget) para no bloquear el script
+    // y manejamos errores internamente.
+    fetch(url)
+        .then(res => {
+            if (!res.ok) throw new Error(`HTTP error! status: ${res.status}`);
+            console.log("✅ Notificación enviada a Telegram.");
+        })
+        .catch(e => {
+            console.error("❌ Falló el envío a Telegram, pero el script sigue adelante:", e.message);
+        });
+}
+
 async function syncCatalog() {
     console.log(`[${new Date().toISOString()}] Arrancando escáner...`);
     let browser;
@@ -182,7 +218,7 @@ async function syncCatalog() {
                 if (costoCambio) {
                     // 📊 CALCULAR NUEVO PRECIO CON MARGEN INTELIGENTE
                     let margenPorcentaje = localItem.porcentaje_ganancia || DEFAULT_MARGIN;
-                    
+
                     // Si existe precio fijo, calcular el margen actual
                     if (localItem.precio_fijo && localItem.precio_fijo > 0 && localItem.precio_costo > 0) {
                         margenPorcentaje = ((localItem.precio_fijo / localItem.precio_costo) - 1) * 100;
@@ -280,7 +316,7 @@ async function syncCatalog() {
             const { error: auditError } = await supabase
                 .from('staging_products')
                 .insert(registrosAuditoria);
-            
+
             if (auditError) {
                 console.error(`⚠️  Error al guardar auditoría: ${auditError.message}`);
             } else {
@@ -291,7 +327,7 @@ async function syncCatalog() {
         // 2️⃣ Actualizar precios en tabla principal (PILOTO AUTOMÁTICO)
         if (actualizarProductos.length > 0) {
             console.log(`\n⚙️  Actualizando ${actualizarProductos.length} productos en tabla principal...`);
-            
+
             let updatePromises = [];
             for (const { id, updates } of actualizarProductos) {
                 updatePromises.push(
@@ -303,7 +339,7 @@ async function syncCatalog() {
             for (let i = 0; i < updatePromises.length; i += 50) {
                 const batch = updatePromises.slice(i, i + 50);
                 const results = await Promise.all(batch);
-                
+
                 const errors = results.filter(r => r.error);
                 if (errors.length > 0) {
                     console.error(`⚠️  ${errors.length} errores en lote de actualizaciones`);
@@ -314,7 +350,16 @@ async function syncCatalog() {
             console.log(`✅ Productos actualizados con piloto automático`);
         }
 
-        // 📊 RESUMEN FINAL
+        // ════════════════════════════════════════════════════════════════════════
+        // 📊 RESUMEN FINAL Y NOTIFICACIÓN
+        // ════════════════════════════════════════════════════════════════════════
+
+        // 1. Calculamos los totales ANTES del log final
+        const nuevos = registrosAuditoria.filter(r => r.tipo_cambio === 'NUEVO').length;
+        const modificados = registrosAuditoria.filter(r => r.tipo_cambio === 'PRECIO_MODIFICADO').length;
+
+        // 2. Disparamos la notificación a Telegram
+        await notificarCambios(nuevos, modificados);
         console.log(`\n${'═'.repeat(70)}`);
         console.log(`[SINCRO COMPLETADA]`);
         console.log(`├─ Cambios registrados en auditoría: ${registrosAuditoria.length}`);
